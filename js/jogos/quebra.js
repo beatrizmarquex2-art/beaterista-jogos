@@ -1,0 +1,164 @@
+// Quebra-cabeça musical: tela. Peças da cena do Paul no palco; regras em quebra-logic.js. Sem drag-and-drop nativo (toque: peça e depois posição; mouse também arrasta).
+import { h } from '../util.js';
+import { confirmSheet } from '../ui.js';
+import * as Q from './quebra-logic.js';
+import { getGame, setGame, sfx, reduced } from './base.js';
+
+const ID = 'quebra';
+// Imagens do quebra-cabeça. Pra pôr mais uma: salve em assets/jogos/ (1536×1024, proporção 3:2), acrescente aqui e em sw.js. Com 2 ou mais, a tela inicial mostra as miniaturas pra escolher.
+export const IMAGES = [
+  { id: 'palco', src: 'assets/jogos/palco.webp', nome: 'Paul no palco' },
+  { id: 'guitarra', src: 'assets/jogos/guitarra.webp', nome: 'Paul tocando guitarra' },
+  { id: 'baixo', src: 'assets/jogos/baixo.webp', nome: 'Paul tocando baixo' },
+  { id: 'teclado', src: 'assets/jogos/teclado.webp', nome: 'Paul tocando teclado' },
+  { id: 'sax', src: 'assets/jogos/sax.webp', nome: 'Paul tocando saxofone' },
+  { id: 'praca', src: 'assets/jogos/praca.webp', nome: 'Paul tocando saxofone numa praça à noite' },
+  { id: 'estudio', src: 'assets/jogos/estudio.webp', nome: 'Paul tocando teclado num estúdio de gravação' },
+  { id: 'parque', src: 'assets/jogos/parque.webp', nome: 'Paul tocando baixo num parque em festa' },
+  { id: 'garagem', src: 'assets/jogos/garagem.webp', nome: 'Paul tocando guitarra numa garagem' },
+  { id: 'terraco', src: 'assets/jogos/terraco.webp', nome: 'Paul tocando bateria num terraço ao pôr do sol' },
+];
+const SIZES = [[6, '6 peças'], [12, '12 peças'], [24, '24 peças']];
+
+export function mount(host, opts) {
+  const M = opts && opts.mission ? opts.mission : null; // Modo Aventura: monta com os params da missão, não lê nem grava nada do modo livre
+  let gone = false; let tick = 0; let reported = false;
+  const saved = M ? {} : getGame(ID);
+  const prefs = M ? { diff: Q.DIFFS[M.params.diff] ? M.params.diff : 6, free: false } : { diff: [6, 12, 24].includes(saved.diff) ? saved.diff : 6, free: saved.free === true };
+  const pick = (id) => IMAGES.find((x) => x.id === id) || IMAGES[0];
+  let imgId = pick(M ? M.params.img : saved.img).id; const SRC = () => pick(imgId).src; const NOME = () => pick(imgId).nome;
+  let best = saved.best && typeof saved.best === 'object' ? saved.best : {};
+  let g = null; let selected = null; let hintCell = null; let msg = ''; let img = null; let paused = false; let viewing = false; let zoom = false; let last = 0; let record = false;
+  let timeEl = null;
+  const root = h('div', { class: 'jg jg-quebra' }); host.replaceChildren(root);
+  const persist = () => M || setGame(ID, { ...prefs, img: imgId, best, game: g && !g.over ? g : null, gameImg: g && !g.over ? imgId : null });
+  const running = () => g && !g.free && g.started && !g.over && !document.hidden && !paused;
+
+  /* ---------- relógio: soma só o tempo em que a partida está rodando ---------- */
+  function clock() {
+    const now = performance.now(); if (last && running()) g.elapsed += now - last; last = now;
+    if (timeEl) timeEl.textContent = g && !g.free ? Q.fmtTime(g.elapsed) : '—';
+  }
+  const startClock = () => { clearInterval(tick); last = performance.now(); tick = setInterval(clock, 250); };
+  const stopClock = () => { clearInterval(tick); tick = 0; last = 0; };
+  const pause = (v) => { clock(); paused = v; last = performance.now(); if (g) persist(); };
+
+  /* ---------- carregamento da imagem ---------- */
+  function load(done) {
+    root.replaceChildren(h('p', { class: 'jg-p', role: 'status' }, 'carregando a imagem…'));
+    const im = new Image();
+    im.onload = () => { if (gone) return; img = { w: im.naturalWidth, h: im.naturalHeight }; done(); };
+    im.onerror = () => { if (gone) return; root.replaceChildren(h('p', { class: 'jg-msg', role: 'alert' }, 'não consegui carregar a imagem do quebra-cabeça.'), h('button', { class: 'btn primary', type: 'button', onclick: () => load(done) }, 'tentar de novo')); };
+    im.src = SRC();
+  }
+
+  function intro() {
+    stopClock(); g = null; selected = null; hintCell = null;
+    const resume = Q.validGame(saved.game) && !saved.game.over ? saved.game : null;
+    const seg = h('div', { class: 'jg-seg', role: 'radiogroup', 'aria-label': 'dificuldade' }, ...SIZES.map(([v, l]) => h('button', { type: 'button', role: 'radio', 'aria-checked': String(prefs.diff === v), class: prefs.diff === v ? 'on' : '', onclick: () => { prefs.diff = v; setGame(ID, { diff: v }); intro(); } }, l)));
+    const bests = SIZES.map(([d]) => [d, best[`${d}:sem`], best[`${d}:com`]]).filter((b) => b[1] != null || b[2] != null);
+    root.replaceChildren(...[
+      h('h2', { class: 'jg-h hand' }, 'quebra-cabeça'), h('img', { class: 'jg-qprev', src: SRC(), alt: `${NOME()}, a imagem que você vai montar` }),
+      IMAGES.length > 1 ? h('div', { class: 'jg-seg jg-imgs', role: 'radiogroup', 'aria-label': 'imagem' }, ...IMAGES.map((im) => h('button', { type: 'button', role: 'radio', 'aria-checked': String(imgId === im.id), 'aria-label': im.nome, title: im.nome, class: imgId === im.id ? 'on' : '', onclick: () => { imgId = im.id; setGame(ID, { img: imgId }); intro(); } }, h('img', { src: im.src, alt: '', width: 72, height: 48, loading: 'lazy' })))) : null,
+      h('p', { class: 'jg-lab' }, 'tamanho'), seg,
+      h('label', { class: 'jg-chk' }, h('input', { type: 'checkbox', checked: prefs.free ? true : null, onchange: (e) => { prefs.free = e.target.checked; setGame(ID, { free: prefs.free }); } }), ' modo livre (sem tempo)'),
+      h('details', { class: 'jg-rules' }, h('summary', {}, 'regras rápidas'), h('ul', {}, h('li', {}, 'toque numa peça da bandeja e depois no lugar dela no quadro, ou arraste a peça até o lugar (no celular: arraste pra cima, ou segure um instante e arraste).'), h('li', {}, 'só encaixa no lugar certo; errou, ela volta para a bandeja.'), h('li', {}, '“dica” mostra o lugar da peça escolhida. “ver imagem” mostra a figura pronta.'), h('li', {}, 'o tempo começa na primeira jogada e para quando a aba fica oculta.'))),
+      bests.length ? h('p', { class: 'jg-p muted' }, 'melhores: ', bests.map(([d, s, c]) => `${d} peças ${s != null ? `sem dicas ${Q.fmtTime(s)}` : ''}${s != null && c != null ? ' · ' : ''}${c != null ? `com dicas ${Q.fmtTime(c)}` : ''}`).join(' | ')) : null,
+      h('div', { class: 'jg-actions' }, resume ? h('button', { class: 'btn primary', type: 'button', onclick: () => { imgId = pick(saved.gameImg).id; load(() => begin(resume)); } }, 'continuar partida') : null,
+        h('button', { class: resume ? 'btn' : 'btn primary', type: 'button', onclick: () => load(() => begin(Q.newGame(prefs))) }, resume ? 'nova partida' : 'iniciar')),
+    ].filter(Boolean));
+  }
+  function begin(game) { g = game; selected = null; hintCell = null; msg = ''; paused = false; viewing = false; zoom = false; record = false; persist(); draw(); startClock(); }
+
+  const pieceStyle = (i) => { const { cols, rows } = Q.DIFFS[g.diff]; return `background-image:url(${SRC()});background-size:${cols * 100}% ${rows * 100}%;background-position:${Q.bgPos(i % cols, Math.floor(i / cols), cols, rows)};aspect-ratio:${(img.w / cols) / (img.h / rows)}`; };
+  const posLabel = (p) => { const { cols } = Q.DIFFS[g.diff]; return `linha ${Math.floor(p / cols) + 1}, coluna ${(p % cols) + 1}`; };
+
+  function draw() {
+    const { cols, rows } = Q.DIFFS[g.diff]; const n = g.diff;
+    const cells = Array.from({ length: n }, (_, p) => g.placed[p]
+      ? h('div', { class: 'jg-pz fixed', style: pieceStyle(p), role: 'img', 'aria-label': `peça no lugar: ${posLabel(p)}` })
+      : h('button', { type: 'button', class: `jg-pz slot${hintCell === p ? ' hint' : ''}`, 'aria-label': `posição vazia: ${posLabel(p)}${hintCell === p ? ' (dica: aqui)' : ''}`, 'data-pos': p, disabled: g.over || selected == null, onclick: () => put(p) }));
+    const tray = g.tray.map((p) => h('button', { type: 'button', class: `jg-pz tp${selected === p ? ' sel' : ''}`, style: pieceStyle(p), 'aria-pressed': String(selected === p), 'aria-label': `peça ${g.tray.indexOf(p) + 1} de ${g.tray.length} na bandeja${selected === p ? ', selecionada' : ''}`, 'data-piece': p,
+      onclick: () => { if (dragMoved) return; selected = selected === p ? null : p; hintCell = null; sfx('tap'); draw(); }, onpointerdown: (e) => dragStart(e, p) }));
+    timeEl = h('b', {}, g.free ? '—' : Q.fmtTime(g.elapsed));
+    root.replaceChildren(...[
+      h('div', { class: 'jg-bar' }, h('div', { class: 'jg-who' }, h('b', {}, 'peças'), h('span', {}, `${Q.placedCount(g)}/${n}`)), h('div', { class: 'jg-who' }, h('b', {}, 'tempo'), h('span', {}, timeEl)), h('div', { class: 'jg-who' }, h('b', {}, 'dicas'), h('span', {}, String(g.hints)))),
+      h('div', { class: 'jg-actions row' },
+        h('button', { class: 'btn small', type: 'button', onclick: () => { viewing = true; draw(); } }, 'ver imagem'),
+        h('button', { class: 'btn small', type: 'button', disabled: g.over || selected == null, onclick: hint }, 'dica'),
+        h('button', { class: 'btn small ghost', type: 'button', 'aria-pressed': String(zoom), onclick: () => { zoom = !zoom; draw(); } }, zoom ? 'reduzir quadro' : 'ampliar quadro'),
+        h('button', { class: 'btn small ghost', type: 'button', onclick: showRules }, 'regras')),
+      h('p', { class: 'jg-msg', 'aria-live': 'polite' }, g.over ? '' : msg),
+      h('div', { class: `jg-boardwrap${zoom ? ' zoom' : ''}` }, h('div', { class: 'jg-pboard', role: 'group', 'aria-label': `quadro ${cols} colunas por ${rows} linhas`, style: `grid-template-columns:repeat(${cols},1fr);grid-template-rows:repeat(${rows},1fr);aspect-ratio:${img.w}/${img.h}` }, ...cells)),
+      g.over ? result() : h('div', { class: 'jg-tray', role: 'group', 'aria-label': 'bandeja de peças, role para os lados' }, ...tray),
+      viewing ? h('div', { class: 'jg-over', role: 'dialog', 'aria-label': 'imagem de referência' }, h('img', { src: SRC(), alt: NOME() }), h('button', { class: 'btn primary', type: 'button', onclick: () => { viewing = false; draw(); } }, 'fechar')) : null,
+    ].filter(Boolean));
+  }
+
+  function put(pos) {
+    if (selected == null || g.over) return;
+    const piece = selected; const r = Q.place(g, piece, pos); g = r.g; selected = null; hintCell = null;
+    if (r.ok) { msg = ''; sfx('place'); } else { msg = 'ainda não é aí: a peça voltou para a bandeja'; sfx('bad'); }
+    if (g.over) return finish();
+    persist(); draw(); if (g.started && !tick) startClock();
+  }
+  function hint() { if (selected == null) return; g = Q.useHint(g); hintCell = selected; msg = `dica: a peça escolhida vai na posição ${posLabel(selected)}`; sfx('tap'); persist(); draw(); }
+  function showRules() { pause(true); const el = h('div', { class: 'jg-over', role: 'dialog', 'aria-label': 'regras' }, h('p', {}, 'toque numa peça e depois no lugar dela, ou arraste a peça até o lugar. o tempo está pausado.'), h('button', { class: 'btn primary', type: 'button', onclick: () => { el.remove(); pause(false); } }, 'continuar')); root.append(el); el.querySelector('button').focus(); }
+  function finish() {
+    clock(); stopClock();
+    if (M) { sfx('win'); draw(); if (!reported && !gone && opts.onResult) { reported = true; opts.onResult({ won: true, diff: g.diff, img: imgId, errors: g.errors, hints: g.hints, elapsed: Math.round(g.elapsed), moves: g.diff + g.errors }); } return; }
+    const r = Q.recordBest(best, g); best = r.best; record = r.record; setGame(ID, { ...prefs, best, game: null }); sfx('win'); draw();
+  }
+  function result() {
+    return h('div', { class: 'jg-result', role: 'status' }, h('h3', { class: 'hand' }, 'montou! 🤘'),
+      h('p', {}, g.free ? 'modo livre: sem tempo' : `tempo: ${Q.fmtTime(g.elapsed)}${record ? ' · novo recorde!' : ''}`), h('p', { class: 'muted' }, `${g.hints} dica${g.hints === 1 ? '' : 's'} · ${g.errors} tentativa${g.errors === 1 ? '' : 's'} errada${g.errors === 1 ? '' : 's'}`),
+      M ? null : h('div', { class: 'jg-actions row' }, h('button', { class: 'btn primary', type: 'button', onclick: () => begin(Q.newGame(prefs)) }, 'jogar de novo'), h('button', { class: 'btn ghost', type: 'button', onclick: intro }, 'voltar às opções')));
+  }
+
+  /* ---------- arrastar: mouse/caneta na hora; no toque, arrastar pra cima (ou segurar um instante e arrastar). Arrastar pro lado continua rolando a bandeja ---------- */
+  let dragMoved = false; let ghost = null; let drag = null; let overCell = null; let holdT = 0;
+  const noScroll = (e) => { if (drag && drag.on && e.cancelable) e.preventDefault(); }; // enquanto arrasta a peça, a tela não rola
+  function cellAt(x, y) { const t = document.elementFromPoint(x, y); return t && t.closest ? t.closest('[data-pos]') : null; }
+  function dragStart(e, p) {
+    if (g.over || (e.pointerType !== 'touch' && e.button !== 0)) return;
+    drag = { p, x: e.clientX, y: e.clientY, el: e.currentTarget, touch: e.pointerType === 'touch', hold: false, on: false }; dragMoved = false;
+    if (drag.touch) { clearTimeout(holdT); holdT = setTimeout(() => { if (drag && !drag.on) { drag.hold = true; drag.el.classList.add('lift'); try { navigator.vibrate && navigator.vibrate(8); } catch { /* sem vibração */ } } }, 260); }
+    addEventListener('pointermove', dragMove); addEventListener('pointerup', dragEnd, { once: true }); addEventListener('pointercancel', dragEnd, { once: true });
+    if (drag.touch) addEventListener('touchmove', noScroll, { passive: false });
+  }
+  function dragBegin() {
+    drag.on = true; dragMoved = true; clearTimeout(holdT); drag.el.classList.remove('lift'); drag.el.classList.add('picked');
+    ghost = drag.el.cloneNode(false); ghost.className = 'jg-pz ghost'; ghost.style.width = `${drag.el.offsetWidth * (drag.touch ? 1.25 : 1)}px`; document.body.append(ghost);
+  }
+  function dragMove(e) {
+    if (!drag) return;
+    if (!drag.on) {
+      const dx = e.clientX - drag.x; const dy = e.clientY - drag.y; const d = Math.hypot(dx, dy);
+      if (!drag.touch) { if (d < 6) return; dragBegin(); }
+      else if (drag.hold) { if (d < 4) return; dragBegin(); }
+      else if (Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx) * 0.6) dragBegin(); // pra cima/baixo (ou diagonal subindo): é arrastar a peça; quase na horizontal rola a bandeja
+      else { if (Math.abs(dx) > 10) { clearTimeout(holdT); } return; } // pro lado: o navegador rola a bandeja
+    }
+    const up = drag.touch ? ghost.offsetHeight * 0.9 : 0; // no dedo, a peça fica um pouco acima pra não ser coberta
+    const cx = e.clientX; const cy = e.clientY - up;
+    ghost.style.left = `${cx - ghost.offsetWidth / 2}px`; ghost.style.top = `${cy - ghost.offsetHeight / 2}px`;
+    const cell = cellAt(cx, cy); if (cell !== overCell) { if (overCell) overCell.classList.remove('over'); overCell = cell; if (cell && !cell.classList.contains('fixed')) cell.classList.add('over'); }
+  }
+  function dragEnd(e) {
+    clearTimeout(holdT); removeEventListener('pointermove', dragMove); removeEventListener('pointercancel', dragEnd); removeEventListener('pointerup', dragEnd); removeEventListener('touchmove', noScroll);
+    if (overCell) { overCell.classList.remove('over'); overCell = null; }
+    let target = null; if (ghost && drag && e.type === 'pointerup') target = cellAt(e.clientX, e.clientY - (drag.touch ? ghost.offsetHeight * 0.9 : 0));
+    if (ghost) { ghost.remove(); ghost = null; }
+    if (drag) { drag.el.classList.remove('lift', 'picked'); if (drag.on && target && target.dataset.pos != null) { selected = drag.p; put(Number(target.dataset.pos)); } }
+    drag = null; setTimeout(() => { dragMoved = false; }, 0);
+  }
+
+  const onVis = () => { if (document.hidden) { clock(); persist(); } else last = performance.now(); };
+  document.addEventListener('visibilitychange', onVis);
+  if (M) load(() => begin(Q.newGame({ diff: prefs.diff, free: false }))); else intro();
+  return {
+    inProgress: () => !!(g && !g.over && g.started),
+    restart: async () => { if (g && !g.over && g.started && !(await confirmSheet('começar nova partida?', 'a partida atual será perdida.', 'nova partida'))) return; intro(); },
+    destroy() { gone = true; stopClock(); if (g) persist(); if (ghost) ghost.remove(); document.removeEventListener('visibilitychange', onVis); removeEventListener('pointermove', dragMove); removeEventListener('pointerup', dragEnd); removeEventListener('pointercancel', dragEnd); void reduced; },
+  };
+}

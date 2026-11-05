@@ -1,0 +1,280 @@
+/* Beater Rhythm Games — estilos. Tudo escopado em .bmr (menos as classes .rz-*, que são exclusivas dos jogos).
+   Troque as variáveis abaixo pra combinar com o tema do site. */
+.bmr{
+  --ink:#0D0B0D;--char:#1B181D;--char-2:#232026;--char-3:#2E2A31;--char-4:#3a343e;--red:#D92031;--red-2:#a51a28;
+  --ivory:#F3E7D4;--ivory-2:#d9ccb6;--ivory-3:#9a8f80;--brass:#AE895F;--neon1:#ff4fd8;--neon3:#ffd36b;
+  --f-pixel:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--f-body:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--f-mono:ui-monospace,Menlo,Consolas,monospace;
+  --rzp:clamp(132px,22dvh,230px);
+  position:relative;color:var(--ivory);font-family:var(--f-body);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;
+}
+.bmr,.bmr *,.bmr *::before,.bmr *::after{box-sizing:border-box}
+.bmr button{font:inherit;color:inherit}
+.bmr .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.bmr .muted{color:var(--ivory-3)}.bmr .small{font-size:14px}
+.bmr .tag{color:var(--neon3);font:12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase}
+.bmr .display{font-family:var(--f-pixel);font-weight:700;font-size:clamp(30px,6vw,48px);line-height:1}
+.bmr .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:16px;padding:10px 16px;min-height:46px;background:var(--char-3);color:var(--ivory);border:0;cursor:pointer;text-decoration:none;border-radius:12px;touch-action:manipulation;transition:transform .12s,filter .12s}
+.bmr .btn:hover{filter:brightness(1.15)}.bmr .btn:active{transform:scale(.97)}
+.bmr .btn-red{background:linear-gradient(135deg,#ff3b5c,#d92031 60%,#b0182a);box-shadow:0 6px 20px -6px rgba(255,59,92,.55)}
+.bmr .btn-ghost{background:transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.bmr .btn-sm{font-size:14px;min-height:40px;padding:6px 12px}
+.bmr .btn[disabled]{opacity:.45;cursor:not-allowed}
+.bmr .panel{background:rgba(35,32,38,.8);padding:16px;border-radius:16px;box-shadow:0 0 0 1px rgba(255,255,255,.08);min-width:0;display:flex;flex-direction:column;gap:12px}
+.bmr .panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.bmr .field{width:100%;min-width:0;background:#17121a;border:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);padding:10px 12px;font-size:16px;color:var(--ivory);border-radius:12px}
+.bmr .field:focus{outline:none;box-shadow:inset 0 0 0 1px var(--neon1),0 0 0 3px rgba(255,79,216,.18)}
+.bmr .field::placeholder{color:var(--ivory-3);opacity:1}
+.bmr .range{-webkit-appearance:none;appearance:none;width:100%;height:28px;background:transparent;cursor:pointer;min-width:0}
+.bmr .range::-webkit-slider-runnable-track{height:4px;background:var(--char-4)}.bmr .range::-moz-range-track{height:4px;background:var(--char-4)}
+.bmr .range::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;margin-top:-8px;background:var(--ivory);border:0;border-radius:50%}
+.bmr .range::-moz-range-thumb{width:20px;height:20px;background:var(--ivory);border:0;border-radius:50%}
+.bmr .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.bmr .segtabs{display:inline-flex;flex-wrap:wrap;box-shadow:0 0 0 1px rgba(255,255,255,.12);background:var(--char-2);border-radius:12px;overflow:hidden}
+.bmr .segtabs button{font-weight:600;font-size:15px;padding:8px 13px;min-height:44px;background:transparent;border:0;cursor:pointer;color:var(--ivory-3);touch-action:manipulation}
+.bmr .segtabs button[aria-pressed="true"]{background:var(--red);color:var(--ivory)}
+.bmr .est{font-family:var(--f-mono);font-size:12px;color:var(--ivory-3);letter-spacing:.04em}
+.bmr .view{display:block}
+.bmr .ctl-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bmr-stage{min-width:0}
+.bmr-fgbar{padding:4px 0 10px}
+.bmr-toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translate(-50%,20px);max-width:min(92vw,420px);background:#000d;color:#fff;padding:10px 14px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:99}
+.bmr-toast.on{opacity:1;transform:translate(-50%,0)}
+body.rz-lock{overscroll-behavior:none}
+
+/* ===== jogos ===== */
+@media(min-width:760px){.rz-games{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.rz-g{display:flex;flex-direction:column;gap:3px;padding:10px;border:0;cursor:pointer;text-align:left;font:inherit;color:var(--ivory);background:var(--char-2);box-shadow:inset 0 -3px 0 var(--gc)}
+.rz-g b{font-size:15px}
+.rz-g span{font-size:12px;color:var(--ivory-3)}
+.rz-g.on{box-shadow:inset 0 -3px 0 var(--gc),0 0 0 2px var(--gc)}
+.rz-row{margin:8px 0}
+.rz-styles{display:flex;gap:6px}
+.rz-st{flex:1;min-height:42px;border:0;cursor:pointer;font:inherit;font-weight:600;color:var(--ivory);background:var(--char-2);box-shadow:inset 0 -3px 0 var(--sc)}
+.rz-st.on{background:var(--sc);color:#140c0e}
+.rz-q{margin:6px 0}
+.rz-songs{list-style:none;padding:0;margin:8px 0;display:grid;gap:4px}
+.rz-song{display:grid;grid-template-columns:32px 1fr auto;grid-template-rows:auto auto;column-gap:10px;align-items:center;width:100%;padding:8px 10px;border:0;cursor:pointer;text-align:left;font:inherit;color:var(--ivory);background:var(--char-2)}
+.rz-song .rz-n{grid-row:1/3;font-family:var(--f-mono);color:var(--brass);text-align:center}
+.rz-song .small{grid-column:2}
+.rz-b{grid-column:3;grid-row:1/3;font-weight:700;color:#e8c07a}
+.rz-hud{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:13px;margin-bottom:6px}
+.rz-hud b{font-family:var(--f-mono)}
+.rz-hud>span:first-child{flex-basis:100%;font-weight:600}
+.rz-stage{width:100%;height:max(320px,calc(100dvh - 290px));background:#000;touch-action:none}
+.rz-stage canvas{width:100%;height:100%;display:block}
+.rz-st-tiles{height:max(380px,calc(100dvh - 200px))}
+.rz-pads{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:4px;margin-top:6px;touch-action:none;user-select:none;-webkit-user-select:none}
+.rz-pad{min-height:74px;border:0;cursor:pointer;font:inherit;color:#140c0e;background:var(--c);opacity:.78;box-shadow:inset 0 -5px 0 rgba(0,0,0,.3);touch-action:none}
+.rz-pad.on{opacity:1;transform:translateY(2px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.3)}
+.rz-pad span{font-size:12px;font-weight:600}
+.rz-pad b{font-size:26px}
+.rz-piano .rz-pad{background:#F3E7D4}
+.rz-setas .rz-pad{min-height:84px}
+.rz-end{text-align:center}
+.rz-big{font-size:46px;font-weight:800;margin:8px 0;color:#e8c07a}
+.rz-off{color:var(--char-4)}
+.rz-playing{padding-top:4px}
+.rz-stage{height:calc(100dvh - 230px);min-height:300px}
+.rz-pad{min-height:64px}
+.rz-stage{height:calc(100dvh - 300px)!important}
+.rz-stage{height:calc(100dvh - 205px - var(--rzp))!important;min-height:240px}
+.rz-stage.rz-st-tiles{height:calc(100dvh - 235px)!important;min-height:300px}
+.rz-pads{gap:6px!important;margin-top:8px!important}
+.rz-pad{min-height:var(--rzp)!important;border-radius:12px;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.rz-pad.on{opacity:1;filter:brightness(1.25)}
+.rz-pad span{font-size:clamp(13px,2.4vw,22px)!important;font-weight:700}
+.rz-pad b{font-size:clamp(34px,7vw,60px)!important}
+.rz-n7 .rz-pad,.rz-n8 .rz-pad{border-radius:8px}
+.rz-n8{gap:4px!important}
+.rz-big-tabs button{min-height:46px;font-size:15px;padding:0 16px}
+.rz-countrow{display:grid;gap:6px}
+.rz-lbl{font:12px var(--f-mono);opacity:.7;text-transform:uppercase}
+.rz-lanes{margin:0}
+.rz-how{display:grid;gap:8px;margin:8px 0}
+.rz-how ol{margin:0;padding-left:20px;display:grid;gap:4px}
+.rz-howto{display:grid;gap:12px}
+.rz-howsvg{width:100%;max-width:420px;margin:0 auto;border-radius:12px}
+.rz-steps{margin:0;padding-left:22px;display:grid;gap:10px;font-size:16px;line-height:1.4}
+.rz-bigbtn{min-height:54px;font-size:17px}
+.rz-lives{color:#e04a55;font-size:18px;letter-spacing:2px}
+.rz-calrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.rz-calpad{width:100%;min-height:160px;border:0;border-radius:14px;background:#d92031;color:#fff;font:800 22px system-ui;touch-action:none}
+.rz-calpad:active{filter:brightness(1.3)}
+body.rz-lock{overscroll-behavior:none}
+.rz-stage,.rz-pads,.rz-hud{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+.rz-stage canvas{touch-action:none}
+@media (max-height:520px){.rz-stage{height:calc(100dvh - 110px)!important}.rz-pads{display:none}}
+@media (max-width:520px){.rz-hud{font-size:12px;gap:4px 10px}.rz-hud .btn{padding:6px 10px;min-height:34px}}
+/* v1.1 (patch Beaterista): importar MIDI na aba Importados */
+.bmr .rz-imp{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.bmr .rz-li{display:flex;gap:4px;align-items:stretch}
+.bmr .rz-li .rz-song{flex:1;min-width:0}
+.bmr .rz-mdel{flex:none;width:48px;border:0;cursor:pointer;font:700 22px/1 var(--f-body);color:var(--ivory-3);background:var(--char-2)}
+.bmr .rz-mdel:hover{color:var(--ivory)}
+/* v1.1: no celular os estilos quebram linha (a aba Importados não some pra fora da tela) e os jogos ficam em 2 colunas */
+.bmr .rz-styles{flex-wrap:wrap}
+.bmr .rz-st{flex:1 1 30%;padding:0 8px;white-space:nowrap}
+@media(max-width:759px){.bmr .rz-games{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}}
+
+.bmr .rz-folds{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.bmr .rz-fc{min-height:38px;padding:0 12px;border:0;cursor:pointer;font:inherit;font-weight:600;color:var(--ivory);background:var(--char-2);box-shadow:inset 0 -3px 0 #f3eee4}
+.bmr .rz-fc.on{background:#f3eee4;color:#140c0e}
+.bmr .rz-fc .muted{font-weight:400;opacity:.7}
+.bmr .rz-fadd{box-shadow:inset 0 -3px 0 #e04a55}
+.bmr .rz-macts{flex:none;display:flex;flex-direction:column;gap:2px}
+.bmr .rz-mact{flex:1;min-width:72px;border:0;cursor:pointer;font:600 12px/1 var(--f-body);color:var(--ivory);background:var(--char-2)}
+.bmr .rz-mact:hover{background:var(--char-3,#3a2a2e)}
+.bmr .rz-song.sel{background:#3a2a2e;box-shadow:inset 4px 0 0 #e04a55}
+.bmr .rz-selbar{align-items:center}
+.bmr .rz-selbar b{padding:0 6px}
+
+.bmr .rz-hall-new{margin:10px 0;padding:12px;background:var(--char-2);box-shadow:inset 4px 0 0 #e3a82f}
+.bmr .rz-hall-form{display:flex;gap:8px;margin-top:8px}
+.bmr .rz-hall-form .field{flex:1;min-width:0}
+.bmr .rz-hall{margin:10px 0}
+.bmr .rz-hall-t{display:block;margin-bottom:6px}
+.bmr .rz-hall ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.bmr .rz-hall li{display:grid;grid-template-columns:34px 1fr auto 28px;gap:8px;align-items:center;padding:6px 8px;background:var(--char-2)}
+.bmr .rz-hall li.me{box-shadow:inset 4px 0 0 #e3a82f;background:#3a2a2e}
+.bmr .rz-hall .rz-hn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bmr .rz-hall .rz-hp{color:#e3a82f;font-weight:700}
+
+/* modal simples do modo local (pastas / renomear) */
+.bmr-modal{position:fixed;inset:0;z-index:9999;display:flex;align-items:flex-end;justify-content:center;background:rgb(0 0 0 / .6);padding:0}
+.bmr-sheet{width:100%;max-width:520px;max-height:85dvh;overflow:auto;background:#1B181D;color:#F3E7D4;padding:18px 16px calc(18px + env(safe-area-inset-bottom));border-top:3px solid #D92031;font:16px/1.4 system-ui,sans-serif}
+.bmr-sheet h3{margin:0 0 12px;font-size:18px}
+.bmr-sheet .field{width:100%;box-sizing:border-box;min-height:46px;padding:0 12px;font:inherit;color:#F3E7D4;background:#232026;border:1px solid #3a343e}
+.bmr-sheet .btn{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 16px;border:0;cursor:pointer;font:600 16px system-ui,sans-serif;color:#F3E7D4;background:#2E2A31}
+.bmr-sheet .btn-red{background:#D92031}.bmr-sheet .btn-ghost{background:#232026}
+.bmr-mrow{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+.bmr-mlist{display:grid;gap:6px}
+@media (min-width:700px){.bmr-modal{align-items:center}.bmr-sheet{border-top:0;border-left:3px solid #D92031}}
+
+/* celular: lista longa só desenha o que está na tela; toque sem zoom de duplo toque, sem menu de pressionar e segurar nos botões */
+.bmr .rz-li{content-visibility:auto;contain-intrinsic-size:auto 64px}
+.bmr button,.bmr .rz-song{touch-action:manipulation;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.bmr input.field{-webkit-user-select:text;user-select:text}
+/* iPad: a escolha do jogo em grade de quatro, com botões do mesmo tamanho */
+@media(min-width:760px){.bmr .rz-games{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.bmr .rz-games .rz-g{width:100%;min-height:92px}}
+
+/* ===== temas visuais dos jogos de ritmo: colagem, vinil e pôster (o seletor fica no menu) ===== */
+.rz-themes{margin-top:2px}
+/* --- colagem: papel creme, cartões brancos, vinho --- */
+.rg-host[data-rz-theme="colagem"]{background:#efe3cf url(../zine/textura-fundo-creme.webp) center/cover;background-blend-mode:multiply;color:#142036;border-radius:6px 14px 8px 16px;box-shadow:5px 6px 0 rgba(20,32,54,.35)}
+.rg-host[data-rz-theme="colagem"] #jogos.bmr,.rg-host[data-rz-theme="colagem"] .bmr{--char:#fffdf7;--char-2:#fffdf7;--char-3:#f6ebd9;--char-4:#e3cdb4;--ink:#142036;--ivory:#142036;--ivory-2:#2c3550;--ivory-3:#4d5468;--brass:#7a4a10;--red:#7a1226;--red-2:#4a0a16;--neon1:#7a1226;--neon3:#7a4a10;color:#142036}
+.rg-host[data-rz-theme="colagem"] .rz-g,.rg-host[data-rz-theme="colagem"] .rz-song,.rg-host[data-rz-theme="colagem"] .rz-st,.rg-host[data-rz-theme="colagem"] .field,.rg-host[data-rz-theme="colagem"] .panel{border:2.5px solid #142036;border-radius:12px 16px 10px 15px/15px 10px 16px 12px;box-shadow:3px 3px 0 #142036}
+.rg-host[data-rz-theme="colagem"] .rz-g{box-shadow:3px 3px 0 var(--gc)}.rg-host[data-rz-theme="colagem"] .rz-g.on{background:var(--gc);color:#fbf3e6;box-shadow:3px 3px 0 #142036}.rg-host[data-rz-theme="colagem"] .rz-g.on span,.rg-host[data-rz-theme="colagem"] .rz-g.on b{color:#fbf3e6}
+.rg-host[data-rz-theme="colagem"] .segtabs{border:2.5px solid #142036;box-shadow:none;background:#fffdf7;border-radius:12px}.rg-host[data-rz-theme="colagem"] .segtabs button{color:#4d5468}.rg-host[data-rz-theme="colagem"] .segtabs button[aria-pressed="true"]{background:#7a1226;color:#fbf3e6}
+.rg-host[data-rz-theme="colagem"] .rz-st.on{background:var(--sc);color:#142036}
+.rg-host[data-rz-theme="colagem"] .btn{border:2.5px solid #142036;border-radius:12px 16px 10px 15px;box-shadow:3px 3px 0 #142036;background:#fffdf7;color:#142036}.rg-host[data-rz-theme="colagem"] .btn-red{background:#1d3a6b;color:#fff}
+.rg-host[data-rz-theme="colagem"] .rz-stage{border:3px solid #142036;border-radius:8px;box-shadow:5px 6px 0 rgba(20,32,54,.35);background:transparent}
+.rg-host[data-rz-theme="colagem"] .rz-pad{border:3px solid #142036;border-radius:14px;box-shadow:0 4px 0 rgba(20,32,54,.45);opacity:1}
+.rg-host[data-rz-theme="colagem"] .rz-hud b{color:#142036}
+/* --- vinil: grafite, discos, destaque azul-claro --- */
+.rg-host[data-rz-theme="vinil"]{background:#1c1a22 url(../zine/textura-fundo-tinta.webp) center/cover;background-blend-mode:screen;color:#f3eee4;border-radius:6px 14px 8px 16px;box-shadow:5px 6px 0 rgba(0,0,0,.35)}
+.rg-host[data-rz-theme="vinil"] #jogos.bmr,.rg-host[data-rz-theme="vinil"] .bmr{--char:#2a2630;--char-2:#2a2630;--char-3:#383344;--char-4:#4a4458;--ivory:#f3eee4;--ivory-3:#b3abc3;--red:#5cc8ff;--red-2:#2f9fd4;--neon1:#5cc8ff;--neon3:#fbf3e6}
+.rg-host[data-rz-theme="vinil"] .rz-g,.rg-host[data-rz-theme="vinil"] .rz-song,.rg-host[data-rz-theme="vinil"] .rz-st{border:2px solid #fbf3e6;border-radius:12px;box-shadow:none}
+.rg-host[data-rz-theme="vinil"] .rz-g.on{background:#fbf3e6;color:#1c1a22}.rg-host[data-rz-theme="vinil"] .rz-g.on span,.rg-host[data-rz-theme="vinil"] .rz-g.on b{color:#1c1a22}
+.rg-host[data-rz-theme="vinil"] .segtabs{border:2px solid #5cc8ff;box-shadow:none;border-radius:12px}.rg-host[data-rz-theme="vinil"] .segtabs button[aria-pressed="true"]{background:#5cc8ff;color:#1c1a22}
+.rg-host[data-rz-theme="vinil"] .rz-st.on{color:#1c1a22}.rg-host[data-rz-theme="vinil"] .btn-red{background:#5cc8ff;color:#1c1a22;box-shadow:none}
+.rg-host[data-rz-theme="vinil"] .rz-stage{border:2px solid #5cc8ff;border-radius:10px;background:transparent}
+.rg-host[data-rz-theme="vinil"] .rz-pad{border:3px solid #fff;border-radius:14px;opacity:1}
+/* --- pôster: azul-marinho com pontinhos, cartões brancos com sombra rosa --- */
+.rg-host[data-rz-theme="poster"]{background:#14284b radial-gradient(rgba(251,243,230,.2) 1.6px,transparent 1.8px) 0 0/14px 14px;color:#fffdf7;border-radius:6px 14px 8px 16px;box-shadow:5px 6px 0 rgba(0,0,0,.35)}
+.rg-host[data-rz-theme="poster"] #jogos.bmr,.rg-host[data-rz-theme="poster"] .bmr{--char:#fffdf7;--char-2:#fffdf7;--char-3:#fff1c4;--char-4:#e6d6a4;--ivory:#fffdf7;--ivory-3:#c9d2e8;--brass:#fbf3e6;--red:#14284b;--red-2:#0d1b36;--neon1:#fbf3e6;--neon3:#fbf3e6}
+.rg-host[data-rz-theme="poster"] .rz-g,.rg-host[data-rz-theme="poster"] .rz-song,.rg-host[data-rz-theme="poster"] .rz-st,.rg-host[data-rz-theme="poster"] .panel{color:#14284b;border:2.5px solid #000;border-radius:12px;box-shadow:3px 3px 0 #d92031}
+.rg-host[data-rz-theme="poster"] .rz-g span,.rg-host[data-rz-theme="poster"] .rz-song .small,.rg-host[data-rz-theme="poster"] .panel .muted{color:#4d5468}.rg-host[data-rz-theme="poster"] .rz-song .rz-n{color:#a51a28}
+.rg-host[data-rz-theme="poster"] .rz-g.on{background:#d92031;color:#fff}.rg-host[data-rz-theme="poster"] .rz-g.on span,.rg-host[data-rz-theme="poster"] .rz-g.on b{color:#fff}
+.rg-host[data-rz-theme="poster"] .segtabs{background:#fffdf7;border:2.5px solid #000;box-shadow:none;border-radius:12px}.rg-host[data-rz-theme="poster"] .segtabs button{color:#4d5468}.rg-host[data-rz-theme="poster"] .segtabs button[aria-pressed="true"]{background:#14284b;color:#fbf3e6}
+.rg-host[data-rz-theme="poster"] .rz-st.on{color:#14284b}.rg-host[data-rz-theme="poster"] .field{background:#fffdf7;color:#14284b;border:2.5px solid #000;border-radius:12px}
+.rg-host[data-rz-theme="poster"] .btn{border:2.5px solid #000;border-radius:12px;box-shadow:3px 3px 0 #d92031;background:#fffdf7;color:#14284b}.rg-host[data-rz-theme="poster"] .btn-red{background:#fbf3e6;color:#14284b}
+.rg-host[data-rz-theme="poster"] .rz-stage{border:3px solid #fbf3e6;border-radius:6px;background:transparent}
+.rg-host[data-rz-theme="poster"] .rz-pad{border:3px solid #000;border-radius:14px;opacity:1}
+/* fita adesiva e faixa só no menu (some quando o jogo vira tela cheia) */
+body:not(.rz-lock) .rg-host[data-rz-theme="colagem"]::before{content:"";position:absolute;left:-12px;top:-14px;width:70px;height:40px;background:url(../zine/fita-1.webp) center/contain no-repeat;transform:rotate(-12deg);pointer-events:none;z-index:3}
+body:not(.rz-lock) .rg-host[data-rz-theme="colagem"]::after{content:"";position:absolute;right:-12px;top:-12px;width:64px;height:40px;background:url(../zine/fita-3.webp) center/contain no-repeat;transform:scaleX(-1) rotate(-8deg);pointer-events:none;z-index:3}
+.rg-host[data-rz-theme]{position:relative}
+
+body:not(.rz-lock) .rg-host[data-rz-theme="colagem"]{padding-top:30px}
+.rz-pad{border-radius:14px}
+/* colagem: nada preto em cima do papel creme (busca, calibrar, prévia) */
+.rg-host[data-rz-theme="colagem"] .bmr input[type=search], .rg-host[data-rz-theme="colagem"] .bmr input[type=text], .rg-host[data-rz-theme="colagem"] .bmr details.panel { background: #fffdf7; color: #142036; }
+.rg-host[data-rz-theme="colagem"] .bmr .rz-prev { background: #7a1226; color: #fbf3e6; border-color: #4a0a16; }
+
+/* estilos em grade (menos aperto) e 3 músicas por estilo, de devagar a rápido */
+.rz-styles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.rz-st{min-height:52px;font-size:15px;border-radius:10px}
+.rz-tierhint{margin:8px 0 4px}
+.rz-tiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0}
+.rz-tier{display:grid;justify-items:center;align-content:start;gap:4px;min-height:132px;padding:12px 6px;border:0;border-radius:12px;cursor:pointer;font:inherit;text-align:center;color:var(--ivory);background:var(--char-2);box-shadow:inset 0 -4px 0 var(--brass)}
+.rz-tier b{font-size:15px;line-height:1.15;overflow-wrap:anywhere}
+.rz-tier .rz-lv{font-size:18px;letter-spacing:1px;color:var(--brass)}.rz-tier .rz-lv i{font-style:normal;opacity:.25}
+.rz-tier .rz-b{grid-column:auto;grid-row:auto}
+.rz-tier:active{transform:translateY(2px)}
+@media (max-width:339px){.rz-styles,.rz-tiers{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ===== menu novo: dois jogos, seções que abrem pela setinha, botão JOGAR ===== */
+.rz-two{display:grid!important;grid-template-columns:1fr 1fr;gap:10px}
+.rz-two .rz-g{position:relative;min-height:112px!important;padding:14px 12px;border-radius:16px;overflow:hidden;transition:transform .18s,box-shadow .18s}
+.rz-gi{font-style:normal;font-size:30px;line-height:1;margin-bottom:2px}
+.rz-two .rz-g b{font-size:18px;letter-spacing:.01em}
+.rz-two .rz-g:active{transform:scale(.97)}
+.rz-acc{margin:10px 0;border-radius:16px;overflow:hidden;background:var(--char-2);box-shadow:0 0 0 1px rgba(255,255,255,.1)}
+.rz-acc-h{display:grid;grid-template-columns:34px 1fr 30px;align-items:center;gap:10px;width:100%;min-height:58px;padding:8px 12px;border:0;background:transparent;cursor:pointer;text-align:left;color:var(--ivory);touch-action:manipulation}
+.rz-acc-i{font-size:22px;text-align:center}
+.rz-acc-t{display:grid;min-width:0}.rz-acc-t b{font-size:16px}.rz-acc-t small{font-size:13px;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rz-acc-c{font-size:20px;text-align:center;transition:transform .22s}.rz-acc.open .rz-acc-c{transform:rotate(180deg)}
+.rz-acc-b{padding:4px 12px 14px;animation:rz-open .22s ease-out}
+@keyframes rz-open{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.rz-acc-b .rz-styles{margin:4px 0 8px}
+.rz-lbl{display:block;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.75;margin-bottom:4px}
+.rz-tier.on{outline:3px solid var(--brass);outline-offset:1px}
+.rz-tier{min-height:96px!important}
+.rz-cores{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.rz-cor{display:grid;justify-items:center;gap:6px;padding:10px 6px;border:2px solid transparent;border-radius:14px;cursor:pointer;background:rgba(0,0,0,.06);color:inherit;font:inherit}
+.rz-cor.on{border-color:var(--brass);background:rgba(0,0,0,.12)}
+.rz-sw{width:56px;height:56px;border-radius:50%;box-shadow:0 0 0 3px rgba(0,0,0,.25) inset}
+.rz-jogar{display:grid;grid-template-columns:56px 1fr;align-items:center;gap:12px;width:100%;margin:12px 0;padding:12px 16px;border:0;border-radius:18px;cursor:pointer;text-align:left;color:#fff;background:linear-gradient(135deg,#d92031,#8f1122);box-shadow:0 8px 20px -8px rgba(217,32,49,.7);animation:rz-glow 2.4s ease-in-out infinite;touch-action:manipulation}
+.rz-jogar-p{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:#fff;color:#d92031;font-size:22px;padding-left:4px}
+.bmr .rz-jogar b{display:block;font-size:24px;letter-spacing:.08em;color:inherit}.bmr .rz-jogar small{display:block;font-size:14px;color:inherit;opacity:1}.bmr .rz-jogar{color:#fff}
+.rz-jogar:active{transform:scale(.98)}
+@keyframes rz-glow{50%{box-shadow:0 8px 26px -6px rgba(217,32,49,.95)}}
+.rz-how2{margin:6px 0}.rz-how2 summary{cursor:pointer;padding:6px 0}
+@media (prefers-reduced-motion:reduce){.rz-jogar,.rz-acc-b{animation:none}}
+html.lite .rz-jogar{animation:none}
+/* por tema */
+.rg-host[data-rz-theme="colagem"] .rz-acc,.rg-host[data-rz-theme="colagem"] .rz-two .rz-g{border:2.5px solid #142036;box-shadow:3px 3px 0 #142036;border-radius:16px 20px 14px 18px/18px 14px 20px 16px}
+.rg-host[data-rz-theme="colagem"] .rz-cor{background:#fff9ec;border:2px solid #142036;color:#142036}.rg-host[data-rz-theme="colagem"] .rz-cor.on{background:#142036;color:#fbf3e6}
+.rg-host[data-rz-theme="colagem"] .rz-jogar{border:3px solid #142036;box-shadow:4px 4px 0 #142036;animation:none}
+.rg-host[data-rz-theme="vinil"] .rz-acc,.rg-host[data-rz-theme="vinil"] .rz-two .rz-g{border:2px solid #fbf3e6;box-shadow:none}
+.rg-host[data-rz-theme="vinil"] .rz-cor{border:2px solid #fbf3e688;color:#f3eee4}.rg-host[data-rz-theme="vinil"] .rz-cor.on{border-color:#5cc8ff}
+.rg-host[data-rz-theme="vinil"] .bmr .rz-jogar,.rg-host[data-rz-theme="vinil"] .rz-jogar{background:linear-gradient(135deg,#5cc8ff,#2b7fb3);color:#10202c}.rg-host[data-rz-theme="vinil"] .rz-jogar-p{color:#2b7fb3}
+.rg-host[data-rz-theme="poster"] .rz-acc,.rg-host[data-rz-theme="poster"] .rz-two .rz-g{color:#14284b;border:2.5px solid #000;box-shadow:3px 3px 0 #d92031}
+.rg-host[data-rz-theme="poster"] .rz-acc-h{color:#14284b}.rg-host[data-rz-theme="poster"] .rz-cor{border:2px solid #000;color:#14284b;background:#fffdf7}
+.rg-host[data-rz-theme="poster"] .rz-jogar{border:3px solid #000;box-shadow:4px 4px 0 #fbf3e6}
+.rg-host[data-rz-theme="poster"] details.panel{background:#fffdf7;color:#14284b}.rg-host[data-rz-theme="poster"] details.panel .muted,.rg-host[data-rz-theme="poster"] details.panel summary{color:#14284b}
+
+/* músicas já tocadas: barrinha da melhor precisão */
+.rz-pbar{display:block;height:6px;width:100%;border-radius:4px;background:rgba(0,0,0,.14);overflow:hidden}
+.rz-pbar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#3fae5a,#7fd48f)}
+.rz-tier .rz-pbar{width:78%;margin-top:2px}
+.rz-song .rz-pbar{grid-column:2/4;margin-top:6px}
+.rz-song.played{box-shadow:inset 4px 0 0 #3fae5a}
+/* JOGAR sempre à vista: fica colado em cima da barra de baixo enquanto a pessoa mexe nas opções */
+.rz-jogar{position:sticky;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:6}
+html.kb-open .rz-jogar{bottom:8px}
+
+/* trava de aluno (código) */
+.rz-lock{display:grid;justify-items:center;gap:8px;text-align:center;margin:12px 0;padding:20px 14px;border-radius:18px;background:var(--char-2);box-shadow:0 0 0 1px rgba(255,255,255,.1)}
+.rz-lock-i{font-size:42px;line-height:1}
+.rz-lock .h2{margin:0;font-size:20px}
+.rz-lock-row{display:flex;gap:8px;width:100%;max-width:340px}
+.rz-lock-row .field{text-align:center;letter-spacing:.25em;font:800 22px ui-monospace,Menlo,monospace;text-transform:uppercase;min-height:52px}
+.rz-lock-msg{min-height:1.4em;font-weight:700}
+.rg-code{font:800 16px ui-monospace,Menlo,monospace;letter-spacing:.12em}
+.rg-codes .rg-list li{align-items:flex-start;flex-wrap:wrap}
+.rg-codes .row{display:flex;gap:6px;flex-wrap:wrap}
+.rg-mfilter{min-height:44px}
+.rg-codes input.rg-mfilter{flex:1;min-width:0}
+.rz-lock-code{font:900 34px/1.1 ui-monospace,Menlo,monospace;letter-spacing:.2em;padding:10px 14px;border:3px dashed currentColor;border-radius:14px;user-select:all}
+.rz-lock-tell{margin:0;font-size:18px}.rz-lock-have{width:100%;max-width:340px}.rz-lock-have summary{cursor:pointer;padding:6px 0}

@@ -1,0 +1,690 @@
+/* ===== Lote 3: iPad, jogo unificado, ata, relatório, prévia de MIDI ===== */
+
+/* toque mais direto (sem esperar o "duplo toque" pra dar zoom) */
+html { touch-action: pan-x pan-y; } /* sem zoom por beliscão nem duplo toque: o zoom acidental deixava a tela rolando em volta */
+
+/* ---------- iPad / telas grandes: usa a largura em vez de uma coluna de celular ---------- */
+.amb-open { display: inline-grid; place-items: center; text-decoration: none; }
+@media (min-width: 700px) {
+  #app { max-width: 880px; padding-bottom: calc(128px + var(--safe-b)); }
+  .bottom-nav, .tray { max-width: 620px; }
+  .scroll-track { right: calc(50% - 440px); } .to-top { right: calc(50% - 420px); }
+  .shortcuts { grid-template-columns: repeat(6, 1fr); gap: 12px; padding-left: 20px; padding-right: 20px; }
+  .sheet { max-width: 640px; }
+  .toast { max-width: 520px; }
+  .drawer { width: min(440px, 52vw); }
+  .banner-wrap { padding-left: 24px; padding-right: 24px; }
+  .pad-x { padding-left: 24px; padding-right: 24px; }
+  .roadmap { grid-template-columns: repeat(2, 1fr); }
+  /* listas longas em duas colunas (cada cartão continua inteiro) */
+  :where(.ar-list, .sp-list, .sl-songs, .kit-list, .amb-links, .cl-list) { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; }
+  .kx-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .rg-host { margin: 0 16px; }
+}
+@media (min-width: 700px) and (pointer: coarse) {
+  /* o que mais pesa no iPad: camadas enormes com mistura de cor e aquarelas se mexendo o tempo todo */
+  #decor::after { mix-blend-mode: normal; opacity: .12; }
+  .wash { animation: none !important; will-change: auto; }
+  .fab::after { animation: none; }
+  .sheet-back { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .bottom-nav { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  #view > * { animation-duration: .2s; }
+}
+/* iPad em pé/deitado com o app instalado: respeita as bordas (barra de status e indicador de início) */
+@media (display-mode: standalone) { .topwrap { padding-top: max(var(--safe-t), 6px); } }
+
+/* ---------- jogo em tela cheia no iPad: o palco fica do tamanho de um celular, no meio ---------- */
+@media (min-width: 700px) {
+  body.rz-lock .rg-host > #jogos { width: min(100%, 560px); height: 100%; margin: 0 auto; }
+  body.rz-lock .rg-host { display: flex; justify-content: center; background: #0d0b0d; }
+}
+
+/* ---------- jogo unificado (ritmo/melodia, 3-4-5 teclas) ---------- */
+.rz-opts { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; align-items: center; }
+.rz-opts .rz-lab { font: 700 12px var(--body); letter-spacing: .06em; text-transform: uppercase; color: #d9ccb6; min-width: 64px; }
+.rz-opt { min-height: 44px; padding: 0 14px; border: 0; cursor: pointer; font: 700 15px var(--body); color: #f3eee4; background: #2a2424; box-shadow: inset 0 -3px 0 #4d4545; }
+.rz-opt.on { background: #d92031; box-shadow: inset 0 -3px 0 #8f1122; }
+.rz-opt small { display: block; font-weight: 400; font-size: 11px; color: inherit; opacity: .8; }
+.rz-hint { margin: 2px 0 8px; font-size: 13px; color: #d9ccb6; }
+/* prévia de áudio nas músicas importadas */
+.bmr .rz-prev { flex: none; width: 48px; }
+.rz-songrow { display: grid; grid-template-columns: 46px 1fr; gap: 4px; align-items: stretch; }
+.rz-prev { border: 0; cursor: pointer; font: 700 18px var(--body); color: #f3eee4; background: #3a3434; box-shadow: inset 0 -3px 0 #4d4545; min-height: 48px; }
+.rz-prev.on { background: #d92031; }
+.rz-trim { display: grid; gap: 8px; padding: 10px; background: #2a2424; margin: 8px 0; }
+.rz-trim label { display: grid; gap: 4px; font-size: 13px; color: #d9ccb6; }
+.rz-trim input[type=range] { width: 100%; }
+
+/* ---------- ata de reunião ---------- */
+.ata-top { align-items: center; gap: 8px; margin: 4px 0 8px; flex-wrap: wrap; }
+.ata-form { display: grid; gap: 10px; }
+.ata-sec { display: grid; gap: 6px; }
+.ata-sec textarea { min-height: 84px; }
+.ata-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.ata-item { padding: 10px; border: 1px dashed var(--line-strong); border-radius: 10px; display: grid; gap: 6px; }
+.ata-out { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+/* ---------- relatório editável ---------- */
+.rel-sec { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 8px; background: var(--card); }
+.rel-sec.off { opacity: .55; }
+.rel-head { display: flex; align-items: center; gap: 10px; }
+.rel-head input[type=checkbox] { width: 24px; height: 24px; flex: none; accent-color: var(--accent); }
+.rel-head input[type=text] { flex: 1; min-width: 0; font-weight: 700; }
+.rel-sec textarea { min-height: 72px; width: 100%; }
+.rel-tbl { width: 100%; border-collapse: collapse; font-size: 14px; }
+.rel-tbl th, .rel-tbl td { border: 1px solid var(--line-strong); padding: 6px 8px; text-align: left; vertical-align: top; }
+.rel-tbl th { background: rgb(var(--ink-rgb) / .08); }
+.rel-tbl td[contenteditable] { min-width: 60px; outline-offset: -2px; }
+
+/* ---------- área do aluno ---------- */
+.al-rank { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.al-rank li { display: grid; grid-template-columns: 38px 1fr auto; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 8px; background: rgb(var(--ink-rgb) / .05); }
+.al-rank li.me { background: color-mix(in srgb, var(--gold) 30%, transparent); font-weight: 700; }
+.al-pos { font: 700 14px var(--type); } .al-nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.al-card { text-decoration: none; display: block; }
+.al-paul { display: flex; align-items: flex-end; gap: 8px; justify-content: center; }
+.al-paul img { height: auto; mix-blend-mode: normal; }
+.al-bubble { margin: 0 0 30px; font: 700 16px/1.25 var(--hand); color: rgb(var(--ink-rgb)); text-align: left; }
+.al-foot { display: grid; gap: 6px; padding: 18px 16px 8px; }
+.al-social { display: flex; gap: 14px; justify-content: center; }
+.al-soc { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 2px solid currentColor; color: var(--accent); text-decoration: none; background: var(--card); }
+.al-soc:active { transform: scale(.94); }
+select { min-height: 44px; }
+
+/* entrada do aluno: sem o anel em volta do logo; parceiros em preto, sem fundo */
+body.aluno .login-logo { box-shadow: none; }
+.al-foot .partners { background: transparent; box-shadow: none; padding: 4px 0 0; margin: 12px 0 0; text-align: center; }
+.al-foot .partners-label { color: rgb(var(--ink-rgb)); font-size: 18px; }
+.al-foot .partners-img { max-width: 360px; }
+.al-tiktok { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; color: #141212; text-decoration: none; font: 800 24px/1 var(--body); letter-spacing: -.02em; }
+
+/* ---------- entrada do aluno: logo Robôterista, Paul animado, vitrine de jogos e redes em círculo ---------- */
+.al-logo { margin: 0; justify-self: center; width: min(100%, 330px); }
+.al-logo img { display: block; width: 100%; height: auto; }
+.al-paul img.al-paul-img { width: 112px; height: auto; transform-origin: 50% 100%; animation: alDance 1.3s ease-in-out infinite; }
+.al-bubble { margin: 0 0 40px; }
+@keyframes alDance { 0%, 100% { transform: translateY(0) rotate(-3deg); } 25% { transform: translateY(-9px) rotate(2deg); } 50% { transform: translateY(0) rotate(3deg); } 75% { transform: translateY(-6px) rotate(-2deg); } }
+.al-entry { display: grid; gap: 14px; align-content: start; padding-bottom: 40px; }
+.al-games { display: grid; gap: 8px; padding: 6px 4px 0; }
+.al-h { margin: 0; text-align: center; font: var(--dstyle) var(--dw) 22px/1.1 var(--display); color: rgb(var(--ink-rgb)); }
+.al-gamegrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 10px; max-width: 420px; margin: 0 auto; width: 100%; }
+.al-game { margin: 0; display: grid; justify-items: center; gap: 2px; animation: alFloat 3.6s ease-in-out infinite; animation-delay: calc(var(--i) * -.55s); }
+.al-game img { width: 76px; height: auto; }
+.al-game figcaption { font: 700 12.5px/1.1 var(--body); text-align: center; color: rgb(var(--ink-rgb)); }
+@keyframes alFloat { 0%, 100% { transform: translateY(0) rotate(-1.5deg); } 50% { transform: translateY(-5px) rotate(1.5deg); } }
+@media (min-width: 700px) { .al-game img { width: 96px; } .al-gamegrid { grid-template-columns: repeat(6, 1fr); max-width: 640px; } }
+/* redes: círculos vermelhos, fáceis de tocar */
+.al-social { gap: 16px; }
+.al-soc { width: 56px; height: 56px; border: 0 !important; border-radius: 50% !important; background: var(--accent, var(--accent)); color: #fff; box-shadow: 0 4px 0 rgb(0 0 0 / .28), 0 8px 14px -6px rgb(0 0 0 / .4); transition: transform .12s, box-shadow .12s; }
+.al-soc:active { transform: translateY(3px); box-shadow: 0 1px 0 rgb(0 0 0 / .28); }
+.al-soc svg { width: 28px; height: 28px; }
+@media (prefers-reduced-motion: reduce) { .al-paul img.al-paul-img, .al-game { animation: none !important; } }
+
+/* entrada: logo da escola (sem anel), Paul + Robôterista lado a lado e a frase embaixo */
+.al-paul { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.al-robo { width: 52%; max-width: 210px; height: auto; }
+.al-bubble { margin: 0; text-align: center; font: 700 17px/1.25 var(--hand); color: rgb(var(--ink-rgb)); }
+
+/* entrada compacta: tudo (marca, Paul, nome, origem e botão) cabe na primeira tela do celular */
+.al-entry .login-card { padding: 14px 18px 14px; gap: 8px; }
+.al-brand { display: flex; align-items: center; justify-content: center; gap: 10px; }
+.al-brand .login-logo { width: 76px; height: 76px; }
+.al-brand .login-title { margin: 0; }
+.al-brand .login-title img { width: 176px; height: auto; display: block; }
+.al-hero { display: grid; grid-template-columns: 96px 1fr; align-items: center; gap: 8px; }
+.al-hero .al-paul-img { width: 96px; height: auto; }
+.al-hero-txt { display: grid; gap: 2px; justify-items: start; }
+.al-hero-txt .al-robo { width: 100%; max-width: 200px; }
+.al-hero-txt .al-bubble { text-align: left; font-size: 14px; line-height: 1.2; }
+.al-entry .field { gap: 2px; } .al-entry .field > span { font-size: 12px; }
+.al-entry .field input, .al-entry .field select { min-height: 42px; }
+.al-entry .form-err:empty { display: none; }
+.al-entry .al-note { font-size: 11.5px; line-height: 1.25; }
+.al-entry .btn.wide { min-height: 46px; }
+
+/* versão enxuta: marca, Paul, formulário, jogos, redes e parceiros numa tela só */
+.al-entry { gap: 8px; padding-bottom: 12px; }
+.al-entry .login-card { padding: 10px 16px 10px; gap: 6px; }
+.al-brand .login-logo { width: 52px; height: 52px; }
+.al-brand .login-title img { width: 128px; }
+.al-hero { grid-template-columns: 74px 1fr; gap: 6px; }
+.al-hero .al-paul-img { width: 74px; }
+.al-hero-txt .al-robo { max-width: 150px; }
+.al-hero-txt .al-bubble { font-size: 12.5px; }
+.al-entry .field input, .al-entry .field select { min-height: 38px; font-size: 15px; }
+.al-entry .field > span { font-size: 11.5px; }
+.al-entry .btn.wide { min-height: 42px; }
+.al-entry .al-note { font-size: 10.5px; }
+.al-games { gap: 2px; padding-top: 0; }
+.al-h { font-size: 15px; }
+.al-gamegrid { grid-template-columns: repeat(6, 1fr); gap: 2px 4px; max-width: 380px; }
+.al-game img { width: 48px; }
+.al-game figcaption { font-size: 9.5px; }
+.al-foot { padding: 4px 16px 0; gap: 2px; }
+.al-foot > .muted { font-size: 11px; margin: 0; }
+.al-social { gap: 12px; }
+.al-soc { width: 42px; height: 42px; box-shadow: 0 3px 0 rgb(0 0 0 / .28); }
+.al-soc svg { width: 22px; height: 22px; }
+.al-foot .partners { margin: 4px 0 0; padding: 0; }
+.al-foot .partners-label { font-size: 13px; }
+.al-foot .partners-img { max-width: 250px; }
+.al-tiktok { margin-top: 2px; font-size: 18px; gap: 6px; } .al-tiktok svg { width: 22px; height: 22px; }
+@media (min-width: 700px) { .al-game img { width: 72px; } .al-game figcaption { font-size: 12px; } .al-soc { width: 52px; height: 52px; } .al-foot .partners-img { max-width: 340px; } }
+
+/* ainda mais enxuto: rótulos viram placeholder (continuam lidos por leitores de tela) */
+.al-entry .field > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.al-entry.login { padding-top: 10px; padding-bottom: 6px; gap: 4px; }
+#app:has(.al-entry) { padding-bottom: 12px; }
+.al-hero { grid-template-columns: 66px 1fr; } .al-hero .al-paul-img { width: 66px; }
+.al-game img { width: 42px; }
+.al-foot .partners-img { max-width: 230px; }
+.al-foot .al-social { margin-top: 0; }
+.al-entry.login { min-height: 0; }
+.al-entry .al-note { font-size: 10px; }
+#app:has(.al-entry) { min-height: 0; padding-bottom: 0; }
+/* entrada sem moldura de cartão; parceiros logo abaixo do formulário, depois as redes */
+.al-entry.login { gap: 10px; padding-top: 14px; }
+.al-foot { gap: 6px; padding-top: 6px; }
+.al-foot .partners-label { font-size: 15px; }
+.al-foot .partners-img { max-width: 300px; }
+.al-tiktok { font-size: 20px; margin-top: 4px; } .al-tiktok svg { width: 26px; height: 26px; }
+.al-soc { width: 48px; height: 48px; } .al-soc svg { width: 24px; height: 24px; }
+body.aluno:has(.al-entry) .wash.w2 { display: none; }
+/* entrada: fundo decorativo só com as peças vermelhas e estrelas (o recorte preto atrapalhava os logos dos parceiros) */
+html[data-theme="rabisco"] body.aluno:has(.al-entry) #decor::before { background:
+  url(../assets/mural/star-ink.svg) left -18px top 120px / 64px no-repeat,
+  url(../assets/mural/shard-red.svg) right -60px top 46% / 120px no-repeat,
+  url(../assets/mural/star-red.svg) right 6px top 210px / 40px no-repeat; }
+
+/* entrada final: cartão, vitrine de jogos, redes e parceiros com respiro; fundo sem o recorte preto */
+.al-entry.login { gap: 20px; padding-top: 14px; padding-bottom: 20px; }
+.al-games { gap: 6px; padding-top: 6px; }
+.al-h { font-size: 17px; }
+.al-gamegrid { grid-template-columns: repeat(3, 1fr); gap: 8px 6px; max-width: 360px; }
+.al-game img { width: 64px; }
+.al-game figcaption { font-size: 12px; }
+.al-foot { gap: 8px; padding: 0 16px; }
+.al-foot > .muted { font-size: 12px; }
+.al-foot .partners { margin-top: 10px; }
+.al-foot .partners-label { font-size: 15px; }
+.al-foot .partners-img { max-width: 280px; }
+.al-soc { width: 50px; height: 50px; } .al-soc svg { width: 24px; height: 24px; }
+.al-tiktok { font-size: 20px; margin-top: 4px; } .al-tiktok svg { width: 26px; height: 26px; }
+html[data-theme="rabisco"] body.aluno:has(.al-entry) #decor::before { background:
+  url(../assets/mural/star-ink.svg) left -18px top 120px / 64px no-repeat,
+  url(../assets/mural/shard-red.svg) right -60px top 300px / 110px no-repeat; }
+@media (min-width: 700px) { .al-gamegrid { grid-template-columns: repeat(6, 1fr); max-width: 640px; } .al-game img { width: 80px; } }
+
+/* entrada numa tela só (iPhone): jogos pequenos, "siga a Bea" em cima, logos dos parceiros numa linha só com "parceiros da Bea" embaixo */
+.al-entry.login { gap: 8px; padding-top: 10px; padding-bottom: 8px; }
+.al-games { gap: 2px; padding: 0; }
+.al-h { font-size: 13px; }
+.al-gamegrid { grid-template-columns: repeat(6, 1fr); gap: 0 2px; max-width: 340px; }
+.al-game img { width: 40px; }
+.al-game figcaption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.al-foot { gap: 6px; padding: 0 10px; }
+.al-foot > .muted { font-size: 12px; }
+.al-social { gap: 12px; }
+.al-soc { width: 40px; height: 40px; box-shadow: 0 3px 0 rgb(0 0 0 / .28); } .al-soc svg { width: 20px; height: 20px; }
+.al-foot .partners { margin: 4px 0 0; display: grid; gap: 2px; justify-items: center; }
+.al-logos { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; }
+.al-logos .partners-img { flex: 0 1 262px; width: 262px; max-width: 70%; height: auto; }
+.al-logos .al-tiktok { margin: 0; font-size: 14px; gap: 3px; flex: none; } .al-logos .al-tiktok svg { width: 20px; height: 20px; }
+.al-foot .partners-label { font-size: 12px; }
+@media (min-width: 700px) { .al-game img { width: 60px; } .al-gamegrid { max-width: 520px; } .al-logos .partners-img { flex-basis: 360px; width: 360px; } .al-logos .al-tiktok { font-size: 20px; } .al-logos .al-tiktok svg { width: 28px; height: 28px; } .al-soc { width: 48px; height: 48px; } }
+.al-logos .partners-img { margin-right: -10px; }
+.al-game img { width: 44px; }
+
+/* ===== entrada: texto do Paul em letra de mão, 3 cartas sem nome e as opções de layout (?opcao=1|2|3) ===== */
+.al-entry .al-top, .al-entry .al-brand2 { display: none; }
+.al-hero { grid-template-columns: 76px 1fr; gap: 20px; }
+.al-hero-txt { gap: 4px; padding-left: 4px; }
+.al-hero-txt .al-bubble { font: 700 16px/1.2 var(--hand); color: rgb(var(--ink-rgb)); transform: rotate(-2deg); transform-origin: left center; padding-bottom: 9px; margin-left: 4px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='8'%3E%3Cpath d='M1 5 Q8 0 15 5 T29 5 T43 5 T59 4' fill='none' stroke='%23b5162b' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") left bottom / auto 7px repeat-x; }
+.al-gamegrid { grid-template-columns: repeat(3, auto); justify-content: center; gap: 0 22px; max-width: none; }
+.al-game img { width: 54px; }
+
+/* opção 1: Paul grande, marca da escola logo abaixo do cartão */
+.al-entry[data-op="1"] .al-brand-in { display: none; }
+.al-entry[data-op="1"] .al-brand2 { display: flex; order: 2; }
+.al-entry[data-op="1"] .login-card { order: 1; }
+.al-entry[data-op="1"] .al-games { order: 3; } .al-entry[data-op="1"] .al-foot { order: 4; }
+.al-entry[data-op="1"] .al-hero { grid-template-columns: 104px 1fr; }
+.al-entry[data-op="1"] .al-hero .al-paul-img { width: 104px; }
+.al-entry[data-op="1"] .al-brand2 .login-logo { width: 44px; height: 44px; } .al-entry[data-op="1"] .al-brand2 .login-title img { width: 120px; }
+
+/* opção 2: cabeçalho com a marca à esquerda e as redes à direita */
+.al-entry[data-op="2"] .al-top { display: flex; align-items: center; justify-content: space-between; order: -1; padding: 0 4px; }
+.al-entry[data-op="2"] .al-brand-in { display: none; }
+.al-entry[data-op="2"] .al-top .login-logo { width: 40px; height: 40px; } .al-entry[data-op="2"] .al-top .login-title img { width: 112px; }
+.al-entry[data-op="2"] .al-mini { gap: 8px; } .al-entry[data-op="2"] .al-mini .al-soc { width: 34px; height: 34px; } .al-entry[data-op="2"] .al-mini .al-soc svg { width: 17px; height: 17px; }
+.al-entry[data-op="2"] .al-foot > .muted, .al-entry[data-op="2"] .al-foot > .al-social { display: none; }
+
+/* opção 3: Paul à direita e a marca da escola como assinatura no rodapé */
+.al-entry[data-op="3"] .al-brand-in { display: none; }
+.al-entry[data-op="3"] .al-brand2 { display: flex; order: 5; }
+.al-entry[data-op="3"] .al-brand2 .login-logo { width: 44px; height: 44px; } .al-entry[data-op="3"] .al-brand2 .login-title img { width: 120px; }
+.al-entry[data-op="3"] .al-hero { grid-template-columns: 1fr 88px; }
+.al-entry[data-op="3"] .al-hero .al-paul-img { order: 2; width: 88px; }
+.al-entry[data-op="3"] .al-hero-txt { justify-items: end; text-align: right; padding: 0 0 0 4px; }
+.al-entry[data-op="3"] .al-hero-txt .al-bubble { text-align: right; transform: rotate(2deg); transform-origin: right center; }
+.al-entry[data-op="3"] .login-card { order: 0; } .al-entry[data-op="3"] .al-games { order: 2; } .al-entry[data-op="3"] .al-foot { order: 3; }
+.al-hero-txt .al-bubble { font-family: 'Gochi Hand', var(--hand); font-weight: 400; font-size: 19px; line-height: 1.15; letter-spacing: .01em; }
+.al-hero-txt .al-bubble { font-size: 15.5px; } .al-entry[data-op="1"] .al-hero-txt .al-bubble { font-size: 16px; }
+
+/* ===== entrada final (opção 2): cabeçalho com marca + redes, cartão com Paul e formulário, parceiros embaixo ===== */
+.al-entry .al-top { display: flex; align-items: center; justify-content: space-between; order: -1; padding: 0 4px; }
+.al-entry .al-top .login-logo { width: 46px; height: 46px; } .al-entry .al-top .login-title img { width: 132px; }
+.al-entry .al-top .al-mini { gap: 10px; } .al-entry .al-top .al-soc { width: 40px; height: 40px; } .al-entry .al-top .al-soc svg { width: 20px; height: 20px; }
+.al-entry.login { gap: 14px; padding-top: 12px; padding-bottom: 10px; }
+.al-entry .al-hero-txt .al-bubble { font-size: 17px; line-height: 1.12; padding-bottom: 8px; }
+.al-entry .al-foot { padding: 6px 10px 0; }
+.al-entry .al-foot .partners { display: grid; justify-items: center; gap: 4px; margin: 0; }
+.al-entry .al-foot .partners-img { width: 280px; max-width: 86%; height: auto; margin: 0; }
+.al-entry .al-foot .partners-label { font-size: 13px; }
+@media (min-width: 700px) { .al-entry .al-top .al-soc { width: 48px; height: 48px; } .al-entry .al-foot .partners-img { width: 360px; } }
+.al-entry .al-foot .partners-img { width: 330px; max-width: 94%; }
+.al-entry.login { gap: 20px; }
+.al-entry .al-foot .partners-label { font-size: 14px; }
+/* Paul maior e animado na entrada */
+.al-entry .al-hero { grid-template-columns: 118px 1fr; gap: 14px; }
+.al-entry .al-hero .al-paul-img { width: 118px; height: auto; transform-origin: 50% 100%; animation: alDance 1.2s ease-in-out infinite; }
+.al-entry .al-hero-txt .al-bubble { font-size: 17.5px; }
+@media (prefers-reduced-motion: reduce) { .al-entry .al-hero .al-paul-img { animation: none !important; } }
+/* Paul parado na entrada */
+.al-entry .al-hero .al-paul-img, .al-paul img.al-paul-img { animation: none !important; transform: none; }
+
+/* ===== Paul parado; os rabiscos em volta dele é que se mexem ===== */
+.al-paulbox { position: relative; width: 118px; }
+.al-paulbox .al-paul-img { display: block; width: 118px; height: auto; animation: none !important; }
+.al-el { position: absolute; pointer-events: none; user-select: none; height: auto; }
+.el-a { width: 30px; top: -6px; left: -12px; animation: alTwinkle 2.2s ease-in-out infinite; }
+.el-b { width: 24px; top: 0; right: -12px; animation: alFloat 2.8s ease-in-out -.6s infinite; }
+.el-c { width: 24px; bottom: 34px; left: -14px; animation: alPulse 1.6s ease-in-out -.3s infinite; }
+.el-d { width: 22px; bottom: 6px; right: -10px; animation: alFlicker 2.4s steps(1, end) infinite; }
+.el-e { width: 17px; top: 46%; right: -14px; animation: alTwinkle 1.9s ease-in-out -.9s infinite; }
+.el-f { width: 20px; top: -10px; left: 48%; animation: alFloat 3.2s ease-in-out -1.4s infinite; }
+@keyframes alTwinkle { 0%, 100% { transform: scale(.75) rotate(-8deg); opacity: .65; } 50% { transform: scale(1.15) rotate(10deg); opacity: 1; } }
+@keyframes alFloat { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-7px) rotate(6deg); } }
+@keyframes alPulse { 0%, 100% { transform: scale(.85); } 50% { transform: scale(1.2); } }
+@keyframes alFlicker { 0%, 100% { opacity: 1; } 45% { opacity: .25; } 55% { opacity: 1; } 75% { opacity: .35; } }
+@media (prefers-reduced-motion: reduce) { .al-el { animation: none !important; } }
+/* no app todo: o Paul não se mexe; os rabiscos em volta (e o brilho) é que ganham vida */
+.rb .rb-img, .bn-paul, .bn-paul.hit { animation: none !important; }
+.rb-fig { position: relative; }
+.rb-fig::before, .rb-fig::after { content: ""; position: absolute; width: 20px; height: 20px; background: center / contain no-repeat; pointer-events: none; }
+.rb-fig::before { top: -6px; left: -6px; background-image: url(../assets/paul/el/estrela-ouro.webp); animation: alTwinkle 2.2s ease-in-out infinite; }
+.rb-fig::after { top: -2px; right: -4px; width: 18px; height: 18px; background-image: url(../assets/paul/el/nota-vermelha.webp); animation: alFloat 2.8s ease-in-out -.8s infinite; }
+@media (prefers-reduced-motion: reduce) { .rb-fig::before, .rb-fig::after { animation: none !important; } }
+
+/* Paul de reação (acertou/errou): parado; as estrelas, notas e raios em volta é que se mexem */
+.fb-paul img, .fb-paul.win img, .fb-paul.great img, .fb-paul.lose img { animation: none !important; }
+.fb-paul::before, .fb-paul::after { content: ""; position: absolute; background: center / contain no-repeat; pointer-events: none; }
+.fb-paul::before { width: 26px; height: 26px; top: -14px; right: 2px; background-image: url(../assets/paul/el/estrela-ouro.webp); animation: alTwinkle 1.6s ease-in-out infinite; }
+.fb-paul::after { width: 22px; height: 22px; top: -8px; right: 66px; background-image: url(../assets/paul/el/nota-vermelha.webp); animation: alFloat 1.9s ease-in-out -.5s infinite; }
+.fb-paul.win::after, .fb-paul.great::after { background-image: url(../assets/paul/el/coracao.webp); animation-name: alPulse; }
+.fb-paul.lose::before { background-image: url(../assets/paul/el/raio.webp); animation-name: alFlicker; }
+.fb-paul.lose::after { background-image: url(../assets/paul/el/estrela-azul-p.webp); animation-name: alTwinkle; }
+@media (prefers-reduced-motion: reduce) { .fb-paul::before, .fb-paul::after { animation: none !important; } }
+/* cabeçalho de cada tela: Paul parado, rabiscos em volta animados (os do cabeçalho já mexiam) */
+.bn-doodle.d1 { animation: dd-wiggle 2.2s ease-in-out infinite; }
+/* pose do Paul (sinal de paz) é mais larga: ganha mais largura pra aparecer maior */
+.al-entry .al-hero { grid-template-columns: 148px 1fr; gap: 10px; }
+.al-entry .al-paulbox, .al-entry .al-paulbox .al-paul-img { width: 148px; }
+.al-entry .al-hero-txt .al-bubble { font-size: 16.5px; }
+/* poses de tamanhos diferentes: altura fixa, largura acompanha a pose */
+.al-entry .al-hero { grid-template-columns: auto 1fr; gap: 12px; }
+.al-entry .al-paulbox { width: auto; height: 120px; min-width: 96px; display: grid; align-items: end; }
+.al-entry .al-paulbox .al-paul-img { width: auto; height: 120px; max-width: 150px; object-fit: contain; }
+
+/* ===== o Paul fala: nuvem de pensamento e toque ===== */
+.al-paul-img, .rb-img, .login-paul { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.bn-paul { pointer-events: auto; cursor: pointer; }
+.pt-tap { animation: ptTap .18s ease-out; }
+@keyframes ptTap { 0% { transform: scale(1); } 50% { transform: scale(1.07); } 100% { transform: scale(1); } }
+.pt-think { position: fixed; left: 12px; right: 12px; z-index: 240; display: flex; align-items: flex-end; gap: 4px; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(10px); transition: opacity .3s, transform .3s; }
+.pt-think.on { opacity: 1; transform: none; } .pt-think.out { opacity: 0; transform: translateY(6px); }
+.pt-face { width: 40px; height: auto; mix-blend-mode: normal; flex: none; }
+.pt-dot { display: block; border-radius: 50%; background: #fffdf8; border: 2px solid #1b1818; align-self: flex-end; margin-bottom: 14px; }
+.pt-dot.d1 { width: 7px; height: 7px; } .pt-dot.d2 { width: 11px; height: 11px; margin-bottom: 20px; }
+.pt-cloud { pointer-events: auto; max-width: min(78vw, 300px); padding: 10px 16px; border: 2px solid #1b1818; border-radius: 22px 22px 22px 8px; background: #fffdf8; color: #1b1818; font: 400 17px/1.15 'Gochi Hand', var(--hand); text-decoration: none; box-shadow: 3px 3px 0 var(--accent); }
+a.pt-cloud { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 3px; }
+body.rz-lock .pt-think { display: none; }
+@media (prefers-reduced-motion: reduce) { .pt-think { transition: none; } .pt-tap { animation: none; } }
+.pt-dot { border-radius: 50% !important; } .pt-cloud { border-radius: 22px 22px 22px 8px !important; }
+
+/* Arsenal discos */
+.ar-art { margin: 14px 0 4px; }
+.ar-alb { display: grid; gap: 4px; padding: 8px 0; min-height: 44px; border-top: 1px dashed rgb(0 0 0 / .18); text-decoration: none; color: inherit; }
+.ar-alb.done strong { opacity: .6; } .ar-ok { color: #2f7d5b; }
+.ar-main { display: grid; gap: 2px; } .ar-hit { font-size: .85rem; opacity: .75; }
+.ar-prog { display: grid; gap: 4px; margin: 6px 0; } .lib-bar.big { height: 8px; }
+.ar-list h2.tag { margin-top: 10px; }
+
+/* recentes bem menores: uma linha de chips pequenos, no menu e no início */
+.drawer-recent { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 6px 8px; }
+.drawer-recent small { font: 600 11px var(--body); text-transform: uppercase; letter-spacing: .1em; color: #7a6f66; }
+.drawer-recent a { padding: 3px 10px; border: 1.5px solid #1b1818; border-radius: 999px; background: #fff; color: #1b1818; font: 600 12px var(--body); text-decoration: none; max-width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.home-recent { padding: 2px 16px 0; }
+.home-recent h2 { display: none; }
+.home-recent-row { gap: 6px; padding: 2px 0; }
+.home-recent-chip { min-height: 28px; padding: 0 10px; font-size: 12px; border-width: 1.5px; box-shadow: none; }
+
+/* menu do Beaterista: fundo azul-marinho, pra saber de cara em qual espaço está */
+.drawer-b { background: #14284b; color: #fbf7ee; }
+.drawer-b .drawer-head { border-bottom-color: #fbf7ee; }
+.drawer-b .drawer-head strong { color: #ffd166; }
+.drawer-b .drawer-sec + .drawer-sec { border-top-color: rgb(251 247 238 / .3); }
+.drawer-b .drawer-sec h2, .drawer-b .drawer-recent small { color: #b9c4dd; }
+.drawer-b .drawer-item { color: #fbf7ee; }
+.drawer-b .drawer-item svg { color: #ffd166; }
+.drawer-b .drawer-item:hover, .drawer-b .drawer-item:focus-visible { background: rgb(255 209 102 / .14); }
+.drawer-b .drawer-item.on { background: #fbf7ee; color: #14284b; } .drawer-b .drawer-item.on svg { color: var(--accent); }
+.drawer-b .drawer-recent a { background: #fbf7ee; border-color: #fbf7ee; color: #14284b; }
+.drawer-b .drawer-search input, .drawer-b select { background: #fbf7ee; color: #14284b; }
+.drawer-b .lib-tab { color: #fbf7ee; border-color: #fbf7ee; } .drawer-b .lib-tab.on { background: #ffd166; color: #14284b; border-color: #ffd166; }
+.drawer-b .muted, .drawer-b .drawer-editnote p { color: #b9c4dd; }
+.drawer-b .drawer-head strong img { height: 52px; width: auto; max-width: 100%; display: block; }
+
+/* atalhos fixos no alto do menu (Criar ritmos, Tempo) */
+.drawer-pins { display: flex; gap: 8px; padding: 8px 0 2px; }
+.drawer-pin { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; border: 2px solid #1b1818; border-radius: 12px; background: #fff; color: #1b1818; font: 700 14px var(--body); text-decoration: none; box-shadow: 2px 2px 0 #1b1818; }
+.drawer-pin svg { color: var(--accent); }
+.drawer-b .drawer-pin { background: #ffd166; color: #14284b; border-color: #fbf7ee; box-shadow: 2px 2px 0 #fbf7ee; } .drawer-b .drawer-pin svg { color: #14284b; }
+
+/* Beaterista (fundo azul): tudo legível */
+.drawer.drawer-b .drawer-tab, .drawer.drawer-b .lib-tab { background: transparent; color: #fbf7ee; border: 2px solid #fbf7ee; box-shadow: none; }
+.drawer.drawer-b .drawer-tab svg { color: #ffd166; }
+.drawer.drawer-b .drawer-tab.on, .drawer.drawer-b .lib-tab.on { background: #ffd166; color: #14284b; border-color: #ffd166; font-weight: 800; } .drawer.drawer-b .drawer-tab.on svg { color: #14284b; }
+.drawer.drawer-b .drawer-search input { background: #fbf7ee; color: #14284b; } .drawer.drawer-b .drawer-search input::placeholder { color: #5b6784; }
+.drawer.drawer-b .drawer-edit, .drawer.drawer-b .de-name { color: #fbf7ee; } .drawer.drawer-b .drawer-edit .btn { background: transparent; color: #fbf7ee; border-color: #fbf7ee; } .drawer.drawer-b .drawer-edit .icon-btn { color: #fbf7ee; }
+.drawer.drawer-b .icon-btn { color: #fbf7ee; }
+/* Bea (fundo claro): abas e atalhos com contraste */
+
+.drawer.drawer-b .icon-btn[aria-pressed="true"] { background: #ffd166; color: #14284b; }
+.drawer.drawer-b .drawer-sub svg { color: #ffd166; }
+.drawer.drawer-b .drawer-edit .icon-btn:not(:disabled) { color: #ffd166; }
+
+/* ===== cores por espaço: Bea = vinho; Beaterista = azul-marinho e amarelo (data-space vem do app.js) ===== */
+html[data-space="beaterista"] {
+  --sp-dark: #14284b; --sp-main: #1d3a6b; --sp-hi: #ffd166; --sp-on: #fbf7ee; --sp-on-hi: #14284b; --sp-brush: url(../assets/mural/brush-navy.svg);
+  --accent: #1d3a6b; --link: #1d3a6b; --gold: #e0a800; --wash1: #1d3a6b; --meta-color: #14284b;
+}
+html[data-space="bea"] {
+  --sp-dark: #7a1226; --sp-main: #a01a30; --sp-hi: #f3dfb0; --sp-on: #fbf3e6; --sp-on-hi: #7a1226; --sp-brush: url(../assets/mural/brush-wine.svg);
+  --accent: #a01a30; --link: #a01a30; --gold: #a01a30; --wash1: #a01a30; --meta-color: #7a1226;
+}
+html[data-space] .topwrap { background: var(--sp-dark); --on-bg: var(--sp-on); --on-muted: var(--sp-on); --on-line: rgb(255 255 255 / .25); color: var(--sp-on); }
+html[data-space] .topwrap .statusbar, html[data-space] .topwrap .sb-time, html[data-space] .topwrap .sb-sync { color: var(--sp-on); }
+html[data-space] .topwrap .top .icon-btn, html[data-space] .topwrap .top-add { color: var(--sp-on); }
+html[data-space] .topwrap .top-add { color: var(--sp-hi); }
+html[data-space] .ws { background: rgb(255 255 255 / .14); border-color: rgb(255 255 255 / .3); }
+html[data-space] .ws a { color: var(--sp-on); }
+html[data-space] .ws a.on { background: var(--sp-hi); color: var(--sp-on-hi); }
+html[data-space] .bottom-nav { background: var(--sp-dark); box-shadow: 0 10px 26px -10px rgb(0 0 0 / .55); }
+html[data-space] .nav-item { color: var(--sp-on); opacity: .85; }
+html[data-space] .nav-item.on { color: var(--sp-hi); opacity: 1; } html[data-space] .nav-item.on::after { background: var(--sp-hi); }
+html[data-space] .banner::before, html[data-space] .st-today-tag::before { background-image: var(--sp-brush); }
+html[data-space] .btn.primary { background: var(--sp-main); border-color: var(--sp-dark); color: #fff; }
+html[data-space] .hero-sub::after { color: var(--sp-main); }
+html[data-space] .link { color: var(--sp-main); }
+html[data-space] { scrollbar-color: var(--sp-main) transparent; } html[data-space] ::-webkit-scrollbar-thumb, html[data-space] .scroll-thumb { background: var(--sp-main); }
+/* menu ☰ da Bea em vinho (o do Beaterista já é azul) */
+.drawer:not(.drawer-b) { background: var(--sp-dark, #7a1226); color: #fbf3e6; }
+.drawer:not(.drawer-b) .drawer-head { border-bottom-color: #fbf3e6; } .drawer:not(.drawer-b) .drawer-head strong img { background: #fbf3e6; border-radius: 8px; padding: 2px 8px; }
+.drawer:not(.drawer-b) .drawer-sec + .drawer-sec { border-top-color: rgb(251 243 230 / .3); }
+.drawer:not(.drawer-b) .drawer-sec h2, .drawer:not(.drawer-b) .drawer-recent small { color: #e9d3c4; }
+.drawer:not(.drawer-b) .drawer-item { color: #fbf3e6; } .drawer:not(.drawer-b) .drawer-item svg { color: #f3dfb0; }
+.drawer:not(.drawer-b) .drawer-item:hover, .drawer:not(.drawer-b) .drawer-item:focus-visible { background: rgb(243 223 176 / .14); }
+.drawer:not(.drawer-b) .drawer-item.on { background: #fbf3e6; color: #7a1226; } .drawer:not(.drawer-b) .drawer-item.on svg { color: #a01a30; }
+.drawer:not(.drawer-b) .drawer-tab, .drawer:not(.drawer-b) .lib-tab { background: transparent; color: #fbf3e6; border: 2px solid #fbf3e6; box-shadow: none; }
+.drawer:not(.drawer-b) .drawer-tab svg { color: #f3dfb0; }
+.drawer:not(.drawer-b) .drawer-tab.on, .drawer:not(.drawer-b) .lib-tab.on { background: #f3dfb0; color: #7a1226; border-color: #f3dfb0; font-weight: 800; } .drawer:not(.drawer-b) .drawer-tab.on svg { color: #7a1226; }
+.drawer:not(.drawer-b) .drawer-pin { background: #f3dfb0; color: #7a1226; border-color: #fbf3e6; box-shadow: 2px 2px 0 #fbf3e6; } .drawer:not(.drawer-b) .drawer-pin svg { color: #7a1226; }
+.drawer:not(.drawer-b) .drawer-recent a { background: #fbf3e6; border-color: #fbf3e6; color: #7a1226; }
+.drawer:not(.drawer-b) .icon-btn, .drawer:not(.drawer-b) .drawer-edit, .drawer:not(.drawer-b) .de-name { color: #fbf3e6; }
+.drawer:not(.drawer-b) .icon-btn[aria-pressed="true"] { background: #f3dfb0; color: #7a1226; }
+.drawer:not(.drawer-b) .drawer-edit .btn { background: transparent; color: #fbf3e6; border-color: #fbf3e6; }
+.drawer:not(.drawer-b) .muted, .drawer:not(.drawer-b) .drawer-editnote p { color: #e9d3c4; }
+html[data-space] #view .lib-tab.on, html[data-space] #view .lib-tab[aria-selected="true"].on { background: var(--sp-dark); border-color: var(--sp-dark); color: var(--sp-on); }
+.hero-note-study { display: block; padding: 6px 4px 0; } .hero-note-study:empty { display: none; }
+.hero-note-study .hero-note-link { cursor: pointer; background: #fff; font-family: inherit; }
+
+/* estrela de favorito em cada item do menu */
+.drawer-row { display: flex; align-items: center; gap: 2px; } .drawer-row .drawer-item { flex: 1; min-width: 0; }
+.drawer-star { flex: none; width: 44px; height: 44px; border: 0; background: transparent; font-size: 20px; line-height: 1; color: #7a6f66; cursor: pointer; }
+.drawer-star.on { color: #e0a800; }
+.drawer.drawer-b .drawer-star, .drawer:not(.drawer-b) .drawer-star { color: rgb(255 255 255 / .6); } .drawer .drawer-star.on { color: #ffd166; }
+
+/* alça de arrastar (modo editar do menu) */
+.de-grip { flex: none; width: 36px; height: 40px; border: 0; background: transparent; color: inherit; font-size: 20px; opacity: .7; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.drawer-edit { align-items: center; }
+.drawer-edit { grid-template-columns: 36px 1fr; } .drawer-edit .de-act { grid-column: 1 / -1; }
+
+/* bateria de toque: gravar em loop */
+.tk-ctrls{display:flex;gap:8px;flex-wrap:wrap}.tk-big{min-height:52px;font-size:16px;flex:1 1 140px}
+.tk-progress{height:12px;border:2px solid #1b1818;border-radius:7px;overflow:hidden;background:#fffdf7;margin:6px 0}.tk-prog{display:block;height:100%;width:0;background:var(--accent)}
+.tk-opts{margin:6px 0;flex-wrap:wrap}
+
+/* menu ☰: abas pequenas e legíveis, uma linha que rola de lado; fundo da página não rola enquanto o menu está aberto */
+.drawer-tabs { display: flex !important; flex-wrap: nowrap; overflow-x: auto; gap: 6px; padding: 0 0 8px; scrollbar-width: none; }
+.drawer-tabs::-webkit-scrollbar { display: none; }
+.drawer .drawer-tab, .drawer .lib-tab { flex: none; min-height: 32px; padding: 4px 10px; font-size: 13px; border-width: 1.5px; border-radius: 999px; }
+.drawer:not(.drawer-b) .drawer-tab:not(.on) { color: #fbf3e6; }
+.drawer-pins { gap: 6px; } .drawer-pin { min-height: 36px; font-size: 13px; }
+.drawer-back { touch-action: none; overscroll-behavior: contain; } .drawer { touch-action: pan-y; }
+html:has(.drawer), body:has(.drawer) { overflow: hidden; }
+/* o "hoje" do início abre o checklist ao tocar */
+.mini-list { cursor: pointer; }
+
+/* menu ☰ sem retângulos vazados: abas são só texto com sublinhado, atalhos são pílulas cheias */
+.drawer .drawer-tab, .drawer .lib-tab, .drawer.drawer-b .drawer-tab, .drawer.drawer-b .lib-tab, .drawer:not(.drawer-b) .drawer-tab, .drawer:not(.drawer-b) .lib-tab { background: transparent; border: 0; border-bottom: 3px solid transparent; border-radius: 0; box-shadow: none; padding: 4px 6px; min-height: 34px; font-size: 15px; font-weight: 600; opacity: .75; }
+.drawer .drawer-tab svg { display: none; }
+.drawer .drawer-tab.on, .drawer .lib-tab.on, .drawer.drawer-b .drawer-tab.on, .drawer:not(.drawer-b) .drawer-tab.on, .drawer:not(.drawer-b) .lib-tab.on { background: transparent; opacity: 1; font-weight: 800; border-bottom-color: #f3dfb0; color: #fbf3e6; }
+.drawer.drawer-b .drawer-tab.on, .drawer.drawer-b .lib-tab.on { border-bottom-color: #ffd166; color: #fbf7ee; }
+.drawer-tabs { gap: 10px; border-bottom: 1px solid rgb(255 255 255 / .2); margin-bottom: 6px; }
+.drawer .drawer-pin, .drawer:not(.drawer-b) .drawer-pin, .drawer.drawer-b .drawer-pin { border: 0; box-shadow: none; border-radius: 999px; }
+.drawer-recent a { border: 0; }
+/* som no canto da barra de estado (não disputa lugar com as abas Bea / Beaterista) */
+.sb-right { align-items: center; } .sb-right .top-snd { min-width: 30px; min-height: 22px; width: 30px; height: 22px; margin: -4px -6px -4px 0; color: inherit; } .sb-right .top-snd svg { width: 18px; height: 18px; }
+.drawer:not(.drawer-b) .drawer-head strong img { background: none; padding: 0; border-radius: 0; height: 56px; width: auto; }
+.drawer:not(.drawer-b) .drawer-head strong { transform: none; }
+html[data-space] .topwrap .sb-net.on { color: #a8ecc0; }
+
+/* início: bilhete da música menor */
+[data-theme="rabisco"] .hero-note { width: min(64%, 230px); padding: 8px 36px 8px 12px; margin: 12px 0 4px 2px; }
+[data-theme="rabisco"] .hero-note .hero-note-msg { font-size: 14px; line-height: 1.18; }
+.hero-note-date { font-size: 11px; } .hero-note-more { font-size: 10px; margin-top: 2px; }
+.hero-note-smile { width: 34px; right: -12px; }
+[data-theme="rabisco"] .hero-note-bolt, [data-theme="rabisco"] .hero-note-star { display: none; }
+.hero-note-link { min-height: 34px; padding: 0 12px; font-size: 12.5px; }
+/* Paul com palavra de incentivo no lugar da frase do topo */
+.hero-paul { display: flex; align-items: center; gap: 8px; width: 100%; margin: 6px 0 0; padding: 0 calc(var(--cs, 82px) + 8px) 0 0; border: 0; background: none; text-align: left; font: inherit; cursor: pointer; color: #1b1818; }
+.hp-img { width: 74px; height: 74px; object-fit: contain; flex: none; mix-blend-mode: normal; }
+.hp-bubble { position: relative; flex: 1; padding: 6px 10px; border: 2px solid #1b1818; border-radius: 14px 14px 14px 4px; background: #fffdf7; box-shadow: 2px 2px 0 #1b1818; }
+.hp-msg { font: 16px/1.15 "Gochi Hand", var(--hand); display: block; }
+/* continuar estudando: lista com barra de progresso */
+.w-study-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; padding: 8px 0; }
+.w-study-row .lib-bar { grid-column: 1 / -1; } .w-study-pct { font: 700 12px var(--body); opacity: .7; }
+
+/* bilhete da curiosidade: largo, reto e liso (sem inclinar, sem borda rasgada) */
+[data-theme="rabisco"] .hero-note { width: 100%; max-width: none; transform: none; margin: 14px 0 4px; padding: 12px 16px; background: #f6edda; border-left: 5px solid var(--accent); border-radius: 4px; box-shadow: 0 2px 8px rgb(60 40 30 / .18); }
+[data-theme="rabisco"] .hero-note::before, .hero-note-smile { display: none; }
+[data-theme="rabisco"] .hero-note .hero-note-msg { font-size: 16px; line-height: 1.3; }
+.hero-note-wrap { width: 100%; }
+.hero-paul { margin-top: 10px; padding-right: 0; }
+[data-theme="rabisco"] .hero-top { min-height: calc(var(--cs, 82px) + 4px); }
+
+/* ações (YouTube e estudo) só ícone, lado a lado; Paul pequeno no cantinho da direita */
+.hero-note-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+.hero-note-acts { display: flex; align-items: center; gap: 8px; flex: none; }
+.hero-note-links, .hero-note-study { display: contents; padding: 0; }
+.hero-note-link.ico { min-height: 32px; width: 32px; padding: 0; justify-content: center; font-size: 13px; border-width: 1.5px; box-shadow: 2px 2px 0 #1b1818; }
+.hero-note-bar .hero-paul { flex: 1; min-width: 0; width: auto; margin: 0; padding: 0; flex-direction: row-reverse; justify-content: flex-start; gap: 4px; }
+.hero-note-bar .hp-img { width: 52px; height: 52px; }
+.hero-note-bar .hp-bubble { padding: 4px 8px; border-width: 1.5px; border-radius: 12px 12px 3px 12px; box-shadow: 1px 1px 0 #1b1818; }
+.hero-note-bar .hp-msg { font-size: 13px; line-height: 1.15; }
+/* estudar: menor */
+.w-study { padding: 12px 14px; } .w-study .tag { font-size: 16px; }
+.w-study .w-line { min-height: 0; padding: 6px 0; } .w-study .w-line strong { font-size: 15px; }
+.w-pick { display: flex; align-items: center; gap: 8px; padding-top: 6px; }
+.w-pick-link { flex: 1; min-width: 0; display: grid; gap: 1px; color: inherit; text-decoration: none; } .w-pick-link small { font: 600 11px var(--body); opacity: .65; } .w-pick-link strong { font: 600 15px/1.2 var(--body); }
+.w-dice { flex: none; width: 38px; height: 38px; border: 2px solid #1b1818; border-radius: 50%; background: #fff; font-size: 18px; cursor: pointer; }
+/* Paul aparece no cantinho de baixo da direita, fala e some */
+.paul-pop { position: fixed; right: 8px; bottom: calc(92px + var(--safe-b, 0px)); z-index: 25; display: flex; align-items: flex-end; gap: 2px; max-width: min(78vw, 300px); padding: 0; border: 0; background: none; font: inherit; text-align: left; color: #1b1818; cursor: pointer; opacity: 0; transform: translateX(40px) scale(.9); pointer-events: none; transition: opacity .35s, transform .4s cubic-bezier(.2,.9,.3,1.2); }
+.paul-pop.on { opacity: 1; transform: none; pointer-events: auto; }
+.pp-img { width: 72px; height: 72px; object-fit: contain; flex: none; mix-blend-mode: normal; }
+.pp-bubble { margin-bottom: 26px; padding: 7px 11px; border: 2px solid #1b1818; border-radius: 14px 14px 3px 14px; background: #fffdf7; box-shadow: 2px 2px 0 #1b1818; }
+.pp-msg { display: block; font: 15px/1.2 "Gochi Hand", var(--hand); }
+html.kb-open .paul-pop { display: none; }
+@media (prefers-reduced-motion: reduce) { .paul-pop { transition: opacity .2s; transform: none; } }
+/* "hoje" colorido */
+html[data-theme] .card.mini-list { background: #1f5a63; border: 2px solid #123a41; box-shadow: 3px 3px 0 #123a41; color: #fbf3e6; }
+.mini-list .tag { color: #fbf3e6; } .mini-list .link { color: #f3dfb0; } .mini-list .check { background: #fbf3e6; border-color: #fbf3e6; }
+.mini-list .check.on { background: #f3dfb0; border-color: #f3dfb0; color: #123a41; }
+.mini-list .muted, .mini-list .task-title { color: #fbf3e6; }
+html[data-theme] .card.mini-list .link, html[data-space] .card.mini-list .link { color: #f3dfb0; }
+html[data-theme] .card.mini-list { background: #7a1226; border-color: #4a0a16; box-shadow: 3px 3px 0 #4a0a16; }
+.mini-list .check.on { color: #4a0a16; }
+/* páginas "juntas" (Criar ritmos, Tempo, Anotar): blocos coloridos, 2 por linha */
+.hub-grid { grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 16px; }
+.hub-card { display: flex !important; flex-direction: column; align-items: flex-start; gap: 6px; min-height: 104px; padding: 10px; border: 2px solid #1b1818; border-radius: 12px; box-shadow: 3px 3px 0 #1b1818; color: #fbf3e6 !important; text-decoration: none; }
+.hub-card:nth-child(odd) { transform: rotate(-1deg); } .hub-card:nth-child(even) { transform: rotate(1deg); }
+.hub-card.hc-0 { background: #7a1226; } .hub-card.hc-1 { background: #14284b; } .hub-card.hc-2 { background: #1f5a63; } .hub-card.hc-3 { background: #2a2220; }
+.hub-card .hub-ic { width: 38px; height: 38px; background: #fbf3e6; color: #1b1818; border-radius: 12px; margin-bottom: 2px; } .hub-card .hub-ic svg { width: 22px; height: 22px; }
+.hub-card b { font: 400 16px/1.05 var(--display); text-transform: uppercase; color: #fbf3e6; }
+.hub-card small { color: #e9d9c4; font-size: 11.5px; line-height: 1.2; }
+/* músicas importadas: marcar quais os alunos veem */
+.rg-pubnote { margin: 6px 0; font-size: 13px; } .rg-mfilter { width: 100%; margin: 4px 0 8px; }
+.rg-pubbar { gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.rg-pubck { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; cursor: pointer; }
+.rg-pubck input { width: 24px; height: 24px; flex: none; accent-color: #7a1226; }
+.rg-pubck small { display: block; }
+.rg-list { max-height: 60vh; overflow-y: auto; }
+
+/* ---------- navegação: busca, continuar, lixeira, barra de baixo, mão ocupada ---------- */
+.srch-list { display: grid; gap: 6px; margin-top: 10px; max-height: 58dvh; overflow-y: auto; }
+.srch-item { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 8px 12px; border-radius: 12px; background: var(--card-soft); color: var(--ink); text-decoration: none; }
+.srch-type { flex: none; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: rgb(var(--ink-rgb) / .1); } .srch-title { font-weight: 600; overflow-wrap: anywhere; }
+.trash-list { margin: 12px 16px; display: grid; gap: 10px; } .trash-item { display: grid; gap: 10px; } .trash-info { display: grid; gap: 4px; justify-items: start; }
+.nav-item { -webkit-user-select: none; user-select: none; }
+.nav-item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hands-bar { display: none; }
+html.hands .bottom-nav { display: none; }
+html.hands .hands-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(8px + var(--safe-b)); width: calc(100% - 16px); max-width: 520px; z-index: 30; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+html.hands .hb-btn { min-height: 72px; border: 0; border-radius: 20px; background: var(--accent); color: var(--accent-ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font: 800 15px var(--body); box-shadow: 0 8px 20px -8px rgb(var(--shadow-rgb) / .8); cursor: pointer; }
+html.hands .hb-btn:active { transform: scale(.97); } html.hands .hb-btn:disabled { opacity: .4; }
+.hb-s { font-size: 11px; font-weight: 600; opacity: .85; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 6px; }
+html.hands .top-hands { color: var(--gold); }
+html.kb-open .hands-bar, body.rz-lock .hands-bar { display: none !important; }
+.top-hands[aria-pressed="true"] { outline: 2px solid var(--gold); border-radius: 12px; }
+.sb-row1 { display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 8px; }
+.sb-tools { display: inline-flex; align-items: center; gap: 2px; margin: -6px -8px -6px 0; }
+.sb-tools .icon-btn { width: 40px; height: 34px; min-width: 40px; min-height: 34px; color: inherit; padding: 0; display: grid; place-items: center; }
+.sb-tools .icon-btn[hidden] { display: none; } .sb-tools .icon-btn:disabled { opacity: .4; }
+.top-hands { min-width: 30px; width: 30px; height: 22px; min-height: 22px; margin: -4px 0; color: inherit; padding: 0; display: grid; place-items: center; } .top-hands svg { width: 18px; height: 18px; }
+/* importar código de aluno */
+.cod-ta{min-height:130px;font:15px/1.4 ui-monospace,Menlo,monospace;resize:vertical}
+.cod-qtd{max-width:110px}
+.cod-wrap{overflow-x:auto}
+.cod-tbl{width:100%;border-collapse:collapse;font-size:14px}.cod-tbl th,.cod-tbl td{padding:8px 6px;border-bottom:1px solid rgb(0 0 0 / .12);text-align:left;vertical-align:middle}
+.cod-tbl tr.off td{opacity:.5}.cod-act{white-space:nowrap}
+.cod-new{border:2px solid var(--accent)}
+.al-cod{text-align:center;letter-spacing:.18em;font:800 20px ui-monospace,Menlo,monospace;text-transform:uppercase}
+
+/* acesso do aluno: cadeado, código gerado, telas trancadas */
+.al-lock{display:grid;justify-items:center;gap:8px;text-align:center;padding:22px 14px}
+.al-lock-i{font-size:44px;line-height:1}
+.al-lock h2{margin:0;font-size:22px}
+.al-lock-l,.al-lock-t{margin:0;font-weight:800}.al-lock-t{font-size:18px;color:var(--accent)}
+.al-lock-code{font:900 38px/1.1 ui-monospace,Menlo,monospace;letter-spacing:.2em;padding:12px 16px;border:3px dashed currentColor;border-radius:14px;user-select:all}
+.al-lock-msg{min-height:1.4em;font-weight:700;margin:0}
+.al-lock-have{width:100%;max-width:340px;margin-top:6px}.al-lock-have summary{cursor:pointer;padding:8px 0}
+.al-lock-row{display:flex;gap:8px;margin-top:6px}.al-lock-row .field{flex:1;min-width:0}
+.al-codbox{display:grid;gap:8px;margin:4px 0}.al-pedido .al-lock-code{font-size:30px;text-align:center}.al-pedido{display:grid;gap:4px;justify-items:center;text-align:center}
+.bottom-nav .nav-item{position:relative}.bottom-nav .nav-lock{position:absolute;top:2px;right:calc(50% - 22px);font-size:11px;font-style:normal}
+.bottom-nav .nav-item.locked{opacity:.72}
+/* ===== aba Tocar: abas de instrumento, violão, xilofone, batida de fundo ===== */
+.ti-tabs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 6px 16px 10px; }
+.ti-tab { display: grid; place-items: center; min-height: 44px; border: 2px solid #1b1818; background: #fff; color: #1b1818; font: 700 14px var(--body); text-decoration: none; }
+.ti-tab.on { background: #1b1818; color: #fff; }
+.ti-tab:focus-visible { outline: 3px solid #b5162b; outline-offset: 2px; }
+.tk-kit { position: relative; }
+.ti-rip { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50% !important; border: 3px solid #b5162b; pointer-events: none; z-index: 6; }
+.ti-stage { position: relative; margin: 8px 16px; padding: 14px; border-radius: 6px 14px 8px 16px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; overflow: hidden; }
+.ti-stage[data-kit-theme="colagem"] { background: #ffd66b url(../assets/zine/textura-fundo-creme.webp) center/cover; background-blend-mode: multiply; box-shadow: 5px 6px 0 rgba(20, 32, 54, .35); }
+.ti-stage[data-kit-theme="vinil"] { background: #1c1a22 url(../assets/zine/textura-fundo-tinta.webp) center/cover; background-blend-mode: screen; box-shadow: 5px 6px 0 rgba(0, 0, 0, .35); }
+.ti-stage[data-kit-theme="poster"] { background: #14284b radial-gradient(rgba(255, 209, 102, .26) 1.6px, transparent 1.8px) 0 0/14px 14px; box-shadow: 5px 6px 0 rgba(0, 0, 0, .35); }
+.ti-panel, .ti-backing { display: grid; gap: 10px; }
+.ti-paul { height: 84px; width: auto; margin-left: auto; pointer-events: none; }
+.ti-styles { display: flex; flex-wrap: wrap; gap: 8px; }
+.ti-go[aria-pressed="true"] { background: #1b1818; color: #fff; }
+.ti-hint { margin: 0; font-size: 13px; }
+
+/* violão */
+.ti-chords { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
+.ti-chord { min-height: 54px; border: 3px solid #1b1818; background: #fffdf7; color: #1b1818; font: 400 25px Anton, Impact, sans-serif; letter-spacing: .03em; box-shadow: 3px 3px 0 rgba(0, 0, 0, .35); cursor: pointer; touch-action: manipulation; }
+.ti-chord[aria-pressed="true"] { background: #b5162b; color: #fff; transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(0, 0, 0, .35); }
+.ti-neck { position: relative; display: grid; grid-template-columns: 44px 1fr; border: 3px solid #1b1818; border-radius: 6px; overflow: hidden; background: #521622; box-shadow: 3px 3px 0 rgba(0, 0, 0, .35); }
+.ti-neck::before { content: ""; position: absolute; inset: 0 0 0 44px; background: repeating-linear-gradient(90deg, transparent 0 calc(25% - 3px), rgba(245, 234, 210, .3) calc(25% - 3px) 25%); pointer-events: none; }
+.ti-gnotes { display: grid; background: #1b1818; border-right: 3px solid #1b1818; }
+.ti-gnote { display: grid; place-items: center; height: 46px; font: 700 12px var(--body); color: #f5ead2; }
+.ti-gstr { display: grid; touch-action: none; cursor: pointer; }
+.ti-str { position: relative; height: 46px; display: grid; align-items: center; pointer-events: none; }
+.ti-str i { display: block; width: 100%; height: var(--w); background: linear-gradient(#fffdf7, #b9b2a2); box-shadow: 0 2px 3px rgba(0, 0, 0, .55); }
+.ti-str.wound i { background: repeating-linear-gradient(90deg, #efe6d2 0 3px, #9d927c 3px 6px); }
+.ti-str.off i { opacity: .28; }
+
+/* xilofone */
+.ti-xy { display: flex; align-items: center; gap: 5px; height: clamp(250px, 46vh, 400px); }
+.ti-bar { flex: 1 1 0; min-width: 0; border: 3px solid #1b1818; border-radius: 10px; background: var(--bc); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 9px 0; font: 700 clamp(9px, 2.6vw, 13px) var(--body); box-shadow: 3px 4px 0 rgba(0, 0, 0, .4), inset 0 3px 0 rgba(255, 255, 255, .3); cursor: pointer; touch-action: none; will-change: transform; }
+.ti-bar.light { color: #1b1818; }
+.ti-bar::before, .ti-bar::after { content: ""; width: 9px; height: 9px; border-radius: 50%; background: rgba(0, 0, 0, .4); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4); }
+.ti-bar span { pointer-events: none; text-shadow: 0 1px 0 rgba(0, 0, 0, .25); }
+.ti-bar.light span { text-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .ti-rip { display: none; } }
+.ti-staff { margin: 0; background: #fffdf8; color: #1b1818; border: 1px solid var(--line); padding: 4px; }
+.ti-staff svg { width: 100%; height: auto; display: block; }
+.ti-lab { margin: 0; font: 700 11px var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.ti-names { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 0; padding: 0; list-style: none; font: 700 14px var(--body); }
+.ti-names li { display: flex; align-items: center; gap: 6px; }
+.ti-names i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #1b1818; }
+
+/* ---- Roleta Musical (aba Tocar) ---- */
+.ti-tab { font-size: 13px; padding: 0 2px; }
+.rl-root{display:grid;gap:12px;padding-bottom:24px}
+.rl-card-main{background:#f5ead2;border:3px solid #14203a;box-shadow:0 6px 0 #6e1423}
+.rl-machine{position:relative;background:#14203a;border:4px solid #6e1423;border-radius:18px;padding:12px;margin:10px 0}
+.rl-reels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rl-win{position:relative;overflow:hidden;aspect-ratio:3/4;border-radius:10px;background:#f5ead2;border:3px solid #e8a92c}
+.rl-win::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(#14203a55,transparent 18%,transparent 82%,#14203a55)}
+.rl-strip{width:100%;will-change:transform}
+.rl-it{position:relative;width:100%;height:100%;overflow:hidden;background:#14203a}.rl-it img{width:100%;height:100%;object-fit:cover;display:block}
+.rl-nm{position:absolute;left:0;right:0;bottom:0;background:#f5ead2;color:#14203a;font:700 clamp(10px,3vw,14px)/1.1 inherit;text-align:center;padding:3px 2px}
+.rl-fb{display:grid;place-items:center;width:100%;height:100%;background:#6e1423;color:#f5ead2;text-align:center;font-weight:700;padding:4px}
+
+.rl-spin{width:100%;min-height:56px;font-size:20px;margin-bottom:8px}
+.rl-spin:disabled{opacity:.55}
+.rl-card{display:grid;gap:12px;grid-template-columns:minmax(0,140px) 1fr;align-items:center;margin-top:12px;animation:rl-pop .35s ease both}
+@keyframes rl-pop{from{transform:scale(.9);opacity:0}}
+.rl-foto{aspect-ratio:3/4;border:3px solid #14203a;border-radius:12px;overflow:hidden;background:#14203a}.rl-big{width:100%;height:100%;object-fit:cover;display:block}
+.rl-frase{font-size:clamp(18px,5vw,26px);margin:0 0 10px;line-height:1.15;color:#6e1423}
+@media (max-width:360px){.rl-card{grid-template-columns:1fr}}
+.rl-pop{position:fixed;inset:0;z-index:60;background:#14203acc;display:grid;place-items:center;padding:16px}.rl-pop[hidden]{display:none}
+.rl-pop-in{background:#f5ead2;border:3px solid #14203a;border-radius:16px;padding:16px;max-width:420px;width:100%;max-height:90vh;overflow:auto;display:grid;gap:10px}
+.rl-pop-img{width:100%;max-height:50vh;object-fit:contain;border-radius:10px;background:#14203a}
+.rl-inst{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rl-inst .btn{min-height:48px;text-align:center}
+.rl-hl{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:6px 0}.rl-hl li{background:#f5ead2;border:2px solid #14203a;border-radius:999px;padding:4px 10px;font-size:13px}
+@media (prefers-reduced-motion:reduce){.rl-card{animation:none}}
+.rl-chk{display:flex;gap:8px;align-items:center;min-height:44px;margin:6px 0}.rl-chk input{width:22px;height:22px;flex:none}
+.rl-filtros{margin:8px 0}
+.rl-frase{font-family:var(--display,inherit)!important;font-weight:800}
+
+/* iPad deitado / telas grandes de toque: coluna mais larga pra não abrir pequeno */
+@media (min-width: 1000px) and (pointer: coarse) {
+  #app { max-width: 1040px; } .bottom-nav, .tray { max-width: 720px; }
+  .scroll-track { right: calc(50% - 520px); } .to-top { right: calc(50% - 500px); }
+}
+
+/* álbum: aviso do giro grátis / pacotes quando a pessoa está numa coleção */
+.fig-giro{display:block;width:100%;margin:8px 0;min-height:48px;font-size:16px;text-align:center}
