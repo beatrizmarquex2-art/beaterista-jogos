@@ -705,3 +705,182 @@ html.lite .cx-dir,html.lite .cx-deck.fit .cx-stack{animation:none}
 .cx-learn-in{background:#f5ead2;color:#14203a;border:3px solid #14203a;border-radius:16px;padding:16px;max-width:360px;width:100%;display:grid;gap:8px;justify-items:center;text-align:center;box-shadow:0 6px 0 #6e1423}
 .cx-learn-card{--cw:120px;display:grid;place-items:center;margin:4px}.cx-learn-in h3{margin:0;font-size:24px}.cx-learn-in p{margin:0}
 .cx-names .cx-lbl{display:block}
+
+/* Quiz e Letras: caça-palavras e cruzadinha fáceis e coloridas */
+.dc-wrap{--k0:#f3b9c3;--k1:#f6d08a;--k2:#b4c8e0;--k3:#f9dde1;--k4:#fbe8c2;--k5:#d9e4f1}
+.dc-k0{background:var(--k0)}.dc-k1{background:var(--k1)}.dc-k2{background:var(--k2)}.dc-k3{background:var(--k3)}.dc-k4{background:var(--k4)}.dc-k5{background:var(--k5)}
+.dc-chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0}
+.dc-chip{display:inline-flex;align-items:center;min-height:28px;padding:3px 10px;border:1.5px solid var(--jg-navy);border-radius:999px;font:700 12px/1 var(--body, inherit);text-transform:uppercase;letter-spacing:.04em;color:var(--jg-navy)}
+button.dc-chip{cursor:pointer;min-height:36px}
+.dc-grid.dc-easy{max-width:300px;gap:2px;touch-action:none;user-select:none;-webkit-user-select:none}
+.dc-grid.dc-easy .dc-c{border-radius:6px;border-width:1.5px;font-weight:700;font-size:clamp(14px,4.2vw,18px);text-transform:uppercase;background:#fff;min-height:36px;touch-action:none}
+.dc-grid.dc-easy .dc-c.sel{background:var(--jg-mus);color:#fff}
+.dc-grid.dc-easy .dc-c.found{color:var(--jg-ink)}
+.dc-wrap .dc-cell{border-radius:5px;border-width:1.5px;border-color:var(--jg-navy);background:#fff}
+.dc-wrap .dc-cell.hint{background:#fbe8c2;color:var(--jg-red)}
+.dc-wrap .dc-cell.on{color:var(--jg-ink)}
+.dc-wrap .dc-clues li{padding:8px 10px;border:1.5px solid var(--jg-navy);border-radius:10px;list-style-position:inside;font-size:14px}
+.dc-wrap .dc-clues li.ok{opacity:.75}
+@media (prefers-reduced-motion:reduce){.dc-grid.dc-easy .dc-c.sel{transform:none}}
+.dc-grid.dc-easy{grid-template-columns:repeat(var(--n),minmax(0,1fr));width:100%;box-sizing:border-box}
+.dc-grid.dc-easy .dc-c{min-width:0;min-height:0;aspect-ratio:1;padding:0;line-height:1;font-size:clamp(14px,4.8vw,20px)}
+.dc-wrap .dc-box .card{min-width:0;box-sizing:border-box}
+.dc-grid.dc-easy .dc-c.dc-k0{background:var(--k0)}
+.dc-grid.dc-easy .dc-c.dc-k1{background:var(--k1)}
+.dc-grid.dc-easy .dc-c.dc-k2{background:var(--k2)}
+.dc-grid.dc-easy .dc-c.dc-k3{background:var(--k3)}
+.dc-grid.dc-easy .dc-c.dc-k4{background:var(--k4)}
+.dc-grid.dc-easy .dc-c.dc-k5{background:var(--k5)}
+.dc-wrap .dc-cw{max-width:calc(var(--cols) * 28px)}.dc-wrap .dc-cell{font-size:clamp(12px,3.6vw,16px)}.dc-wrap .dc-cell small{font-size:8px;color:var(--jg-red)}
+/* pistas da cruzadinha: sem caixas, só uma linha limpa com a bolinha da cor da palavra */
+.dc-wrap .dc-clues{list-style:none;padding:0;gap:6px}
+.dc-wrap .dc-clues li{display:grid;grid-template-columns:26px 1fr;column-gap:10px;align-items:start;padding:8px 2px;border:0;border-bottom:1px dashed var(--jg-line);border-radius:0;background:none!important;font-size:14px}
+.dc-wrap .dc-clues li::before{content:attr(value);grid-row:1/4;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--jg-navy);font:700 12px var(--body,inherit);color:var(--jg-navy);background:var(--kc,#fff)}
+.dc-wrap .dc-clues li.dc-k0{--kc:var(--k0)}.dc-wrap .dc-clues li.dc-k1{--kc:var(--k1)}.dc-wrap .dc-clues li.dc-k2{--kc:var(--k2)}.dc-wrap .dc-clues li.dc-k3{--kc:var(--k3)}.dc-wrap .dc-clues li.dc-k4{--kc:var(--k4)}.dc-wrap .dc-clues li.dc-k5{--kc:var(--k5)}
+.dc-wrap .dc-clues li::marker{content:''}
+.dc-wrap .dc-clues li.ok::before{background:var(--jg-navy);color:#fff;content:'✓'}
+.dc-wrap .dc-clues .dc-dir{font-size:11px;color:var(--jg-red)}
+.dc-wrap .dc-clues p{margin:0 0 4px}
+.dc-wrap .dc-clues input{border:0;border-bottom:2px solid var(--jg-navy);border-radius:0;background:transparent;padding:4px 0;font-size:16px;letter-spacing:.22em}
+.dc-wrap .dc-clues input:focus{outline:none;border-bottom-color:var(--jg-red)}
+.dc-wrap .dc-clues li::before{align-self:start;border-radius:50%!important;aspect-ratio:1;height:24px}
+.dc-wrap .dc-clues input{height:30px;min-height:0;box-sizing:border-box;margin:0;box-shadow:none}
+.dc-wrap .dc-cell,.dc-grid.dc-easy .dc-c{border-radius:50%!important}
+.dc-wrap .dc-cell.hint,.dc-wrap .dc-cell.on{border-radius:50%!important}
+.dc-wrap .dc-cell.dc-k0{background:var(--k0)}
+.dc-wrap .dc-cell.dc-k1{background:var(--k1)}
+.dc-wrap .dc-cell.dc-k2{background:var(--k2)}
+.dc-wrap .dc-cell.dc-k3{background:var(--k3)}
+.dc-wrap .dc-cell.dc-k4{background:var(--k4)}
+.dc-wrap .dc-cell.dc-k5{background:var(--k5)}
+/* modo escuro do Quiz e Letras (botão ☀️/🌙 no topo; lembra a escolha, senão segue o aparelho) */
+.dc-modo{min-height:36px;padding:4px 12px;border:1.5px solid var(--jg-navy);border-radius:999px;background:transparent;color:var(--jg-ink);font:700 13px var(--body,inherit);cursor:pointer}
+.dc-modo:focus-visible{outline:3px solid var(--jg-mus);outline-offset:2px}
+.dc-wrap.escuro{--jg-bg:#16273f;--jg-ink:#f6ecd8;--jg-navy:#9db8de;--jg-red:#ff7a90;--jg-line:#f6ecd833;background:#0f1b2e;color:#f6ecd8;border-color:#3c5f8f}
+.dc-wrap.escuro .card{background:#16273f;color:#f6ecd8;border-color:#3c5f8f;box-shadow:none}
+.dc-wrap.escuro .muted,.dc-wrap.escuro .dc-dir{color:#a9b3c4}
+.dc-wrap.escuro .dc-clues .dc-dir{color:#ff9aab}
+.dc-wrap.escuro .dc-pick{background:#16273f;border-color:#3c5f8f;color:#f6ecd8}
+.dc-wrap.escuro .dc-pick.on{background:#4a3d1c;border-color:#EBA332;box-shadow:3px 3px 0 #EBA332}
+.dc-wrap.escuro .dc-n,.dc-wrap.escuro .dc-wrap .tr-count,.dc-wrap.escuro .tr-count{color:#ff9aab}
+.dc-wrap.escuro .dc-opt{background:#1c3350;color:#f6ecd8;border-color:#9db8de;box-shadow:2px 2px 0 #9db8de}
+.dc-wrap.escuro .dc-opt.ok{background:#1f6b3f;border-color:#6fd49a;color:#fff}
+.dc-wrap.escuro .dc-opt.no{background:#8a1d30;border-color:#ff7a90;color:#fff}
+.dc-wrap.escuro .dc-chip{color:#142036}
+.dc-wrap.escuro .dc-grid.dc-easy .dc-c{background:#1c3350;color:#f6ecd8;border-color:#9db8de}
+.dc-wrap.escuro .dc-grid.dc-easy .dc-c.found{color:#142036}
+.dc-wrap.escuro .dc-grid.dc-easy .dc-c.sel{background:#EBA332;color:#142036}
+.dc-wrap.escuro .dc-cell{background:#1c3350;color:#f6ecd8;border-color:#9db8de}
+.dc-wrap.escuro .dc-cell.on{color:#142036}
+.dc-wrap.escuro .dc-cell.hint{background:#4a3d1c;color:#ffd37a}
+.dc-wrap.escuro .dc-cell small{color:#ff9aab}
+.dc-wrap.escuro .dc-clues li::before{color:#142036}
+.dc-wrap.escuro .dc-clues li.ok::before{background:#9db8de;color:#0f1b2e}
+.dc-wrap.escuro .dc-clues input{color:#f6ecd8;border-bottom-color:#9db8de}
+.dc-wrap.escuro .dc-clues input:focus{border-bottom-color:#ff7a90}
+.dc-wrap.escuro .dc-clues li.ok{color:#8fe0b0}
+.dc-wrap.escuro .dc-explain{border-left-color:#6fd49a}
+.dc-wrap.escuro .dc-grid.dc-easy .dc-c.found.dc-k0,.dc-wrap.escuro .dc-cell.on.dc-k0{background:var(--k0)}
+.dc-wrap.escuro .dc-grid.dc-easy .dc-c.found.dc-k1,.dc-wrap.escuro .dc-cell.on.dc-k1{background:var(--k1)}
+.dc-wrap.escuro .dc-grid.dc-easy .dc-c.found.dc-k2,.dc-wrap.escuro .dc-cell.on.dc-k2{background:var(--k2)}
+.dc-wrap.escuro .dc-grid.dc-easy .dc-c.found.dc-k3,.dc-wrap.escuro .dc-cell.on.dc-k3{background:var(--k3)}
+.dc-wrap.escuro .dc-grid.dc-easy .dc-c.found.dc-k4,.dc-wrap.escuro .dc-cell.on.dc-k4{background:var(--k4)}
+.dc-wrap.escuro .dc-grid.dc-easy .dc-c.found.dc-k5,.dc-wrap.escuro .dc-cell.on.dc-k5{background:var(--k5)}
+.dc-wrap.escuro .tag,.dc-wrap.escuro h2,.dc-wrap.escuro h3{color:#f6ecd8}.dc-wrap.escuro .dc-grid.dc-easy .dc-c.found,.dc-wrap.escuro .dc-cell.on{color:#142036}
+/* quiz: acerto/erro aparecem (antes a cor do fundo branco vencia), opções redondas e pergunta legível */
+.dc-wrap .dc-opt{border-radius:14px;border-width:1.5px;box-shadow:none}
+.dc-wrap .dc-opt.ok{background:#d8f0dc;border-color:#1f9d4a;color:#0e4a22}
+.dc-wrap .dc-opt.no{background:#f6d5d9;border-color:#BD1733;color:#7a0e20}
+.dc-wrap.escuro .dc-opt.ok{background:#1f6b3f;border-color:#6fd49a;color:#fff}
+.dc-wrap.escuro .dc-opt.no{background:#8a1d30;border-color:#ff7a90;color:#fff}
+.dc-wrap .dc-clue{font-family:var(--body,inherit);font-weight:700;font-size:18px;line-height:1.4;text-transform:none}
+/* quiz no mesmo estilo do caça-palavras e da cruzadinha */
+.dc-prog{display:flex;gap:6px;justify-content:center;margin:2px 0 4px}
+.dc-prog i{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--jg-navy);background:transparent;display:block}
+.dc-prog i.ok{background:#1f9d4a;border-color:#1f9d4a}.dc-prog i.no{background:#BD1733;border-color:#BD1733}.dc-prog i.now{background:var(--jg-mus);border-color:var(--jg-navy)}
+.dc-wrap .dc-opts,.dc-wrap .dc-opts.long{grid-template-columns:1fr;gap:8px}
+.dc-wrap .dc-op{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:center;text-align:left;min-height:48px;padding:8px 12px;border-radius:999px;font:600 15px/1.3 var(--body,inherit)}
+.dc-wrap .dc-opts.long .dc-op{border-radius:18px;font-size:14px}
+.dc-bd{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--jg-navy);font:700 13px var(--body,inherit);color:#142036}
+.dc-bd.dc-k0{background:var(--k0)}.dc-bd.dc-k1{background:var(--k1)}.dc-bd.dc-k2{background:var(--k2)}.dc-bd.dc-k3{background:var(--k3)}
+.dc-op.ok .dc-bd{background:#1f9d4a;color:#fff;border-color:#1f9d4a}.dc-op.no .dc-bd{background:#BD1733;color:#fff;border-color:#BD1733}
+.dc-wrap .dc-opt.ok,.dc-wrap .dc-opt.no{opacity:1}
+.dc-wrap .dc-clue{font-size:17px}
+.dc-score{display:inline-grid;place-items:center;width:104px;height:104px;border-radius:50%;background:radial-gradient(circle,#fff7dc 0 55%,var(--jg-mus) 56% 100%);border:2px solid var(--jg-navy);margin:6px auto;color:#142036}
+.dc-score b{font:700 38px/1 var(--display,inherit)}.dc-score small{font-size:12px;margin-top:-18px}
+.dc-wrap.escuro .dc-prog i{border-color:#9db8de}
+.dc-prog i,.dc-bd,.dc-score{border-radius:50%!important}
+.dc-wrap .dc-op{border-radius:999px!important}.dc-wrap .dc-opts.long .dc-op{border-radius:20px!important}
+/* paleta do Quiz e Letras: só azul-marinho e amarelo */
+.dc-wrap{--k0:#f6d28a;--k1:#b4c8e0;--k2:#fbe3a6;--k3:#d9e4f1;--k4:#EBA332;--k5:#8fb0dc;--jg-red:#17365B}
+.dc-wrap.escuro{--jg-red:#ffd37a}
+.dc-wrap .dc-n,.dc-wrap .tr-count{color:#17365B}.dc-wrap.escuro .dc-n,.dc-wrap.escuro .tr-count{color:#ffd37a}
+.dc-wrap .dc-clues .dc-dir,.dc-wrap .dc-cell small{color:#17365B;opacity:.8}.dc-wrap.escuro .dc-clues .dc-dir,.dc-wrap.escuro .dc-cell small{color:#ffd37a}
+.dc-wrap .dc-cell.hint{color:#17365B;background:#fbe3a6}.dc-wrap.escuro .dc-cell.hint{background:#4a3d1c;color:#ffd37a}
+.dc-wrap .btn.primary{background:#17365B;color:#ffd37a;border-color:#142036;box-shadow:3px 3px 0 #EBA332}
+.dc-wrap.escuro .btn.primary{background:#EBA332;color:#142036;border-color:#EBA332;box-shadow:3px 3px 0 #17365B}
+.dc-wrap .dc-explain{border-left-color:#EBA332}.dc-wrap.escuro .dc-explain{border-left-color:#EBA332}
+.dc-wrap .dc-clues li:focus-within input,.dc-wrap .dc-clues input:focus{border-bottom-color:#EBA332}
+.dc-prog i.ok{background:#17365B;border-color:#17365B}.dc-prog i.no{background:#EBA332;border-color:#17365B}.dc-prog i.now{background:#fff;border:2px solid #EBA332}
+.dc-wrap.escuro .dc-prog i.ok{background:#9db8de;border-color:#9db8de}.dc-wrap.escuro .dc-prog i.no{background:#EBA332;border-color:#EBA332}.dc-wrap.escuro .dc-prog i.now{background:transparent}
+.dc-wrap .dc-opt.ok{background:#dbe6f2;border-color:#17365B;color:#142036}.dc-wrap .dc-opt.no{background:#fff1cf;border-color:#EBA332;color:#142036}
+.dc-wrap .dc-op.ok .dc-bd{background:#17365B;color:#ffd37a;border-color:#17365B}.dc-wrap .dc-op.no .dc-bd{background:#EBA332;color:#142036;border-color:#EBA332}
+.dc-wrap.escuro .dc-opt.ok{background:#23406b;border-color:#9db8de;color:#f6ecd8}.dc-wrap.escuro .dc-opt.no{background:#3a3320;border-color:#EBA332;color:#f6ecd8}
+.dc-wrap.escuro .dc-op.ok .dc-bd{background:#9db8de;color:#0f1b2e;border-color:#9db8de}.dc-wrap.escuro .dc-op.no .dc-bd{background:#EBA332;color:#142036}
+.dc-wrap.escuro .dc-clues li.ok{color:#9db8de}
+.dc-wrap .dc-clues li.ok::before{background:#17365B;color:#ffd37a}
+.dc-wrap .dc-clues li.ok{color:#17365B}.dc-wrap.escuro .dc-clues li.ok{color:#9db8de}
+/* certo = verde, errado = vermelho (o resto continua azul-marinho e amarelo) */
+.dc-prog i.ok{background:#1f9d4a;border-color:#1f9d4a}.dc-prog i.no{background:#BD1733;border-color:#BD1733}
+.dc-wrap .dc-opt.ok{background:#d8f0dc;border-color:#1f9d4a;color:#0e4a22}.dc-wrap .dc-opt.no{background:#f6d5d9;border-color:#BD1733;color:#7a0e20}
+.dc-wrap .dc-op.ok .dc-bd{background:#1f9d4a;color:#fff;border-color:#1f9d4a}.dc-wrap .dc-op.no .dc-bd{background:#BD1733;color:#fff;border-color:#BD1733}
+.dc-wrap.escuro .dc-prog i.ok{background:#3fbf6e;border-color:#3fbf6e}.dc-wrap.escuro .dc-prog i.no{background:#ff7a90;border-color:#ff7a90}
+.dc-wrap.escuro .dc-opt.ok{background:#1f6b3f;border-color:#6fd49a;color:#fff}.dc-wrap.escuro .dc-opt.no{background:#8a1d30;border-color:#ff7a90;color:#fff}
+.dc-wrap.escuro .dc-op.ok .dc-bd{background:#6fd49a;color:#0e4a22;border-color:#6fd49a}.dc-wrap.escuro .dc-op.no .dc-bd{background:#ff7a90;color:#4a0a16;border-color:#ff7a90}
+.dc-wrap .dc-clues li.ok{color:#1f6b3f}.dc-wrap.escuro .dc-clues li.ok{color:#8fe0b0}
+.dc-wrap .dc-clues li.ok::before{background:#1f9d4a;color:#fff}.dc-wrap.escuro .dc-clues li.ok::before{background:#6fd49a;color:#0e4a22}
+.dc-wrap .dc-explain,.dc-wrap.escuro .dc-explain{border-left-color:#1f9d4a}
+/* opções dentro dos jogos: chips pequenos (jeito da Bea: tudo pequenininho, como "anotações / dicionário / criar" e "favoritos / treinar / jogos") */
+.jg-game .jg-seg{gap:6px}
+.jg-game .jg-seg button,.jg-seg.sm button{min-height:32px;padding:4px 11px;font-size:13px;line-height:1.1;border-width:2px;box-shadow:2px 2px 0 var(--jg-ink)}
+.jg-game .jg-actions .btn:not(.primary){min-height:32px;padding:4px 12px;font-size:13px}
+.kx-arc .mem-stage .kd-chip{min-height:30px;padding:3px 11px;font:700 12px var(--body);border-width:2px;border-radius:8px;box-shadow:2px 2px 0 #1b1818}
+.kx-arc .mem-stage .kd-modes{gap:6px}
+/* escolhas dos jogos, mais discretas ainda: pílulas pequenas, sem sombra */
+.jg-game .jg-seg button,.jg-seg.sm button{min-height:28px;padding:3px 10px;font-size:12px;border-width:1.5px;border-radius:999px;box-shadow:none;transform:none}
+.jg-game .jg-seg button:nth-child(odd),.jg-game .jg-seg button:nth-child(even){transform:none}
+.jg-game .jg-seg{gap:5px}
+.jg-seg button.jg-ic{min-width:34px;font-size:15px;line-height:1;padding:2px 9px}
+/* bonequinhos (quem joga?) */
+.ic-bq{display:inline-block;width:24px;height:24px;line-height:0;vertical-align:middle}.ic-bq svg,.ic-bq img{width:100%;height:100%;display:block;object-fit:contain}
+.jg-seg button.jg-ic{min-width:42px;min-height:36px;padding:3px 8px}
+.jg-seg button.jg-ic .ic-bq{width:28px;height:28px}
+.jg-seg button.jg-ic.on{background:#f6d28a;border-color:var(--jg-ink)}
+/* ícones de quem joga: linhas simples, discretos; "desafio" bem pequenininho */
+.jg-seg button.jg-ic{min-width:34px;min-height:32px;padding:3px 8px}
+.jg-seg button.jg-ic .ic-bq{width:20px;height:20px}
+.jg-seg button.jg-tiny{min-height:22px;padding:1px 8px;font-size:10px;letter-spacing:.03em;opacity:.9;align-self:center}
+/* telas de começo organizadas: uma linha por escolha, chips pequenos, "?" pras regras */
+.jo-card{margin:8px 0;padding:8px 10px;border:2px solid var(--jg-ink);border-radius:12px;background:#fffdf7;color:#142036}
+.jo-card .jg-seg button{box-shadow:none}
+.jo-linha{display:flex;align-items:center;gap:8px;margin:5px 0;flex-wrap:wrap}
+.jo-rot{flex:0 0 78px;font:700 10px var(--body,inherit);letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+.jo-opc{display:flex;gap:6px;flex-wrap:wrap;align-items:center;flex:1;min-width:0}
+.jo-chips{display:flex;gap:5px;flex-wrap:wrap}
+.jo-passo{display:inline-flex;align-items:center;gap:3px;font:700 12px var(--body,inherit)}
+.jo-passo>span{min-width:70px;text-align:center}
+.jo-passo button{min-width:26px;min-height:26px;padding:0;border:1.5px solid var(--jg-ink);border-radius:999px;background:#fffdf7;color:#142036;font:700 15px/1 var(--body,inherit);cursor:pointer}
+.jo-passo button:disabled{opacity:.3;cursor:default}
+.jo-ajuda{display:inline-block;vertical-align:middle}.jo-ajuda summary{list-style:none;display:inline-grid;place-items:center;width:22px;height:22px;border:1.5px solid currentColor;border-radius:50%;font:700 12px var(--body,inherit);cursor:pointer;opacity:.8}
+.jo-ajuda summary::-webkit-details-marker{display:none}.jo-ajuda[open] summary{background:currentColor}.jo-ajuda[open] summary{color:#fffdf7}
+.jo-nota{margin:6px 0;padding:8px 10px;border:1.5px dashed currentColor;border-radius:10px;font-size:13px;line-height:1.4;text-align:left}.jo-nota ol,.jo-nota ul{margin:0;padding-left:18px}
+.jo-topo{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 4px;font:700 11px var(--body,inherit);letter-spacing:.06em;text-transform:uppercase}
+.jo-temas{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.jo-tema{width:56px;display:grid;justify-items:center;gap:2px;padding:4px 2px 3px;background:transparent;border:2px solid transparent;border-radius:10px;color:inherit;font:700 10px/1.1 var(--body,inherit);text-align:center;cursor:pointer}
+.jo-tema.on{border-color:var(--jg-ink);background:#fff3d6;color:#142036}
+.jo-ticon{display:block;width:36px;height:36px}.jo-ticon img{width:100%;height:100%;object-fit:cover;border-radius:8px;display:block}
+.jo-go{min-height:34px!important;padding:4px 18px!important;font-size:14px!important}
+.jg-game .jg-actions .btn.primary{min-height:34px;padding:4px 16px;font-size:14px}
+@media (prefers-reduced-motion:reduce){.jo-tema{transition:none}}
+.jg-qprev{max-height:120px;width:auto;max-width:100%;object-fit:cover;border-radius:10px}
+.jg-imgs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;gap:4px}.jg-imgs button{flex:0 0 auto;min-height:0!important;padding:2px!important}.jg-imgs button img{width:46px!important;height:31px!important;object-fit:cover;border-radius:5px;display:block}

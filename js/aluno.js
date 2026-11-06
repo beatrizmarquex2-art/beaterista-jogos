@@ -33,8 +33,8 @@ import { startPaul } from './paul-talk.js';
 
 const app = document.getElementById('app');
 const NAME_KEY = 'beaterista-aluno-nome';
-const NAV = [['#/jogos', 'study', 'Jogos'], ['#/estudos', 'bulb', 'Estudos'], ['#/tocar', 'drummer', 'Tocar'], ['#/album', 'photo', 'Álbum'], ['#/perfil', 'id', 'Perfil'], ['#/ranking', 'star', 'Ranking']];
-const TAB_OF = { toque: 'tocar', piano: 'tocar', violao: 'tocar', xilofone: 'tocar', roleta: 'tocar', kids: 'jogos', ritmo: 'jogos', dicionario: 'estudos', paulta: 'jogos', dicas: 'jogos' };
+const NAV = [['#/jogos', 'bulb', 'Jogos'], ['#/estudos', 'study', 'Estudos'], ['#/tocar', 'nota', 'Tocar'], ['#/album', 'gallery', 'Álbum'], ['#/perfil', 'id', 'Perfil']]; // lâmpada, livro, nota musical, galeria e carteirinha
+const TAB_OF = { toque: 'tocar', piano: 'tocar', violao: 'tocar', xilofone: 'tocar', roleta: 'tocar', kids: 'jogos', ritmo: 'jogos', dicionario: 'estudos', paulta: 'jogos', dicas: 'estudos', erros: 'estudos' };
 /** Aba que acende pra tela atual: a aulinha do Paul e o relatório "Jogos Ensinam" moram em Estudos. */
 const tabOf = (r) => ((r.name === 'kids' && r.parts[0] === 'figuras' && r.parts[1] === 'aula') || (r.name === 'jogos' && r.parts[0] === 'relatorio') ? 'estudos' : (TAB_OF[r.name] || r.name)); // telas que acendem outra aba (todos os jogos moram na aba Jogos)
 let cleanup = null;
@@ -150,23 +150,37 @@ function lockView(view, what) {
   view.append(banner('Só pra alunos', 'libere com o seu código de acesso'), h('div', { class: 'pad-x' }, box));
   return () => { gone = true; clearInterval(timer); };
 }
-const NOMES_TELA = { ritmo: 'o Beat Hero', ranking: 'o Ranking', album: 'o Álbum', kids: 'o modo aventura (fases e estrelas)', dicionario: 'o Dicionário da bateria', dicas: 'o Quiz e Letras' };
+const NOMES_TELA = { ritmo: 'o Beat Hero', ranking: 'o Ranking', album: 'o Álbum', kids: 'o modo aventura (fases e estrelas)', dicionario: 'o Dicionário da bateria', dicas: 'o Quiz e Letras', paulta: 'a pauLta' };
 
-/** Aba Estudos: aulinha do Paul, dicionário musical, Quiz e Letras (com código) e o relatório "Jogos Ensinam" (aberto, pros pais). */
+/** Aba Estudos: 5 erros (aberto), Dicionário, Quiz e Letras e Aulinha do Paul (com código). */
 function estudosView(view) {
   const item = (href, title, sub) => { const lk = AC.trancado(href); return h('a', { class: `card pad al-card${lk ? ' locked' : ''}`, href, 'aria-label': lk ? `${title}, só pra alunos com código` : null }, h('h2', { class: 'tag' }, lk ? '🔒 ' : '', title), h('p', { class: 'muted' }, sub)); };
   view.append(banner('Estudos', 'aprender com calma'), h('div', { class: 'pad-x', style: 'display:grid;gap:12px' },
-    item('#/kids/figuras/aula', 'Aulinha do Paul', 'as figuras rítmicas, passo a passo'),
+    item('#/erros', '5 erros', 'material em PDF da professora Bea, aberto pra todo mundo'),
     item('#/dicionario', 'Dicionário musical', 'busca, explicação e exemplo tocando'),
-    item('#/dicas/quiz', 'Quiz e Letras', 'quiz, caça-palavras e cruzadinha das 30 dicas'),
-    item('#/jogos/relatorio', 'Jogos Ensinam', 'relatório aberto pra pais e responsáveis: o que cada jogo desenvolve')));
+    item('#/dicas/quiz', 'Quiz e Letras', 'quiz, caça-palavras e cruzadinha das dicas do método'),
+    item('#/kids/figuras/aula', 'Aulinha do Paul', 'as figuras rítmicas, passo a passo')));
+}
+
+/** "5 erros": PDF da professora (aberto, sem código). Enquanto o arquivo não existe, avisa que vem aí. */
+const PDF_ERROS = 'assets/5-erros.pdf';
+const PDF_ERROS_DRIVE = 'https://drive.google.com/file/d/1FJ7dLVD2EOg2eFIvt14kkFA8vFEnNokn/view'; // enquanto o PDF não está dentro do app (precisa estar como "qualquer pessoa com o link")
+function errosView(view) {
+  const box = h('section', { class: 'card pad' }, h('p', { class: 'muted' }, 'carregando…'));
+  view.append(banner('5 erros', 'material da professora Bea'), h('div', { class: 'pad-x', style: 'display:grid;gap:12px' }, h('a', { class: 'jg-link', href: '#/estudos' }, '‹ estudos'), box));
+  let gone = false;
+  fetch(PDF_ERROS, { method: 'HEAD', cache: 'no-store' }).then((r) => {
+    if (gone) return;
+    box.replaceChildren(h('h2', { class: 'tag' }, '5 erros'), h('p', {}, 'toque pra abrir o material. dá pra ler e baixar.'), h('a', { class: 'btn primary wide', href: r.ok ? PDF_ERROS : PDF_ERROS_DRIVE, target: '_blank', rel: 'noopener' }, 'abrir o PDF'));
+  }).catch(() => { if (!gone) box.replaceChildren(h('p', { class: 'muted' }, 'sem internet agora. tente de novo.')); });
+  return () => { gone = true; };
 }
 
 function tocarView(view) {
   const card = (href, title, sub) => h('a', { class: 'card pad al-card', href }, h('h2', { class: 'tag' }, title), h('p', { class: 'muted' }, sub));
   view.append(banner('Tocar', 'bateria, piano, violão, xilofone e roleta musical'), h('div', { class: 'pad-x', style: 'display:grid;gap:12px' },
     card('#/toque', 'Bateria', 'toque nas peças com vários dedos e grave um ritmo'),
-    card('#/violao', 'Violão e guitarra', 'escolha o acorde e passe o dedo nas cordas'),
+    card('#/violao', 'Violão', 'escolha o acorde e passe o dedo nas cordas'),
     card('#/piano', 'Piano', 'teclado na tela, com notas e acordes'),
     card('#/xilofone', 'Xilofone', 'barras coloridas: nenhuma nota soa errada na pentatônica'),
     card('#/roleta', 'Roleta Musical', 'gire os rolos e descubra de qual artista você vai tocar uma música')));
@@ -217,7 +231,7 @@ function shell(name) {
     const r = route(); view.dataset.page = r.name;
     nav.replaceChildren(...NAV.map(([href, ic, label]) => { const lk = AC.trancado(href); return h('a', { href, class: `nav-item${('#/' + tabOf(r)) === href ? ' on' : ''}${lk ? ' locked' : ''}`, 'aria-current': ('#/' + tabOf(r)) === href ? 'page' : null, 'aria-label': lk ? `${label} (com código)` : null }, icon(ic, 24), h('span', {}, label), lk ? h('i', { class: 'nav-lock', 'aria-hidden': 'true' }, '🔒') : null); }));
     let c;
-    if (AC.trancado(location.hash)) c = lockView(view, NOMES_TELA[r.name] || 'esta parte');
+    if (AC.trancado(location.hash)) c = lockView(view, NOMES_TELA[r.name] || (/^#\/jogos\/toca/.test(location.hash) ? 'o Toca Aqui' : /^#\/jogos\/cartas/.test(location.hash) ? 'o Uno Musical' : 'esta parte'));
     else if (r.name === 'dicionario') c = dicionario.mount(view, r.parts);
     else if (r.name === 'dicas') { // Quiz e Letras: baixa as 30 dicas (só com código) e abre
       const box = h('div'); view.append(box); let inner = null; let dead = false;
@@ -237,6 +251,7 @@ function shell(name) {
     else if (r.name === 'roleta') c = roleta.mount(view);
     else if (r.name === 'tocar') tocarView(view);
     else if (r.name === 'estudos') estudosView(view);
+    else if (r.name === 'erros') c = errosView(view);
     else if (r.name === 'ritmo') c = ritmo.mount(view, { student: true, name: getName, parts: r.parts });
     else { location.hash = '#/jogos'; return; }
     cleanup = typeof c === 'function' ? c : null;

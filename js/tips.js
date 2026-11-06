@@ -50,14 +50,15 @@ export function clueOf(item, { whole = false } = {}) {
 
 /* ---------- caça-palavras ---------- */
 export const DIRS = [[1, 0], [0, 1], [1, 1], [1, -1]];
-/** Grade size×size com as palavras em linha reta (→ ↓ ↘ ↗). Devolve { size, grid, placed:[{w,x,y,dx,dy}] } (as que não couberam ficam de fora). */
-export function wordsearch(words, size = 12, rnd = Math.random) {
+export const EASY_DIRS = [[1, 0], [0, 1]]; // só → e ↓: o jeito mais fácil de ler
+/** Grade size×size com as palavras em linha reta (por padrão → ↓ ↘ ↗). Devolve { size, grid, placed:[{w,x,y,dx,dy}] } (as que não couberam ficam de fora). */
+export function wordsearch(words, size = 12, rnd = Math.random, dirs = DIRS) {
   const grid = Array.from({ length: size }, () => Array(size).fill('')); const placed = [];
   const list = [...words].filter((w) => w.length <= size).sort((a, b) => b.length - a.length);
   for (const w of list) {
     let ok = false;
     for (let tries = 0; tries < 200 && !ok; tries++) {
-      const [dx, dy] = DIRS[Math.floor(rnd() * DIRS.length)]; const x = Math.floor(rnd() * size); const y = Math.floor(rnd() * size);
+      const [dx, dy] = dirs[Math.floor(rnd() * dirs.length)]; const x = Math.floor(rnd() * size); const y = Math.floor(rnd() * size);
       const ex = x + dx * (w.length - 1), ey = y + dy * (w.length - 1);
       if (ex < 0 || ex >= size || ey < 0 || ey >= size) continue;
       let fits = true; for (let i = 0; i < w.length; i++) { const c = grid[y + dy * i][x + dx * i]; if (c && c !== w[i]) { fits = false; break; } }
@@ -69,6 +70,12 @@ export function wordsearch(words, size = 12, rnd = Math.random) {
   const L = 'AAAEEEIIOOUBCDFGLMNPRSTV';
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (!grid[y][x]) grid[y][x] = L[Math.floor(rnd() * L.length)];
   return { size, grid, placed };
+}
+/** Escolhe até `n` dicas com palavra curtinha (min..max letras), pro modo fácil dos jogos. Se faltar, completa com as menores. */
+export function easyPick(items, n = 6, { min = 4, max = 8 } = {}, rnd = Math.random) {
+  const ok = shuffle(items.filter((x) => x.w.length >= min && x.w.length <= max), rnd);
+  if (ok.length >= n) return ok.slice(0, n);
+  return ok.concat(shuffle(items.filter((x) => !ok.includes(x)), rnd).sort((a, b) => a.w.length - b.w.length)).slice(0, n);
 }
 /** A seleção de (x0,y0) a (x1,y1) é uma linha reta? Devolve as casas [{x,y}] ou null. */
 export function lineCells(x0, y0, x1, y1) {
@@ -120,12 +127,29 @@ export function crossword(words, rnd = Math.random, size = 15) {
 /* ---------- quiz ---------- */
 export const shuffle = (a, rnd = Math.random) => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 const snippet = (t) => { const s = t.split(/(?<=[.!?])\s+/)[0]; return s.length > 90 ? `${s.slice(0, 88).trim()}…` : s; };
+/** Parte a dica em começo e fim (perto do meio, de preferência depois de uma vírgula). null se for curta demais. */
+export function cutTip(text) {
+  const w = String(text || '').trim().split(/\s+/); if (w.length < 8) return null;
+  const mid = w.length / 2; let k = Math.round(mid);
+  const punct = []; for (let j = 4; j <= w.length - 4; j++) if (/[,;:.…]$/.test(w[j - 1])) punct.push(j);
+  if (punct.length) k = punct.sort((a, b) => Math.abs(a - mid) - Math.abs(b - mid))[0];
+  k = Math.min(Math.max(k, 4), w.length - 4);
+  return { head: w.slice(0, k).join(' ').replace(/[,;:]$/, ''), tail: w.slice(k).join(' ') };
+}
+const clip = (t, n = 84) => (t.length > n ? `${t.slice(0, n - 1).trim()}…` : t);
 /** Uma pergunta: kind 'blank' (qual palavra completa?), 'match' (qual dica fala disso?) ou 'embaralhada' (desembaralhe). */
 export function question(items, kind, rnd = Math.random) {
   const it = items[Math.floor(rnd() * items.length)]; const others = shuffle(items.filter((x) => x.n !== it.n), rnd);
   if (kind === 'match') {
     const wrong = others.filter((x) => !wordsOf(x.text).some((y) => y.w === it.w)).slice(0, 3);
     return { kind, item: it, prompt: `qual dica fala de “${it.shown}”?`, options: shuffle([it, ...wrong], rnd).map((x) => ({ id: String(x.n), label: snippet(x.text) })), ans: String(it.n) };
+  }
+  if (kind === 'continua') { // mostra o começo da dica e pergunta como ela termina (a resposta não está escrita na pergunta)
+    const ok = items.filter((x) => cutTip(x.text)); const base = ok[Math.floor(rnd() * ok.length)];
+    if (base) {
+      const c = cutTip(base.text); const wrong = shuffle(ok.filter((x) => x.n !== base.n), rnd).slice(0, 3);
+      return { kind, item: base, prompt: `${c.head} …`, ask: 'como essa dica termina?', options: shuffle([base, ...wrong], rnd).map((x) => ({ id: String(x.n), label: clip(cutTip(x.text).tail) })), ans: String(base.n) };
+    }
   }
   if (kind === 'embaralhada') {
     let letters = shuffle([...it.w], rnd); for (let k = 0; k < 6 && letters.join('') === it.w; k++) letters = shuffle(letters, rnd);
