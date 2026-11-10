@@ -1,0 +1,27 @@
+/* Cartão "o Paul conta": uma pose nova, uma frase ou curiosidade e um botão pra próxima. Cores: vinho, creme e azul-marinho. */
+.pd { display: grid; grid-template-columns: 104px 1fr; gap: 12px; align-items: center; margin: 12px 16px; padding: 12px 14px; background: var(--card); color: var(--ink); border: 2px solid var(--ink); border-radius: 16px; box-shadow: 4px 4px 0 #1b2a4a; }
+.pd-img { width: 104px; height: 104px; object-fit: contain; cursor: pointer; transition: transform .25s; }
+.pd-img.pd-pop { transform: rotate(-6deg) scale(1.08); }
+.pd-tag { margin: 0 0 3px; font: 700 11px var(--body); letter-spacing: .06em; text-transform: lowercase; color: #1b2a4a; }
+.pd-text { margin: 0; font: 600 16px/1.35 var(--body); }
+.pd-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.pd-btn { font: 700 12px var(--body); padding: 5px 10px; border: 1.5px solid var(--ink); border-radius: 8px; background: var(--card-soft); color: var(--ink); text-decoration: none; box-shadow: 2px 2px 0 var(--ink); cursor: pointer; }
+.pd-btn.go { background: #1b2a4a; color: #fff7f3; }
+@media (max-width: 380px) { .pd { grid-template-columns: 80px 1fr; } .pd-img { width: 80px; height: 80px; } }
+
+.pd-arte { width: calc(100% - 32px); text-align: left; cursor: pointer; grid-template-columns: 78px 1fr; font: inherit; }
+.pd-thumb { width: 78px; height: 98px; object-fit: cover; object-position: top; border: 2px solid var(--ink); border-radius: 8px; box-shadow: 2px 2px 0 #9a1226; background: #fbf3e0; }
+.pd-arte > span { display: grid; gap: 2px; } .pd-sub { color: #5b4a4c; font-weight: 600; }
+.pd-dlg { border: 0; padding: 0; background: #fbf3e0; border-radius: 14px; width: min(94vw, 520px); max-height: 94dvh; overflow: auto; } .pd-dlg::backdrop { background: #000b; }
+.pd-dlg img { display: block; width: 100%; height: auto; } .pd-x { position: sticky; top: 8px; float: right; margin: 8px 8px -44px 0; z-index: 2; border: 2px solid #fbf3e0; background: #14284b; color: #fbf3e0; width: 36px; height: 36px; border-radius: 50%; font-size: 16px; cursor: pointer; }
+
+/* modelo "cartaz azul-marinho" (escolhido pela Bea): fundo de pôster com pontinhos e raios, texto creme, botões vinho e o Paul grande no canto */
+.pd.pd-q { display: block; position: relative; overflow: hidden; margin: 14px 16px; padding: 16px 124px 16px 16px; min-height: 132px; color: #fbf3e0; background: #14284b radial-gradient(#fbf3e022 1.2px, transparent 1.4px) 0 0 / 10px 10px; border: 2.5px solid #fbf3e0; border-radius: 18px; box-shadow: 0 0 0 3px #14284b, 5px 6px 0 3px #9a1226; }
+.pd-q::before { content: ""; position: absolute; inset: 0; background: repeating-conic-gradient(from 0deg at 85% 90%, #fbf3e00d 0 8deg, transparent 8deg 16deg); pointer-events: none; }
+.pd-q .pd-img { position: absolute; right: -6px; bottom: -4px; width: 132px; height: auto; max-height: 100%; object-fit: contain; object-position: bottom right; cursor: pointer; }
+.pd-q .pd-tag { position: relative; display: block; margin: 0 0 5px; padding: 0; background: none; color: #f6d56a; border-radius: 0; transform: none; font: 900 12px var(--body, system-ui); letter-spacing: .08em; text-transform: uppercase; }
+.pd-q .pd-bal { position: relative; }
+.pd-q .pd-text { margin: 0; font: 700 16px/1.35 var(--body, system-ui); color: #fbf3e0; }
+.pd-q .pd-btn { background: #9a1226; color: #fff; border-color: #fbf3e0; box-shadow: 2px 2px 0 #0b1830; }
+.pd-q .pd-btn.go { background: #fbf3e0; color: #14284b; border-color: #fbf3e0; }
+@media (max-width: 380px) { .pd.pd-q { padding-right: 104px; } .pd-q .pd-img { width: 108px; } }
