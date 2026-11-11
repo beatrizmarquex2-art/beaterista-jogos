@@ -11,6 +11,7 @@ import { bq } from '../jogos/bonequinhos.js';
 import { loadPhotoThemes } from './memory-photos.js';
 import { lobby, salaAutoPara } from '../jogos/online.js';
 import { confirmSheet } from '../ui.js';
+import { ganhou } from '../jogos/estrelas-jogo.js';
 import { mostrarSala, mesaNova, JOGO as JOGO_SALA } from './memoria-sala.js';
 
 const KEY = 'setting-memoria';
@@ -28,7 +29,10 @@ const verso = (t) => (t.cover
     : h('span', { class: 'mem-vt mix' }, ...MIX.map((src, i) => h('img', { class: `m${i}`, src, alt: '', draggable: 'false', decoding: 'async' }))));
 /** A carta: desenho da Bea (a imagem já traz nome e borda) ou foto de artista (recortada no rosto, com o nome embaixo quando tem). */
 const face = (it) => (it.photo
-  ? h('span', { class: 'mem-pf' }, h('img', { class: 'mem-card-img', src: it.img, alt: it.name, style: `object-position:${it.pos || '50% 30%'}`, draggable: 'false', decoding: 'async' }), it.cap ? h('span', { class: 'mem-cap' }, it.cap) : null)
+  ? h('span', { class: `mem-pf${it.fit === 'contain' ? ' fit' : ''}` },
+    h('span', { class: 'mem-ph' }, it.fit === 'contain' ? h('img', { class: 'mem-bg', src: it.img, alt: '', draggable: 'false', decoding: 'async' }) : null,
+      h('img', { class: 'mem-card-img', src: it.img, alt: it.name, style: `object-position:${it.pos || '50% 0%'}${it.fit === 'contain' ? ';object-fit:contain' : ''}`, draggable: 'false', decoding: 'async' })),
+    it.cap ? h('span', { class: `mem-cap${it.cap.length > 17 ? ' xl' : it.cap.length > 11 ? ' lg' : ''}` }, it.cap) : null)
   : h('img', { class: 'mem-card-img', src: it.img, alt: it.name, draggable: 'false', decoding: 'async' }));
 const PICK = [6, 8, 12]; // quantos pares o jogador escolhe (a aventura usa SIZES)
 const alunoSemCodigo = () => document.documentElement.classList.contains('aluno-on') && !AC.liberado();
@@ -159,6 +163,7 @@ export function mountMemoria(host, opts) {
       }
       live = false; const c = conf(); const k = `${th.id}:${pairs}`; const prev = c.best[k]; const record = players === 1 && (!prev || tries < prev);
       if (record) save({ best: { ...c.best, [k]: tries } });
+      if (players === 1 || (vsPaul && score[0] > score[1])) ganhou('memoria'); // achou todos (ou ganhou do Paul): 3 ★
       const win = score[0] === score[1] ? 'empate!' : vsPaul ? (score[0] > score[1] ? 'você venceu!' : 'o Paul venceu!') : `jogador ${score[0] > score[1] ? 1 : 2} venceu!`;
       FB.great(board, { msg: two ? win : record ? 'novo recorde! 🏆' : FB.line('great') }); bot.set('cheer', two ? win : record ? 'novo recorde!' : 'achou todos!');
       later(() => {

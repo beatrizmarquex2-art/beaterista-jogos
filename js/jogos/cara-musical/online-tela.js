@@ -9,7 +9,8 @@ import { BY_Q, textoDe } from './perguntas.js';
 import * as R from './regras.js';
 import * as O from './online-regras.js';
 import { fatosDe } from './fichas.js';
-import { mini, grande, posOf, loadCat } from './midia.js';
+import { mini, grande, enquadreFoto, loadCat } from './midia.js';
+import { ganhou } from '../estrelas-jogo.js';
 
 const guardar = (k, v) => { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, JSON.stringify(v)); } catch { /* sem armazenamento */ } };
 const ler = (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
@@ -20,7 +21,7 @@ export async function mountOnline(root, { conn, estado, sair }) {
   await loadCat();
   const me = conn.me; const eu = (p) => (p === me ? 'você' : 'o outro'); const code = conn.code;
   guardar(ULTIMA, { code, me });
-  let e = estado; let msg = ''; let sel = null; let palpitando = false; let respondendo = false; let revelando = false; let gone = false; let conferencia = null;
+  let e = estado; let msg = ''; let sel = null; let palpitando = false; let respondendo = false; let revelando = false; let gone = false; let conferencia = null; let pagoRodada = 0;
   const chave = () => `cm-online-${code}-${e.rodada}`;
   const meu = () => ler(chave()); // { segredo, sal } só neste aparelho
   const viradasMao = () => ler(`${chave()}-viradas`) || []; // cartas que EU virei à mão (pergunta livre), só neste aparelho
@@ -38,7 +39,7 @@ export async function mountOnline(root, { conn, estado, sair }) {
   }
   const celula = (id, { fora = false, aoToque, selecionada = false, virar = null, virada = false } = {}) => { const c = O.cartaDe(e, id); const ent = BY_ID[id];
     return h('div', { class: `cm-cell${fora ? ' out' : ''}${selecionada ? ' sel' : ''}` }, h('button', { type: 'button', class: 'cm-card', 'aria-pressed': String(selecionada), 'aria-label': `${ent.curto}${fora ? ', virada' : ''}`, onclick: () => aoToque(id) },
-      h('img', { src: mini(c.foto), alt: '', loading: 'lazy', draggable: 'false', style: `object-position:${posOf(c.foto)}` }), h('small', { class: ent.curto.split(' ').some((w) => w.length > 10) ? 'long' : '' }, ent.curto), fora ? h('i', { class: 'cm-x', 'aria-hidden': 'true' }, '✕') : null), virar ? h('button', { type: 'button', class: 'jg-flip', 'aria-pressed': String(virada), onclick: virar }, virada ? 'desvirar' : 'virar') : null); };
+      h('img', { src: mini(c.foto), alt: '', loading: 'lazy', draggable: 'false', style: enquadreFoto(c.foto) }), h('small', { class: ent.curto.split(' ').some((w) => w.length > 10) ? 'long' : '' }, ent.curto), fora ? h('i', { class: 'cm-x', 'aria-hidden': 'true' }, '✕') : null), virar ? h('button', { type: 'button', class: 'jg-flip', 'aria-pressed': String(virada), onclick: virar }, virada ? 'desvirar' : 'virar') : null); };
   const grade = (ids, opt) => h('div', { class: `cm-grade ${e.mesa.cartas.length <= 6 ? 'cm-g3' : 'cm-g4'}`, role: 'group', 'aria-label': 'cartas' }, ...ids.map((id) => celula(id, { fora: typeof opt.fora === 'function' ? opt.fora(id) : false, selecionada: opt.selecionada === id, aoToque: opt.aoToque, virar: opt.virar ? opt.virar(id) : null, virada: !!(opt.virada && opt.virada(id)) })));
   const zoom = (id) => { const c = O.cartaDe(e, id); sheet(BY_ID[id].curto, () => h('div', { class: 'sheet-body cm-zoom' }, h('img', { src: grande(c.foto), alt: `foto de ${BY_ID[id].curto}`, onerror: (ev) => { ev.target.src = mini(c.foto); } }), h('b', {}, BY_ID[id].curto)));
   };
@@ -86,7 +87,8 @@ export async function mountOnline(root, { conn, estado, sair }) {
   /** Pergunta livre: um modo só. Quem pergunta FALA em voz alta (sem escrever); o outro celular mostra SIM e NÃO e a pessoa toca. Depois quem perguntou vira as cartas à mão. */
   function perguntaLivre() { sfx('tap'); agir((s) => O.perguntarLivre(s, me, '')); }
   function telaFim() {
-    const l = [O.ladoDe(e, 0), O.ladoDe(e, 1)]; const r = e.fim; const venceu = r.vencedor === me; const outro = e.reveal[1 - me]; const meuReveal = meu();
+    const l = [O.ladoDe(e, 0), O.ladoDe(e, 1)]; const r = e.fim; const venceu = r.vencedor === me;
+    if (venceu && pagoRodada !== e.rodada) { pagoRodada = e.rodada; ganhou('cara'); } // ganhou a rodada: 3 ★ const outro = e.reveal[1 - me]; const meuReveal = meu();
     const titulo = e.serie.fim ? (e.serie.vencedor === me ? 'você venceu o duelo! 🤘' : 'o outro venceu o duelo') : r.vencedor === null ? 'rodada empatada' : venceu ? 'você venceu a rodada!' : 'o outro venceu a rodada';
     const bloco = (rev, tit, p) => { if (!rev) return h('div', { class: 'cm-ficha' }, h('small', {}, tit), h('p', {}, 'esperando a revelação…')); const c = O.cartaDe(e, rev.segredo); const ent = BY_ID[rev.segredo]; const fatos = fatosDe(rev.segredo);
       return h('div', { class: 'cm-ficha' }, h('small', {}, tit), h('img', { src: grande(c.foto), alt: `foto de ${ent.curto}`, onerror: (ev) => { ev.target.src = mini(c.foto); } }), h('b', {}, ent.curto), fatos.length ? h('ul', {}, ...fatos.map((x) => h('li', {}, x))) : null, h('small', {}, `${l[p].perguntas.length} pergunta${l[p].perguntas.length === 1 ? '' : 's'} · ${l[p].acertou ? 'acertou' : 'não acertou'}`)); };
