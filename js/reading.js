@@ -16,12 +16,15 @@ export const CELLS = [
   { p: '0111', lv: 3, name: 'pausa de semi + três semis' },
 ];
 export const LEVEL_NAMES = { 1: 'nível 1 · semínima e colcheia', 2: 'nível 2 · semicolcheias', 3: 'nível 3 · pontuadas e síncopes' };
-/** Os 3 modos da leitura. O iniciante tem mais exercícios (as crianças ficam mais tempo na primeira parte); cada um abre depois de tirar PASS_SCORE no anterior. */
+/** Os 3 modos da leitura. Cada modo tem 12 fases (as mesmas pra todo mundo). */
 export const TIERS = [{ id: 'ini', name: 'iniciante', lv: 1, about: 'semínima, pausa e colcheias' }, { id: 'int', name: 'intermediário', lv: 2, about: 'semicolcheias' }, { id: 'ava', name: 'avançado', lv: 3, about: 'pontuadas, síncopes e variações' }];
 const BARS = {
-  ini: [['1000', '1000', '1000', '1000'], ['1000', '1000', '1000', '0000'], ['1000', '1000', '0000', '1000'], ['1000', '1010', '1000', '1000'], ['1010', '1000', '1010', '1000'], ['1000', '1010', '1010', '1000'], ['1010', '1010', '1000', '0000'], ['1010', '1000', '1010', '1010']],
-  int: [['1000', '1111', '1000', '1000'], ['1010', '1111', '1010', '1000'], ['1111', '1000', '1111', '1000'], ['1011', '1000', '1011', '1000'], ['1000', '0010', '1010', '1000'], ['1111', '1011', '1110', '1010']],
-  ava: [['1001', '1000', '1001', '1000'], ['1100', '1000', '1100', '1000'], ['1101', '1010', '1101', '1000'], ['0111', '1000', '0111', '1000'], ['1001', '1100', '1101', '1000'], ['1101', '0111', '1001', '1100']],
+  ini: [['1000', '1000', '1000', '1000'], ['1000', '1000', '1000', '0000'], ['1000', '1000', '0000', '1000'], ['1000', '1010', '1000', '1000'], ['1010', '1000', '1010', '1000'], ['1000', '1010', '1010', '1000'],
+    ['1010', '1010', '1000', '0000'], ['1010', '1000', '0000', '1010'], ['1000', '0000', '1010', '1000'], ['1010', '1010', '1010', '1000'], ['1010', '0000', '1010', '1000'], ['1010', '1010', '1010', '1010']],
+  int: [['1000', '1111', '1000', '1000'], ['1010', '1111', '1010', '1000'], ['1111', '1000', '1111', '1000'], ['1011', '1000', '1011', '1000'], ['1000', '0010', '1010', '1000'], ['1110', '1000', '1110', '1000'],
+    ['1111', '1011', '1110', '1010'], ['1011', '1110', '1011', '1110'], ['1010', '0010', '1111', '1000'], ['1111', '1111', '1000', '1010'], ['1110', '1011', '0010', '1000'], ['1111', '1010', '1111', '1010']],
+  ava: [['1001', '1000', '1001', '1000'], ['1100', '1000', '1100', '1000'], ['1101', '1010', '1101', '1000'], ['0111', '1000', '0111', '1000'], ['1001', '1100', '1101', '1000'], ['1101', '0111', '1001', '1100'],
+    ['1001', '1001', '1001', '1001'], ['1100', '1100', '1100', '1100'], ['1101', '1011', '1001', '1000'], ['0111', '1101', '0111', '1000'], ['1001', '1111', '1100', '1010'], ['1111', '1101', '0111', '1001']],
 };
 export const PATH = TIERS.flatMap((t) => BARS[t.id].map((bar, i) => ({ tier: t.id, lv: t.lv, n: i + 1, of: BARS[t.id].length, bar })));
 export const PASS_SCORE = 50; // 50% já passa (1 ★) e abre o próximo exercício; 70% = 2 ★; 100% = 3 ★
@@ -56,11 +59,23 @@ export function onsets(bars, bpm) {
 }
 
 /**
- * Compara os toques com as notas. Janela = 45% de uma semicolcheia (máx. 110 ms).
- * Cada nota: 'ok' (até 35 ms), 'cedo'/'tarde' (dentro da janela), 'faltou'. Toque fora de qualquer nota = extra.
+ * Compara os toques com as notas. Janela folgada (ver `avaliar`).
+ * Cada nota: 'ok' (até ~50 ms), 'cedo'/'tarde' (dentro da janela), 'faltou'. Toque fora de qualquer nota = extra.
  */
 export function evaluate(taps, expected, bpm, { mic = false } = {}) {
   const r = avaliar(taps, expected, bpm, { mic });
+  // Microfone: o som demora pra chegar (ar + aparelho: 50 a 200 ms no iPhone/iPad) e isso é o MESMO atraso em todas as batidas. Procura o atraso que melhor encaixa
+  // (de -80 a +200 ms) e desconta, pra quem toca certo não ser punido pelo aparelho. Só vale se ele melhora bem a nota e os toques ficam consistentes.
+  if (mic && taps.length >= 2) {
+    const mad = (x) => { const d = x.notes.filter((n) => n.ms != null).map((n) => Math.abs(n.ms)); return d.length ? d.reduce((a, b) => a + b, 0) / d.length : 1e9; }; // desvio médio: desempata o ajuste
+    const melhor = (a, b) => (b.r.score > a.r.score || (b.r.score === a.r.score && mad(b.r) < mad(a.r)) ? b : a);
+    let best = null;
+    for (let sh = -80; sh <= 200; sh += 10) { const c = { sh, r: avaliar(taps.map((t) => t - sh / 1000), expected, bpm, { mic }) }; best = best ? melhor(best, c) : c; }
+    if (best && best.sh !== 0 && (best.r.score >= r.score + 8 || (best.r.score >= r.score && mad(best.r) + 25 < mad(r)))) {
+      for (let sh = best.sh - 8; sh <= best.sh + 8; sh += 2) best = melhor(best, { sh, r: avaliar(taps.map((t) => t - sh / 1000), expected, bpm, { mic }) }); // afina de 2 em 2 ms
+      return { ...best.r, ajuste: best.sh };
+    }
+  }
   // Andamento rápido (>= 130 BPM): quem toca certinho mas SEMPRE atrasado/adiantado por causa do atraso do aparelho (tela, som, bluetooth) não pode ser punido.
   // Se os toques acertados têm um desvio médio constante (>= 25 ms), desconta esse atraso (até 90 ms) e avalia de novo. O resultado mostra o ajuste.
   if (bpm >= 130 && r.hits >= 3) {
@@ -73,8 +88,8 @@ export function evaluate(taps, expected, bpm, { mic = false } = {}) {
 function avaliar(taps, expected, bpm, { mic = false } = {}) {
   // Janela de cada nota: nos andamentos lentos ~0,11 s; nos rápidos (turbo 170 BPM) a semicolcheia dura só 88 ms, então a janela nunca cai abaixo de 0,075 s
   // (toque na tela tem ~50 a 80 ms de atraso no iPad). Cada toque vai pra nota MAIS PRÓXIMA, então janela maior não confunde as notas.
-  const sub = 60 / bpm / 4; const win = mic ? Math.min(0.16, Math.max(sub * 0.63, 0.1)) : Math.max(Math.min(0.11, sub * 0.45), 0.075);
-  const okMs = mic ? 55 : Math.round(Math.min(60, Math.max(35, sub * 1000 * 0.5))); // 'no tempo': até 35 ms (lento) ou ~44 ms (turbo); microfone tem mais folga
+  const sub = 60 / bpm / 4; const win = mic ? Math.min(0.2, Math.max(sub * 0.8, 0.12)) : Math.max(Math.min(0.15, sub * 0.6), 0.09); // folgada de propósito (pedido da Bea)
+  const okMs = mic ? 70 : Math.round(Math.min(70, Math.max(50, sub * 1000 * 0.5))); // 'no tempo': até 35 ms (lento) ou ~44 ms (turbo); microfone tem mais folga
   const used = new Set(); const res = expected.map(() => ({ st: 'faltou', ms: null }));
   let extra = 0;
   for (const t of [...taps].sort((a, b) => a - b)) {
