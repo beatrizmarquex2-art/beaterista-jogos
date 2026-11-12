@@ -1,9 +1,5 @@
 // Service worker: cacheia só o "casco" do app (código + marca). Nenhum dado do usuário passa por aqui.
-<<<<<<< HEAD
-const VERSION = 'beaterista-v460';
-=======
-const VERSION = 'beaterista-v469';
->>>>>>> origin/main
+const VERSION = 'beaterista-v470';
 const SHELL = [
   'js/paulta/livre.js', 'js/dicas-aluno.js',
   'js/paulta/mapa.js',

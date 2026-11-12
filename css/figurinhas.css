@@ -418,7 +418,6 @@
 .lj-apostila { margin: -2px 0 8px; text-align: center; font: 400 24px/1.05 Anton, var(--display, sans-serif); color: #d3122f; letter-spacing: .4px; text-transform: uppercase; } .lj-apostila small { display: block; font: 400 21px 'Gochi Hand', var(--hand); color: #14284b; text-transform: none; letter-spacing: 0; }
 
 .hj-chips { flex-wrap: nowrap; } .hj-chip { flex: 1 1 auto; text-align: center; padding: 8px 6px; font-size: 12px; }
-<<<<<<< HEAD
 
 /* entrada: código pequeno e visível + "gerar" lado a lado num bloco amarelo, sem a lista "como você chegou aqui" */
 .al-codbox.al-amarelo { background: #ffe08a; border: 2.5px solid #1b1818; border-radius: 14px !important; padding: 10px 12px; box-shadow: 3px 3px 0 #1b1818; gap: 6px; }
@@ -434,7 +433,6 @@
 .jg-entrar .btn { min-height: 44px !important; font-size: 15px !important; }
 .jg-sala-atalho { gap: 6px; padding-block: 10px; } .jg-sala-t { font-size: 15px; } .jg-lab-peq { font-size: 14px; margin: 6px 0 2px; }
 .al-cod::placeholder { font: 600 14px system-ui, sans-serif; }
-=======
 .fig-share-est{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0}.fig-share-est b{font-size:13px}
 .fig-semana{display:grid;gap:6px;margin:8px 0;padding:10px;border-radius:14px;background:linear-gradient(120deg,#16377a,#6a3ad6);color:#fff;box-shadow:0 0 16px rgba(127,211,255,.6)}
 .fig-semana b{font-size:13px}.fig-semana small{color:#cfeaff}
@@ -446,4 +444,3 @@
 .ld-card.on img{filter:none}.ld-card.on{box-shadow:0 0 18px rgba(255,209,102,.9)}
 .ld-card .ld-cad{position:relative;z-index:2}
 .ld-ver{display:grid;gap:10px;justify-items:center}.ld-ver img{width:min(78vw,340px);height:auto;border-radius:14px}.ld-ver img.ld-bloq{filter:grayscale(.85) brightness(.6)}
->>>>>>> origin/main
