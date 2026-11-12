@@ -86,14 +86,122 @@ const MALLET = {
   xilofone: { p: [[1, 1, 0.55], [3, 0.3, 0.16], [6.2, 0.14, 0.07]], tick: 0.16 },
   metalofone: { p: [[1, 1, 1.5], [2.76, 0.45, 0.8], [5.4, 0.28, 0.45], [8.93, 0.12, 0.25]], tick: 0.05 },
   marimba: { p: [[1, 1, 0.75], [4, 0.35, 0.2], [9.9, 0.1, 0.09]], tick: 0.12 },
+  vibrafone: { p: [[1, 1, 2.4], [3.99, 0.2, 0.9], [10.1, 0.05, 0.3]], tick: 0.03, trem: 5.2 }, // barra de metal com o "motorzinho" (tremolo)
+  glockenspiel: { p: [[1, 1, 1.2], [2.76, 0.5, 0.7], [5.4, 0.3, 0.4], [8.93, 0.14, 0.22]], tick: 0.04, up: 2 }, // sininhos, uma oitava acima
+  caixinha: { p: [[1, 1, 0.6], [2.756, 0.28, 0.28], [5.4, 0.1, 0.12]], tick: 0.03, up: 2 }, // caixinha de música
+  kalimba: { p: [[1, 1, 1.0], [5.4, 0.2, 0.14], [9.5, 0.07, 0.07]], tick: 0.2 },
+  steel: { p: [[1, 1, 1.0], [2, 0.6, 0.7], [3, 0.32, 0.4], [4.05, 0.16, 0.22]], tick: 0.1 }, // steel drum
+  sino: { p: [[1, 1, 3.2], [2.76, 0.5, 2.2], [5.4, 0.36, 1.6], [8.93, 0.22, 1.1]], tick: 0.02 }, // sino tubular
 };
+export const MALLETS = [['xilofone', 'xilofone'], ['marimba', 'marimba'], ['vibrafone', 'vibrafone'], ['metalofone', 'metalofone'], ['glockenspiel', 'glockenspiel'], ['steel', 'steel drum'], ['kalimba', 'kalimba'], ['caixinha', 'caixinha de música'], ['sino', 'sino tubular']];
 export function mallet(midi, vel = 0.9, kind = 'xilofone', t) {
   C = init(); if (C.state !== 'running') { C.resume().then(() => mallet(midi, vel, kind, undefined)).catch(() => {}); return; } // 1º toque no iPhone: espera o som destravar em vez de tocar no escuro
- t = t ?? C.currentTime; const m = MALLET[kind] || MALLET.xilofone; const f = hz(midi); const sc = 1.35 - ((midi - 60) / 60) * 0.55;
+ t = t ?? C.currentTime; const m = MALLET[kind] || MALLET.xilofone; const f = hz(midi) * (m.up || 1); const sc = 1.35 - ((midi - 60) / 60) * 0.55;
   const mix = gn(0.55 * vel); route(mix, 0.2);
+  if (m.trem) { const lf = C.createOscillator(); const lg = gn(0.22); lf.frequency.value = m.trem; lf.connect(lg).connect(mix.gain); lf.start(t); lf.stop(t + 3.2); }
   m.p.forEach(([r, a, d]) => { if (f * r > 12000) return; const o = C.createOscillator(); const g = gn(); o.frequency.value = f * r; env(g, t, a, 0.002, d * sc); o.connect(g).connect(mix); o.start(t); o.stop(t + d * sc + 0.1); });
   const n = noiseSrc(t, 0.03); const ng = gn(); n.connect(bq('bandpass', 3600, 1.2)).connect(ng); env(ng, t, m.tick * vel, 0.001, 0.014); route(ng);
 }
+
+
+/* ---------- percussão sem nota: congas, bongô, pandeiro, triângulo, cowbell, ovinho, claves, palma, agogô ---------- */
+function skin(t, f0, f1, dur, v, slap = 0.3) {
+  const o = C.createOscillator(); const g = C.createGain(); o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + 0.05); env(g, t, 0.95 * v, 0.002, dur); o.connect(g); route(g, 0.12); o.start(t); o.stop(t + dur + 0.05);
+  const o2 = C.createOscillator(); const g2 = gn(); o2.type = 'triangle'; o2.frequency.setValueAtTime(f0 * 1.9, t); o2.frequency.exponentialRampToValueAtTime(f1 * 1.8, t + 0.04); env(g2, t, 0.28 * v, 0.002, dur * 0.4); o2.connect(g2); route(g2); o2.start(t); o2.stop(t + dur);
+  const n = noiseSrc(t, 0.03); const ng = gn(); n.connect(bq('bandpass', 2600, 1.1)).connect(ng); env(ng, t, slap * v, 0.001, 0.02); route(ng);
+}
+function bellHit(t, v, fs, dur, gain) { const g = gn(); fs.forEach(([f, a]) => { const o = C.createOscillator(); const og = gn(a); o.type = 'sine'; o.frequency.value = f; o.connect(og).connect(g); o.start(t); o.stop(t + dur + 0.1); }); env(g, t, gain * v, 0.001, dur); route(g, 0.25); }
+export const PERC = [
+  ['pd', 'pandeiro', (t, v) => { skin(t, 190, 150, 0.2, v * 0.8, 0.2); for (let k = 0; k < 5; k++) { const n = noiseSrc(t + k * 0.007, 0.09); const g = gn(); n.connect(bq('highpass', 6800)).connect(g); env(g, t + k * 0.007, 0.3 * v, 0.001, 0.07); route(g, 0.1); } }],
+  ['tb', 'tamborim', (t, v) => { skin(t, 980, 760, 0.1, v * 0.8, 0.55); skin(t + 0.006, 1450, 1100, 0.05, v * 0.3, 0.1); }],
+  ['ag', 'agogô', (t, v) => { bellHit(t, v, [[740, 1], [1560, 0.4], [2230, 0.2]], 0.5, 0.3); bellHit(t + 0.11, v * 0.9, [[1010, 1], [2140, 0.4], [3050, 0.2]], 0.45, 0.28); }],
+  ['rr', 'reco-reco', (t, v) => { for (let k = 0; k < 8; k++) { const d = k * 0.016; const n = noiseSrc(t + d, 0.03); const g = gn(); n.connect(bq('bandpass', 5200 - k * 220, 2.2)).connect(g); env(g, t + d, (0.28 - k * 0.012) * v, 0.002, 0.014); route(g, 0.05); } }],
+  ['tr', 'triângulo', (t, v) => bellHit(t, v, [[3520, 1], [9500, 0.5], [6100, 0.35], [2860, 0.2]], 1.6, 0.16)],
+  ['gz', 'ganzá', (t, v) => { [0, 0.045].forEach((d, k) => { const n = noiseSrc(t + d, 0.1); const g = gn(); n.connect(bq('highpass', 5800)).connect(g); env(g, t + d, (k ? 0.18 : 0.26) * v, 0.012, 0.07); route(g, 0.06); }); }],
+  ['cg1', 'conga aguda', (t, v) => skin(t, 360, 300, 0.32, v, 0.34)],
+  ['cg2', 'conga grave', (t, v) => skin(t, 236, 190, 0.5, v, 0.26)],
+  ['cx', 'caixa', (t, v) => snare(t, v * 0.95, false)],
+  ['bg1', 'bongô agudo', (t, v) => skin(t, 560, 460, 0.18, v * 0.9, 0.3)],
+  ['bg2', 'bongô grave', (t, v) => skin(t, 400, 330, 0.22, v * 0.9, 0.22)],
+];
+
+
+/* Sons "de verdade": cada modo de vibração do tambor ou do sino soa com a sua própria frequência e o seu próprio tempo de queda (síntese modal) */
+const modal = (t, v, f0, modos, dec, wet, glide = 0.03) => modos.forEach(([r, a, d]) => { const o = C.createOscillator(); const g = gn(); const f = f0 * r; o.frequency.setValueAtTime(f * (1 + glide), t); o.frequency.exponentialRampToValueAtTime(f, t + 0.025); env(g, t, a * v, 0.0008, dec * d); o.connect(g); route(g, wet); o.start(t); o.stop(t + dec * d + 0.08); });
+const baqueta = (t, v, fq, lvl) => { const n = noiseSrc(t, 0.02); const g = gn(); n.connect(bq('bandpass', fq, 1.3)).connect(g); env(g, t, lvl * v, 0.0005, 0.008); route(g); };
+function tamborimReal(t, v, tipo) {
+  // tamborim de samba: pele plástica pequena, som agudo e estalado; cada batida varia um pouquinho (a baqueta nunca cai igual)
+  const j = 1 + (Math.random() - 0.5) * 0.04;
+  const golpe = (tt, vv, f0, dec, bright) => {
+    modal(tt, vv * 0.34, f0 * j, [[1, 1, 0.11], [1.59, 0.5, 0.07], [2.14, 0.34, 0.05], [2.65, 0.2, 0.04]], dec, 0.05, 0.05);
+    const o = C.createOscillator(); const g = gn(); o.type = 'triangle'; o.frequency.setValueAtTime(f0 * 2.4 * j, tt); o.frequency.exponentialRampToValueAtTime(f0 * 1.9 * j, tt + 0.012); env(g, tt, 0.28 * vv, 0.0005, 0.018); o.connect(g); route(g); o.start(tt); o.stop(tt + 0.05);
+    baqueta(tt, vv, bright, 0.75); baqueta(tt, vv, 2600, 0.35);
+  };
+  if (tipo === 0) golpe(t, v, 1750, 0.5, 6200);              // seco e estalado
+  else if (tipo === 1) { golpe(t, v * 0.7, 1500, 0.8, 5200); golpe(t + 0.022, v, 1500, 0.9, 5600); } // "virada": duas batidas coladas (flam)
+  else { golpe(t, v, 1350, 1.3, 4600); const n = noiseSrc(t + 0.004, 0.07); const g = gn(); n.connect(bq('highpass', 6500)).connect(g); env(g, t + 0.004, 0.22 * v, 0.002, 0.05); route(g, 0.08); } // pele frouxa, com a "chiadeira" da borda
+}
+let agFlip = 0;
+function agogoReal(t, v, f1, f2, dec, wet) {
+  const f = (agFlip++ % 2) ? f2 : f1; // cada toque é num sino (o grave, o agudo, o grave…), como o instrumentista de verdade
+  modal(t, v * 0.36, f, [[1, 1, 0.55], [2.0, 0.5, 0.36], [2.76, 0.46, 0.3], [4.1, 0.26, 0.2], [5.4, 0.18, 0.13], [6.9, 0.1, 0.09]], dec, wet, 0.012);
+  modal(t, v * 0.1, f * 1.004, [[1, 1, 0.5]], dec, wet, 0); // o sino bate um pouquinho desafinado de si mesmo
+  baqueta(t, v, 3600, 0.5); baqueta(t, v, 7000, 0.2);
+}
+/* 3 jeitos de soar de cada peça (a Bea escolhe): 0 = o de sempre, 1 = seco e brilhante, 2 = cheio e grave (com eco). */
+const dryBell = (t, v, fs, dur, gain, wet) => { const g = gn(); fs.forEach(([f, a]) => { const o = C.createOscillator(); const og = gn(a); o.type = 'sine'; o.frequency.value = f; o.connect(og).connect(g); o.start(t); o.stop(t + dur + 0.1); }); env(g, t, gain * v, 0.001, dur); route(g, wet); };
+const jingles = (t, v, n, hp, gap, len, lvl, wet) => { for (let k = 0; k < n; k++) { const nn = noiseSrc(t + k * gap, len + 0.02); const g = gn(); nn.connect(bq('highpass', hp)).connect(g); env(g, t + k * gap, lvl * v, 0.001, len); route(g, wet); } };
+const bursts = (t, v, list, hp, wet) => list.forEach(([d, a, len, att]) => { const n = noiseSrc(t + d, len + 0.03); const g = gn(); n.connect(bq('highpass', hp)).connect(g); env(g, t + d, a * v, att, len); route(g, wet); });
+export const PERC_VAR = {
+  pd: [PERC[0][2],
+    (t, v) => { skin(t, 215, 175, 0.12, v * 0.7, 0.3); jingles(t, v, 7, 8200, 0.005, 0.045, 0.32, 0.05); },
+    (t, v) => { skin(t, 160, 118, 0.32, v * 0.95, 0.15); jingles(t + 0.003, v, 4, 5600, 0.011, 0.16, 0.3, 0.3); }],
+  tb: [(t, v) => tamborimReal(t, v, 0), (t, v) => tamborimReal(t, v, 1), (t, v) => tamborimReal(t, v, 2)],
+  ag: [(t, v) => agogoReal(t, v, 740, 1050, 1, 0.1), (t, v) => agogoReal(t, v, 900, 1260, 0.75, 0.08), (t, v) => agogoReal(t, v, 620, 880, 1.4, 0.25)],
+  rr: [PERC[3][2],
+    (t, v) => { for (let k = 0; k < 12; k++) { const d = k * 0.011; const n = noiseSrc(t + d, 0.03); const g = gn(); n.connect(bq('bandpass', 6400 - k * 180, 2.6)).connect(g); env(g, t + d, (0.26 - k * 0.01) * v, 0.001, 0.01); route(g, 0.04); } },
+    (t, v) => { for (let k = 0; k < 5; k++) { const d = k * 0.028; const n = noiseSrc(t + d, 0.05); const g = gn(); n.connect(bq('bandpass', 3200 - k * 260, 1.6)).connect(g); env(g, t + d, (0.3 - k * 0.02) * v, 0.003, 0.028); route(g, 0.25); } }],
+  tr: [PERC[4][2],
+    (t, v) => dryBell(t, v, [[3520, 1], [9500, 0.45]], 0.5, 0.2, 0.05),
+    (t, v) => dryBell(t, v, [[3520, 1], [9500, 0.5], [6100, 0.4], [2860, 0.25], [4200, 0.2]], 3.2, 0.15, 0.4)],
+  gz: [PERC[5][2],
+    (t, v) => bursts(t, v, [[0, 0.3, 0.05, 0.004], [0.04, 0.2, 0.05, 0.004]], 7600, 0.04),
+    (t, v) => bursts(t, v, [[0, 0.22, 0.09, 0.02], [0.05, 0.26, 0.1, 0.02], [0.1, 0.2, 0.11, 0.02]], 5200, 0.25)],
+  cg1: [PERC[6][2],
+    (t, v) => { skin(t, 420, 360, 0.16, v * 0.85, 0.7); },
+    (t, v) => { skin(t, 330, 270, 0.6, v, 0.18); const o = C.createOscillator(); const g = gn(); o.frequency.value = 660; env(g, t, 0.18 * v, 0.002, 0.3); o.connect(g); route(g, 0.3); o.start(t); o.stop(t + 0.4); }],
+  cg2: [PERC[7][2],
+    (t, v) => { skin(t, 270, 225, 0.2, v * 0.85, 0.65); },
+    (t, v) => { skin(t, 205, 160, 0.8, v, 0.16); const o = C.createOscillator(); const g = gn(); o.frequency.value = 410; env(g, t, 0.2 * v, 0.002, 0.4); o.connect(g); route(g, 0.3); o.start(t); o.stop(t + 0.5); }],
+  bg1: [PERC[9][2],
+    (t, v) => { skin(t, 680, 560, 0.1, v * 0.85, 0.6); },
+    (t, v) => { skin(t, 520, 430, 0.35, v, 0.2); }],
+  bg2: [PERC[10][2],
+    (t, v) => { skin(t, 480, 400, 0.12, v * 0.85, 0.5); },
+    (t, v) => { skin(t, 360, 300, 0.4, v, 0.18); }],
+  cx: [PERC[8][2],
+    (t, v) => snare(t, v * 0.95, true),
+    (t, v) => { const n = noiseSrc(t, 0.06); const g = gn(); n.connect(bq('bandpass', 2300, 1.5)).connect(g); env(g, t, 0.7 * v, 0.001, 0.045); route(g); const o = C.createOscillator(); const og = gn(); o.type = 'triangle'; o.frequency.setValueAtTime(900, t); o.frequency.exponentialRampToValueAtTime(560, t + 0.04); env(og, t, 0.6 * v, 0.001, 0.06); o.connect(og); route(og); o.start(t); o.stop(t + 0.1); }],
+};
+const PERC_PADRAO = { pd: 2, rr: 0, tr: 2, gz: 2, cg: 2, bg: 2, cx: 0, tb: 2, ag: 2 }; // todas escolhidas pela Bea
+let PERC_ESCOLHA = {}; try { PERC_ESCOLHA = JSON.parse(localStorage.getItem('bt-perc-var') || '{}') || {}; } catch { PERC_ESCOLHA = {}; }
+/** Gera uma amostra da peça (id, variante 0-2) numa fila de toques. Só pra conferir/gravar o som: devolve os canais L e R. */
+export async function renderPercSample(id, variante, hits, secs = 4) {
+  const sr = 44100; const oc = new OfflineAudioContext(2, Math.ceil(secs * sr), sr);
+  const keep = { C, bus, rev, nbuf, ctxOf, comp, outOf };
+  try {
+    C = oc; comp = oc.createDynamicsCompressor(); comp.threshold.value = -14; comp.knee.value = 18; comp.ratio.value = 5; comp.attack.value = 0.003; comp.release.value = 0.2; comp.connect(oc.destination);
+    bus = oc.createGain(); bus.connect(comp);
+    const n = Math.floor(sr * 1.3); const ir = oc.createBuffer(2, n, sr); for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** 3.2; }
+    rev = oc.createConvolver(); rev.buffer = ir; const rg = oc.createGain(); rg.gain.value = 0.5; rev.connect(rg).connect(comp);
+    nbuf = oc.createBuffer(1, sr * 2, sr); const nd = nbuf.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    hits.forEach(([t, v, sub]) => { const key = sub || id; const fn = (PERC_VAR[key] || PERC_VAR[id])[variante]; fn(t + 0.05, v); });
+    const b = await oc.startRendering(); return { L: Array.from(b.getChannelData(0)), R: Array.from(b.getChannelData(1)) };
+  } finally { C = keep.C; bus = keep.bus; rev = keep.rev; nbuf = keep.nbuf; ctxOf = keep.ctxOf; comp = keep.comp; outOf = keep.outOf; }
+}
+export function percHit(id, vel = 0.9) { C = init(); if (C.state !== 'running') { C.resume().then(() => percHit(id, vel)).catch(() => {}); return; } const vr = PERC_VAR[id]; const k = ((PERC_ESCOLHA[id.replace(/\d$/, '')] ?? PERC_PADRAO[id.replace(/\d$/, '')] ?? 0) | 0) % 3; if (vr) vr[k](C.currentTime, vel * (0.94 + Math.random() * 0.12)); else { const p = PERC.find((x) => x[0] === id); if (p) p[2](C.currentTime, vel * (0.94 + Math.random() * 0.12)); } }
+/** Chamado ao tocar numa aba de instrumento: esquenta o áudio dentro do toque (o iPhone só destrava assim) e religa a saída do instrumento. */
+export function wake() { try { C = init(); } catch { /* sem áudio */ } }
 
 /* ---------- violão e guitarra: corda de verdade (Karplus-Strong calculado em JS, uma vez por nota) ---------- */
 const ks = new Map();
@@ -118,6 +226,8 @@ export function pluck(midi, vel, t, kind = 'acoustic', mute = false) {
     chain = chain.connect(gn(2.4)).connect(shaper).connect(bq('lowpass', 3200)); // distorção + caixa de som
   } else chain = chain.connect(bq('lowpass', 4200 + vel * 2500));
   chain.connect(g); g.gain.setValueAtTime((kind === 'rock' ? 0.3 : 0.75) * vel, t);
+  { const pk = noiseSrc(t, 0.03); const pg = gn(); pk.connect(bq('bandpass', isA ? 2800 : 3600, 1.1)).connect(pg); env(pg, t, (isA ? 0.14 : 0.1) * vel, 0.001, 0.018); route(pg); } // ataque da palheta
+  if (kind === 'clean') { const s2 = C.createBufferSource(); s2.buffer = buf; s2.playbackRate.value = 1.004; const g2 = gn(0.35 * vel); s2.connect(bq('lowpass', 3800)).connect(g2); g2.gain.setTargetAtTime(0.0001, t + buf.duration - 0.35, 0.12); route(g2, 0.14); s2.start(t + 0.011); s2.stop(t + buf.duration); } // 2ª corda levemente desafinada: o "chorus" da guitarra limpa
   if (mute) g.gain.setTargetAtTime(0.0001, t + 0.015, 0.045); else g.gain.setTargetAtTime(0.0001, t + buf.duration - 0.35, 0.12);
   route(g, isA ? 0.2 : 0.14); s.start(t); s.stop(t + buf.duration);
 }

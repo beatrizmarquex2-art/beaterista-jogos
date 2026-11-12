@@ -2,13 +2,25 @@
 import { h } from '../util.js';
 import { audio } from '../audio.js';
 import * as N from '../notation.js';
-import { backing, STYLES, grooveBeat } from '../instruments.js';
+import { backing, STYLES, grooveBeat, wake } from '../instruments.js';
+import { UTIL_DOODLE } from './tocar-art.js';
 
-export const INSTRUMENTOS = [['toque', 'bateria', '#/toque'], ['violao', 'violão', '#/violao'], ['piano', 'piano', '#/piano'], ['xilofone', 'xilofone', '#/xilofone'], ['roleta', 'roleta', '#/roleta']];
+export const INSTRUMENTOS = [['toque', 'bateria', '#/toque'], ['violao', 'cordas', '#/violao'], ['piano', 'teclas', '#/piano'], ['xilofone', 'percussão', '#/xilofone']];
+/** Útil (pra todo mundo): metrônomo, afinador e timer. */
+export const UTEIS = [['metronomo', 'metrônomo', '#/metronomo'], ['ouvido', 'afinador', '#/ouvido'], ['foco', 'cronômetro', '#/foco']];
+const FOTO = (n) => `<img src="assets/tocar/${n}.webp" alt="" draggable="false" decoding="async">`;
+const UART = { metronomo: UTIL_DOODLE.metronomo, ouvido: UTIL_DOODLE.afinador, foco: FOTO('cronometro') }; // metrônomo e diapasão: giz de cera; cronômetro: figurinha da Beaterista
+/** Três quadradinhos com desenho: metrônomo, afinador e cronômetro (o nome da seção vai por cima). `big` = versão grande da tela Tocar. */
+export function utilTiles(big = false) {
+  return h('nav', { class: `ti-util${big ? ' big' : ''}`, 'aria-label': 'Útil' }, h('span', { class: 'ti-util-l' }, 'útil'),
+    h('div', { class: 'ti-util-g' }, ...UTEIS.map(([id, label, href]) => { const art = h('span', { class: 'ti-ut-art' }); art.innerHTML = UART[id]; return h('a', { href, class: `ti-ut ti-ut-${id}` }, art, h('b', {}, label)); })));
+}
 
 /** Linha de abas logo abaixo da faixa: troca de instrumento sem voltar ao menu (a batida de fundo continua). */
-export const tocarTabs = (atual) => h('nav', { class: 'ti-tabs', 'aria-label': 'Instrumento' },
-  ...INSTRUMENTOS.map(([id, label, href]) => h('a', { href, class: `ti-tab${id === atual ? ' on' : ''}`, 'aria-current': id === atual ? 'page' : null }, label)));
+export const tocarTabs = (atual) => h('div', { class: 'ti-wrap' },
+  h('nav', { class: 'ti-tabs', 'aria-label': 'Instrumento' },
+    ...INSTRUMENTOS.map(([id, label, href]) => h('a', { href, class: `ti-tab${id === atual ? ' on' : ''}`, 'aria-current': id === atual ? 'page' : null, onpointerdown: wake }, label))),
+  utilTiles());
 
 /** Batida de fundo: liga uma base (rock 1, rock 2, pop, samba) pra tocar por cima, com andamento ajustável. */
 export function backingBar() {

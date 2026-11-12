@@ -52,6 +52,10 @@ import * as piano from './views/piano.js';
 import * as violao from './views/violao.js';
 import * as xilofone from './views/xilofone.js';
 import * as roleta from './views/roleta.js';
+import * as metronome from './views/metronome.js';
+import * as ouvido from './views/ouvido.js';
+import * as focus from './views/focus.js';
+import { deckView } from './views/tocar-deck.js';
 import './ipad-fit.js';
 import * as jogos from './views/jogos.js';
 import * as album from './views/album-aluno.js';
@@ -70,7 +74,7 @@ import { arteDoPaul } from './paul-dicas.js';
 const app = document.getElementById('app');
 const NAME_KEY = 'beaterista-aluno-nome';
 const NAV = [['#/jogos', 'bulb', 'Jogos'], ['#/estudos', 'study', 'Estudos'], ['#/tocar', 'nota', 'Tocar'], ['#/album', 'gallery', 'Álbum'], ['#/lojinha', 'bag', 'Lojinha']]; // lâmpada, livro, nota musical, galeria e sacola (o Perfil mora junto do Álbum)
-const TAB_OF = { perfil: 'album', toque: 'tocar', piano: 'tocar', violao: 'tocar', xilofone: 'tocar', roleta: 'tocar', kids: 'jogos', ritmo: 'jogos', dicionario: 'estudos', paulta: 'jogos', dicas: 'estudos', erros: 'estudos' };
+const TAB_OF = { perfil: 'album', toque: 'tocar', piano: 'tocar', violao: 'tocar', xilofone: 'tocar', roleta: 'tocar', metronomo: 'tocar', ouvido: 'tocar', foco: 'tocar', kids: 'jogos', ritmo: 'jogos', dicionario: 'estudos', paulta: 'jogos', dicas: 'estudos', erros: 'estudos' };
 /** Aba que acende pra tela atual: a aulinha do Paul e o relatório "Jogos Ensinam" moram em Estudos. */
 const tabOf = (r) => ((r.name === 'kids' && r.parts[0] === 'figuras' && r.parts[1] === 'aula') || (r.name === 'jogos' && r.parts[0] === 'relatorio') ? 'estudos' : (TAB_OF[r.name] || r.name)); // telas que acendem outra aba (todos os jogos moram na aba Jogos)
 let cleanup = null;
@@ -336,13 +340,7 @@ function errosView(view) {
 }
 
 function tocarView(view) {
-  const card = (href, title, sub) => h('a', { class: 'card pad al-card', href }, h('h2', { class: 'tag' }, title), h('p', { class: 'muted' }, sub));
-  view.append(banner('Tocar', 'bateria, piano, violão, xilofone e roleta musical'), h('div', { class: 'pad-x', style: 'display:grid;gap:12px' },
-    card('#/toque', 'Bateria', 'toque nas peças com vários dedos e grave um ritmo'),
-    card('#/violao', 'Violão', 'escolha o acorde e passe o dedo nas cordas'),
-    card('#/piano', 'Piano', 'teclado na tela, com notas e acordes'),
-    card('#/xilofone', 'Xilofone', 'barras coloridas: nenhuma nota soa errada na pentatônica'),
-    card('#/roleta', 'Roleta Musical', 'gire os rolos e descubra de qual artista você vai tocar uma música')));
+  view.append(banner('Tocar', 'bateria, cordas, teclas e percussão'), h('div', { class: 'pad-x' }, deckView()));
 }
 
 /** Trocar de aluno no mesmo aparelho: voltar a uma conta já conectada, conectar outro código ou entrar com outro nome. */
@@ -427,6 +425,9 @@ function shell(name) {
     else if (r.name === 'violao') c = violao.mount(view);
     else if (r.name === 'xilofone') c = xilofone.mount(view);
     else if (r.name === 'roleta') c = roleta.mount(view);
+    else if (r.name === 'metronomo') c = metronome.mount(view);
+    else if (r.name === 'ouvido') c = ouvido.mount(view);
+    else if (r.name === 'foco') c = focus.mount(view);
     else if (r.name === 'tocar') tocarView(view);
     else if (r.name === 'estudos' && r.parts[0] === 'basica') c = teoriaBasica.mount(view, r.parts.slice(1), { aoFim: () => marcarEstudo('aula') });
     else if (r.name === 'estudos' && r.parts[0] === 'acordes') acordesView(view, r.parts.slice(1));
