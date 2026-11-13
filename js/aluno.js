@@ -2,7 +2,7 @@
 // Tudo que ele faz fica só no aparelho dele (armazenamento separado do app da Bea); só o nome e as pontuações vão pro ranking.
 import './polyfills.js'; // iPhones antigos (sem crypto.randomUUID, .at etc.): tem que ser o PRIMEIRO import
 import { h, icon, uid } from './util.js';
-import { soundButton } from './sound-btn.js';
+import { soundButton, musicButton } from './sound-btn.js';
 import * as store from './store.js';
 import * as P from './kids/progress.js';
 import * as RK from './ranking.js';
@@ -389,7 +389,7 @@ function shell(name) {
   const head = h('header', { class: 'top' },
     h('img', { src: 'assets/icons/tambor-menu.png', alt: '', width: 40, height: 40 }),
     h('div', { class: 'ws', style: 'flex:1' }, h('span', { class: 'on', style: 'padding:6px 12px' }, (() => { const me = P.profiles().find((p) => p.name.toLowerCase() === name.toLowerCase()); const t = me ? PL.titleOf(me.id) : ''; return t ? `oi, ${name} · ${t}` : `oi, ${name}!`; })())),
-    soundButton(),
+    soundButton(), musicButton(),
     tenhoCodigo,
     h('button', { type: 'button', class: 'btn small ghost', onclick: trocarAluno }, 'trocar aluno'));
   app.replaceChildren(h('div', { class: 'topwrap' }, head), view, nav);
@@ -521,8 +521,12 @@ async function start() {
   if ('serviceWorker' in navigator) {
     // Versão nova do app: quando o service worker novo assume, recarrega sozinho (fora de um jogo; dentro de um jogo espera sair), e procura versão nova sempre que o app volta pra tela.
     const tinha = !!navigator.serviceWorker.controller; let recarregar = false;
-    const tenta = () => { if (!recarregar) return; if (document.documentElement.classList.contains('em-jogo')) return; location.reload(); };
-    navigator.serviceWorker.addEventListener('controllerchange', () => { if (tinha) { recarregar = true; tenta(); } });
+    const atualizar = () => { try { sessionStorage.setItem('bt-atualizou', '1'); } catch { /* ok */ } location.reload(); };
+    const tenta = () => { if (!recarregar) return; if (document.documentElement.classList.contains('em-jogo')) return; atualizar(); };
+    // pedido da Bea: quando tem coisa nova o app AVISA o aluno e mostra o botão "atualizar" (ao trocar de tela fora de um jogo ele também atualiza sozinho)
+    const avisaNovidade = () => { if (document.querySelector('.atualiza-bar')) return; document.body.append(h('div', { class: 'atualiza-bar', role: 'status', 'aria-live': 'polite' }, h('span', {}, 'tem coisa nova no app!'), h('button', { class: 'btn small primary', type: 'button', onclick: atualizar }, 'atualizar'))); };
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (tinha) { recarregar = true; avisaNovidade(); } });
+    try { if (sessionStorage.getItem('bt-atualizou') === '1') { sessionStorage.removeItem('bt-atualizou'); setTimeout(() => toast('app atualizado! tem novidade pra você ✨', { ms: 4500 }), 1200); } } catch { /* ok */ }
     addEventListener('hashchange', () => setTimeout(tenta, 300));
     navigator.serviceWorker.register('sw.js').then((reg) => { document.addEventListener('visibilitychange', () => { if (!document.hidden) reg.update().catch(() => {}); }); }).catch(() => {});
   }

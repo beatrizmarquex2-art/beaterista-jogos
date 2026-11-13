@@ -1,5 +1,6 @@
 // Álbum de figurinhas da Beaterista: coleções, espaços numerados, pacotes, colar, detalhe com zoom.
 // Progresso salvo no registro 'figurinhas-album' do app (IndexedDB; sincroniza pela conta como o resto, quando há login).
+import { ultimoJogo } from '../ultimo-jogo.js';
 import { h, todayKey } from '../util.js';
 import { banner, sheet, toast } from '../ui.js';
 import * as store from '../store.js';
@@ -29,7 +30,8 @@ const wantsLess = (s) => !!s.reduzir || matchMedia('(prefers-reduced-motion: red
 
 export function mount(host, parts = [], opts = {}) {
   const wrap = h('div', { class: 'fig' });
-  host.append(banner('Álbum', 'cole todas as figurinhas'), wrap);
+  const ult = ultimoJogo(); // pra ninguém se perder: o Álbum mostra o caminho de volta pro jogo em que o aluno estava
+  host.append(banner('Álbum', 'cole todas as figurinhas'), ult ? h('div', { class: 'pad-x fig-volta' }, h('a', { class: 'btn primary wide fig-volta-btn', href: ult.href }, `‹ voltar pro jogo: ${ult.nome}`)) : null, wrap);
   const ID = D.albumId(); // o álbum é de quem está com o nome agora
   let state = { ...L.emptyState(), ...D.albumDados() };
   const nuvem = typeof opts.salvar === 'function'; let tSave = null;
@@ -81,6 +83,7 @@ export function mount(host, parts = [], opts = {}) {
     try { await loadCatalog(); } catch { wrap.replaceChildren(h('p', { class: 'fig-note' }, 'não consegui abrir o catálogo agora. tente de novo com internet.')); return; }
     if (!alive) return;
     // sem pacote de boas-vindas. Check-in: 1 giro grátis da roleta por dia (id do dia, então abrir de novo não entrega outro); o resto vem jogando (roleta a cada 30 ★ e prêmio de jogo completo).
+    { const t = L.trocarRepetidas(state, catalog); if (t.trocadas) { state = t.state; store.upsert('figurinhas', ID, state); guardarNaNuvem(); toast(`suas ${t.trocadas} repetida${t.trocadas === 1 ? ' virou carta nova' : 's viraram cartas novas'}! olha em minhas figurinhas`, { ms: 5000 }); } } // as repetidas de antes viram cartas que faltam
     let s = L.grantPack(state, L.checkinId(todayKey()));
     if (s !== state) { state = s; store.upsert('figurinhas', ID, state); }
     // check-in de 7 dias seguidos: pacote com 1 exclusiva da Bea + 10 ★ + festa (só 1x por dia entra na conta)
@@ -174,7 +177,7 @@ export function mount(host, parts = [], opts = {}) {
   /* ---------- minhas: as cartinhas criadas com foto e nome (o mesmo que a coleção do Perfil) ---------- */
   let mcView = null;
   function minhasView() {
-    if (mcView) mcView.cleanup(); mcView = Minhas.colecao({ titulo: 'minhas cartinhas', vazio: 'nenhuma ainda. crie a sua na aba Perfil e toque em "guardar na minha coleção".' });
+    if (mcView) mcView.cleanup(); let nomeAluno = ''; try { nomeAluno = (localStorage.getItem('beaterista-aluno-nome') || '').trim(); } catch { /* sem nome */ } mcView = Minhas.album({ nome: nomeAluno }); // álbum de verdade só do aluno, só neste aparelho
     return h('section', { class: 'fig-col' }, mcView.el, h('a', { class: 'btn wide', href: '#/perfil' }, 'criar uma cartinha (Perfil)'));
   }
 

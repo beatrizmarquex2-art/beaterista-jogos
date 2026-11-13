@@ -21,6 +21,10 @@ import * as toca from '../jogos/toca.js';
 import * as detetive from '../jogos/detetive-note.js';
 import * as figurix from '../jogos/figurix.js';
 import * as rudimentos from '../jogos/rudimentos.js';
+import * as copia from '../jogos/copia.js';
+import * as paultavivo from '../jogos/paulta-vivo.js';
+import * as groove from '../jogos/groove.js';
+import * as fantasma from '../jogos/fantasma.js';
 import * as memart from '../jogos/memoria-artistas.js';
 import * as quizuno from '../jogos/quizuno.js';
 import { relatorio } from './jogos-relatorio.js';
@@ -30,7 +34,9 @@ import * as AC from '../acesso.js';
 import { LETRAS } from '../letras-nomes.js';
 import { acharJogoDaSala, definirSalaAuto, salaLembrada, JOGOS_SALA } from '../jogos/online.js';
 import { setGame, getGame } from '../jogos/base.js';
-import { musicaPausa, musicaVolta, sync as sincronizarMusica } from '../jogos/musica.js';
+import { musicaPausa, musicaVolta, sync as sincronizarMusica, fixarMusica } from '../jogos/musica.js';
+import { musicButton } from '../sound-btn.js';
+import { lembrar as lembrarUltimo, ultimoJogo } from '../ultimo-jogo.js';
 
 const IMG = 'assets/jogos/icones/';
 const ALUNO = () => document.documentElement.classList.contains('aluno-on');
@@ -39,6 +45,10 @@ const GAMES = [
   ['detetive', 'Detetive Note', 'eco.svg', detetive, 'escute e monte o ritmo · comida, parque, corpo, animal'],
   ['figurix', 'Figurix', 'figuras.svg', figurix, 'figuras rítmicas em 12 fases'],
   ['rudimentos', 'Rudimentix', 'taiko.svg', rudimentos, 'toque os padrões das mãos: E e D · 11 fases'],
+  ['copia', 'Copia Aí', 'copia.svg', copia, 'o Paul toca, você copia · a melodia cresce'],
+  ['paultavivo', 'pauLta ao Vivo', 'pauta-vivo.svg', paultavivo, 'leia a nota e toque de verdade'],
+  ['groove', 'Eco de Groove', 'groove.svg', groove, 'repita a levada do Paul · bumbo, caixa e chimbal'],
+  ['fantasma', 'Clique Fantasma', 'fantasma.svg', fantasma, 'o clique some: você segura o tempo?'],
   ['cartas', 'Uno Musical', 'cartas.webp', cartas, 'figuras rítmicas · contra o computador ou 2 celulares'],
   ['un', 'UN🚫', 'cartas.webp', un, 'regras diferentes · robô, mesmo celular ou 2 celulares'],
   ['quizuno', 'Quiz Uno Musical', 'cartas.webp', quizuno, '5 perguntas · acerte todas e ganhe 1 giro da roleta'],
@@ -51,7 +61,7 @@ const GAMES = [
 ];
 const BY = Object.fromEntries(GAMES.map((g) => [g[0], g]));
 // jogos abertos: abrem direto no jogo, sem escolher modo e sem Modo Aventura (pra ninguém, nem na Bea)
-const SEM_AVENTURA = new Set(['toca', 'detetive', 'figurix', 'rudimentos', 'memart', 'quizuno', 'cartas', 'un', 'bingo', 'velha', 'quebra', 'cara', 'stop']);
+const SEM_AVENTURA = new Set(['copia', 'paultavivo', 'groove', 'fantasma', 'toca', 'detetive', 'figurix', 'rudimentos', 'memart', 'quizuno', 'cartas', 'un', 'bingo', 'velha', 'quebra', 'cara', 'stop']);
 const inner = (id) => [id, BY[id][1], BY[id][2], BY[id][3], BY[id][4]];
 // Tudo que é jogo mora aqui. Quem tem módulo próprio abre dentro desta tela (#/jogos/<id>); o resto leva à sua tela e volta pra cá.
 const link = (href, title, img, sub, only) => [href, title, img, null, sub, href, only];
@@ -63,12 +73,19 @@ const SECTIONS = [
     inner('figurix'),
     inner('rudimentos'),
   ]],
+  ['Tocar de verdade', [
+    // os 4 jogos de tocar de verdade ainda estão em obras: aparecem SÓ no app da Bea ('bea'). Pra liberar pros alunos, tirar o `, undefined, 'bea'`.
+    [...inner('copia'), undefined, 'bea'],
+    [...inner('paultavivo'), undefined, 'bea'],
+    [...inner('groove'), undefined, 'bea'],
+    [...inner('fantasma'), undefined, 'bea'],
+  ]],
   ['Leitura musical', [
     link('#/paulta', 'PauLta', 'pauta.svg', 'leitura musical: bateria, clave de sol e de fá'),
   ]],
   ['Cartas e tabuleiro', [
     inner('memart'),
-    ...['cartas', 'un', 'velha', 'quebra', 'cara', 'stop'].map(inner), // o quiz do Uno (#/jogos/quizuno) não aparece aqui: ele é aberto no fim do Uno Musical; o bingo está INATIVO (ninguém joga): fora da lista, o código e o endereço #/jogos/bingo continuam no app pra voltar quando quiserem
+    ...['cartas', 'velha', 'quebra', 'cara', 'stop'].map(inner), // UN🚫 ESCONDIDO (pedido da Bea em 13/nov/2026: precisa de conserto); o código e o endereço #/jogos/un continuam, é só pôr 'un' de volta nesta lista // o quiz do Uno (#/jogos/quizuno) não aparece aqui: ele é aberto no fim do Uno Musical; o bingo está INATIVO (ninguém joga): fora da lista, o código e o endereço #/jogos/bingo continuam no app pra voltar quando quiserem
   ]],
   ['Palavras e quiz', [
     link('#/dicas/caca', LETRAS.caca[0], 'caca.svg', `${LETRAS.caca[1]} · 2 partidas grátis`),
@@ -145,11 +162,20 @@ function atalhoSala() {
     h('div', { class: 'jg-sala-extra' }, entrar, criar, salas, msg));
 }
 
-/* ---- sair sem querer: lembra o jogo em andamento e a tela de Jogos oferece "continuar" ---- */
-const JOGO_ULT = 'beaterista-jogo-ultimo'; const VALE = 12 * 3600 * 1000;
+/* ---- último jogo: todo jogo aberto fica lembrado e a tela de Jogos (e o Álbum) oferecem "voltar pro jogo" ---- */
+const JOGO_ULT = 'beaterista-jogo-antigo'; const VALE = 12 * 3600 * 1000;
+/** Qual jogo do catálogo é este endereço? (o mais específico ganha: #/dicas/caca antes de #/dicas) */
+function jogoDoEndereco(hash) { const hsh = String(hash || ''); let melhor = null; for (const x of SECTIONS.flatMap(([, l]) => l)) { const k = keyOf(x); if ((hsh === k || hsh.startsWith(`${k}/`) || hsh.startsWith(`${k}?`)) && (!melhor || k.length > keyOf(melhor).length)) melhor = x; } return melhor; }
+function anotarUltimo() { const x = jogoDoEndereco(location.hash); if (x) lembrarUltimo(location.hash, x[1], x[0]); }
+if (typeof window !== 'undefined' && window.addEventListener) { window.addEventListener('hashchange', anotarUltimo); anotarUltimo(); }
 function lembrarJogo(id, nome) { try { localStorage.setItem(JOGO_ULT, JSON.stringify({ id, nome, at: Date.now() })); } catch { /* sem armazenamento */ } }
 function esquecerJogo(id) { try { const u = JSON.parse(localStorage.getItem(JOGO_ULT) || 'null'); if (u && u.id === id) localStorage.removeItem(JOGO_ULT); } catch { /* ok */ } }
 const jogoUltimo = () => { try { const u = JSON.parse(localStorage.getItem(JOGO_ULT) || 'null'); return u && u.id && Date.now() - (u.at || 0) < VALE ? u : null; } catch { return null; } };
+function atalhoContinuar() {
+  const u = ultimoJogo(); if (!u) return null;
+  return h('a', { class: 'btn primary wide jg-continuar', href: u.href }, `voltar pro último jogo: ${u.nome}`);
+}
+
 function catalog(host) {
   const aluno = ALUNO();
   let editing = false; let filtro = 'todos'; // todos | fav
@@ -180,7 +206,7 @@ function catalog(host) {
           h('button', { type: 'button', 'aria-label': `${off ? 'Mostrar' : 'Esconder'} ${x[1]}`, onclick: () => (off ? savePrefs({ ...p, hidden: p.hidden.filter((y) => y !== k) }) : change({ ...p, hidden: [...p.hidden, k] }, `${x[1]} escondido`)) }, off ? '↺' : '✕')) : null);
     }) : [h('p', { class: 'jg-p', style: { gridColumn: '1 / -1' } }, 'Nenhum favorito ainda. Toque na ☆ de um jogo.')]));
   };
-  host.replaceChildren(banner('Jogos', 'todos os jogos num lugar só'), paulDica({ compacto: true }), h('div', { class: 'pad-x', style: 'display:grid;gap:10px' }, atalhoCodigoAluno(), atalhoSala()), catWrap = h('div', { class: `jg jg-wrap jg-cat${darkOn('') ? ' jg-dark' : ''}` }, bar, grid));
+  host.replaceChildren(banner('Jogos', 'todos os jogos num lugar só'), paulDica({ compacto: true }), h('div', { class: 'pad-x', style: 'display:grid;gap:10px' }, atalhoCodigoAluno(), atalhoContinuar(), atalhoSala()), catWrap = h('div', { class: `jg jg-wrap jg-cat${darkOn('') ? ' jg-dark' : ''}` }, bar, grid));
   draw();
   // (o Paul já fala pelo cartão azul do topo, que muda a cada volta; o balão solto não aparece mais em cima dele)
   // arrastar o próprio jogo (no modo editar; no dedo, segurando um instante): a nova ordem dos que estão na tela entra no lugar deles na ordem completa
@@ -200,8 +226,8 @@ function catalog(host) {
 function game(host, entry) {
   const [, title, , mod] = entry;
   const body = h('div', { class: 'jg-body' });
-  const snd = h('button', { class: 'icon-btn jg-snd', type: 'button', 'aria-pressed': String(soundOn()), 'aria-label': soundOn() ? 'desligar som' : 'ligar som', onclick: () => {
-    setSound(!soundOn()); snd.setAttribute('aria-pressed', String(soundOn())); snd.setAttribute('aria-label', soundOn() ? 'desligar som' : 'ligar som'); snd.textContent = soundOn() ? '🔊' : '🔇'; sincronizarMusica();
+  const snd = h('button', { class: 'icon-btn jg-snd', type: 'button', 'aria-pressed': String(soundOn()), 'aria-label': soundOn() ? 'desligar os efeitos' : 'ligar os efeitos', onclick: () => {
+    fixarMusica(); setSound(!soundOn()); snd.setAttribute('aria-pressed', String(soundOn())); snd.setAttribute('aria-label', soundOn() ? 'desligar os efeitos' : 'ligar os efeitos'); snd.textContent = soundOn() ? '🔊' : '🔇'; sincronizarMusica();
   } }, soundOn() ? '🔊' : '🔇');
   const ctl = mod.mount(body);
   // pausa (vale pra todos os jogos): cobre o jogo, para o som e chama ctl.pause()/resume() quando o jogo tem relógio ou sorteio automático. Em sala de 2 celulares a pausa é só deste celular.
@@ -217,7 +243,7 @@ function game(host, entry) {
   const btnPausa = h('button', { class: 'btn small ghost jg-pausa-btn', type: 'button', 'aria-label': 'pausar o jogo', onclick: pausar }, '⏸ pausa');
   const wrap = h('div', { class: `jg jg-wrap jg-game${darkOn(entry[0]) ? ' jg-dark' : ''}` },
     h('div', { class: 'jg-top' }, h('a', { class: 'jg-link', href: '#/jogos', onclick: async (e) => { if (ctl.inProgress && ctl.inProgress()) { e.preventDefault(); if (await confirmSheet('sair da partida?', 'a partida atual será perdida.', 'sair')) { deVez = true; location.hash = '#/jogos'; } } } }, '‹ jogos'), h('b', { class: 'hand jg-title' }, title),
-      btnPausa, h('button', { class: 'btn small ghost', type: 'button', onclick: () => ctl.restart() }, 'nova partida'), snd),
+      btnPausa, h('button', { class: 'btn small ghost', type: 'button', onclick: () => ctl.restart() }, 'nova partida'), snd, musicButton('icon-btn jg-mus')),
     body);
   host.replaceChildren(wrap);
   const offFesta = attachFesta(wrap);
