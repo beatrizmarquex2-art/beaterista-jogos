@@ -9,7 +9,7 @@ export const VIDEO_NOVO = { id: 'UvdaoUHo3XU', titulo: 'vlog na sede do TikTok B
 export const VIDEO_URL = `https://www.youtube.com/watch?v=${VIDEO_NOVO.id}`;
 const POSES = ['n-amp', 'n-walk', 'n-break', 'n-stick', 'n-squat', 'n-skate'];
 // os rabiscos antigos (p-*) são vazados por dentro e ficam feios em cima de cor: cada um aponta pro Paul colorido equivalente
-const BOM = { 'p-wave': 'colorido/paul-ouvindo', 'p-selfie': 'colorido/paul-microfone', 'p-point': 'colorido/paul-lendo-partitura', 'p-cool': 'colorido/paul-guitarra', 'p-run': 'colorido/paul-pandeiro', 'p-book': 'colorido/paul-estudando', 'p-drum2': 'colorido/paul-bateria', 'p-guitar': 'colorido/paul-guitarra', 'p-laptop': 'colorido/paul-estudando' };
+const BOM = { 'p-wave': 'colorido/paul-ouvindo', 'p-selfie': 'colorido/paul-selfie', 'p-point': 'colorido/paul-professor', 'p-cool': 'colorido/paul-oculos', 'p-drink': 'colorido/paul-agua', 'p-run': 'colorido/paul-pandeiro', 'p-book': 'colorido/paul-estudando', 'p-drum2': 'colorido/paul-bateria', 'p-guitar': 'colorido/paul-guitarra', 'p-laptop': 'colorido/paul-produtor' };
 const poseSrc = (pose) => { const p = pose || POSES[Math.floor(Math.random() * POSES.length)]; return `assets/paul/${BOM[p] || (/^p-/.test(p) ? 'colorido/paul-ouvindo' : p)}.webp`; };
 // [assunto, texto, pose (opcional), link (opcional), rótulo do link]
 export const DICAS = [
@@ -27,16 +27,18 @@ export const DICAS = [
   // frases musicais e curiosidades
   ['curiosidade', 'a pausa também é música: o silêncio entre as notas dá o balanço do groove.', 'n-amp'],
   ['curiosidade', 'o bumbo marca o chão, a caixa marca o meio e o chimbal é o relógio do groove.', 'n-stick'],
-  ['curiosidade', 'bpm é quantas batidas cabem em 1 minuto. 60 bpm = 1 batida por segundo.', 'n-skate'],
-  ['curiosidade', '4 por 4 quer dizer: 4 tempos em cada compasso, e a semínima vale 1 tempo.', 'n-squat'],
+  ['curiosidade', 'bpm é quantas batidas cabem em 1 minuto. 60 bpm = 1 batida por segundo.', 'colorido/paul-metronomo'],
+  ['curiosidade', '4 por 4 quer dizer: 4 tempos em cada compasso, e a semínima vale 1 tempo.', 'colorido/paul-estante'],
   ['frase musical', 'devagar e certo: quem toca devagar hoje toca rápido amanhã.', 'n-walk'],
   ['frase musical', 'errou? ótimo! é o erro que mostra o que o cérebro ainda precisa aprender.', 'n-break'],
   ['frase musical', 'tum tá tum tum tá! canta o ritmo antes de tocar, a mão aprende mais rápido.', 'n-stick'],
   // estudar em casa
   ['estudar em casa', '10 minutinhos todo dia valem mais que 1 hora só no sábado. bora treinar hoje?', 'n-walk'],
-  ['estudar em casa', 'sem bateria em casa? bate na perna, na almofada ou num pad de estudo: o que vale é o movimento.', 'n-squat'],
-  ['estudar em casa', 'liga o metrônomo e comece bem devagar. primeiro certo, depois rápido, nunca ao contrário.', 'n-amp'],
-  ['estudar em casa', 'grava um vídeo do seu treino e assiste: dá pra ver o que melhorou e o que dá pra ajustar.', 'n-skate'],
+  ['estudar em casa', 'sem bateria em casa? bate na perna, na almofada ou num pad de estudo: o que vale é o movimento.', 'colorido/paul-pad'],
+  ['estudar em casa', 'liga o metrônomo e comece bem devagar. primeiro certo, depois rápido, nunca ao contrário.', 'colorido/paul-pad-metronomo'],
+  ['estudar em casa', 'pausa também é treino: bebe uma água, respira e volta. o cérebro guarda o que você tocou enquanto descansa.', 'p-drink'],
+  ['estudar em casa', 'grava um vídeo do seu treino e assiste: dá pra ver o que melhorou e o que dá pra ajustar.', 'colorido/paul-selfie'],
+  ['estudar em casa', 'antes de tocar, respira fundo 3 vezes. corpo calmo segura melhor o tempo.', 'colorido/paul-meditando'],
   // toque simples
   ['toque simples', 'toque simples é uma mão de cada vez: D E D E D E D E (direita, esquerda). comece devagar e igual.', 'n-stick'],
   ['toque simples', 'no toque simples, o som das duas mãos precisa ficar igual. ouve com atenção: a esquerda soa tão bonita quanto a direita?', 'n-break'],
@@ -44,7 +46,7 @@ export const DICAS = [
   // outros instrumentos
   ['outros instrumentos', 'piano: a escala de dó maior só usa as teclas brancas: dó ré mi fá sol lá si.', 'n-amp'],
   ['outros instrumentos', 'violão: as 6 cordas soltas são mi lá ré sol si mi, da mais grossa pra mais fina.', 'n-walk'],
-  ['outros instrumentos', 'cajón: grave no meio, agudo perto da borda. é uma caixa que vira banda inteira!', 'n-squat'],
+  ['outros instrumentos', 'cajón: grave no meio, agudo perto da borda. é uma caixa que vira banda inteira!', 'colorido/paul-cajon'],
   ['outros instrumentos', 'ukulele: sol dó mi lá. só 4 cordas e dá pra tocar muita música fácil.', 'n-skate'],
   ['outros instrumentos', 'xilofone: cada lâmina é uma nota. as maiores são mais graves e as menores mais agudas.', 'n-break'],
   // marcas e parceiros

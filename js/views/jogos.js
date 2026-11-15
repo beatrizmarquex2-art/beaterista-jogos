@@ -25,6 +25,7 @@ import * as copia from '../jogos/copia.js';
 import * as paultavivo from '../jogos/paulta-vivo.js';
 import * as groove from '../jogos/groove.js';
 import * as fantasma from '../jogos/fantasma.js';
+import * as paulbox from '../jogos/paulbox.js';
 import * as memart from '../jogos/memoria-artistas.js';
 import * as quizuno from '../jogos/quizuno.js';
 import { relatorio } from './jogos-relatorio.js';
@@ -49,6 +50,7 @@ const GAMES = [
   ['paultavivo', 'pauLta ao Vivo', 'pauta-vivo.svg', paultavivo, 'leia a nota e toque de verdade'],
   ['groove', 'Eco de Groove', 'groove.svg', groove, 'repita a levada do Paul · bumbo, caixa e chimbal'],
   ['fantasma', 'Clique Fantasma', 'fantasma.svg', fantasma, 'o clique some: você segura o tempo?'],
+  ['paulbox', 'PaulBox', 'paulbox.webp', paulbox, 'monte a banda do Paul · 10 instrumentos, 4 ritmos cada'],
   ['cartas', 'Uno Musical', 'cartas.webp', cartas, 'figuras rítmicas · contra o computador ou 2 celulares'],
   ['un', 'UN🚫', 'cartas.webp', un, 'regras diferentes · robô, mesmo celular ou 2 celulares'],
   ['quizuno', 'Quiz Uno Musical', 'cartas.webp', quizuno, '5 perguntas · acerte todas e ganhe 1 giro da roleta'],
@@ -61,7 +63,7 @@ const GAMES = [
 ];
 const BY = Object.fromEntries(GAMES.map((g) => [g[0], g]));
 // jogos abertos: abrem direto no jogo, sem escolher modo e sem Modo Aventura (pra ninguém, nem na Bea)
-const SEM_AVENTURA = new Set(['copia', 'paultavivo', 'groove', 'fantasma', 'toca', 'detetive', 'figurix', 'rudimentos', 'memart', 'quizuno', 'cartas', 'un', 'bingo', 'velha', 'quebra', 'cara', 'stop']);
+const SEM_AVENTURA = new Set(['paulbox', 'copia', 'paultavivo', 'groove', 'fantasma', 'toca', 'detetive', 'figurix', 'rudimentos', 'memart', 'quizuno', 'cartas', 'un', 'bingo', 'velha', 'quebra', 'cara', 'stop']);
 const inner = (id) => [id, BY[id][1], BY[id][2], BY[id][3], BY[id][4]];
 // Tudo que é jogo mora aqui. Quem tem módulo próprio abre dentro desta tela (#/jogos/<id>); o resto leva à sua tela e volta pra cá.
 const link = (href, title, img, sub, only) => [href, title, img, null, sub, href, only];
@@ -72,6 +74,7 @@ const SECTIONS = [
     inner('detetive'),
     inner('figurix'),
     inner('rudimentos'),
+    inner('paulbox'), // brinquedo livre (sem código, sem estrela): monta a banda tocando nos Pauls
   ]],
   ['Tocar de verdade', [
     // os 4 jogos de tocar de verdade ainda estão em obras: aparecem SÓ no app da Bea ('bea'). Pra liberar pros alunos, tirar o `, undefined, 'bea'`.
@@ -153,7 +156,7 @@ function atalhoSala() {
   const nada = (txt, t) => h('button', { type: 'button', class: 'jg-pil off', disabled: true, title: t }, txt);
   const voltaSala = voltas.length === 1 ? h('button', { type: 'button', class: 'jg-pil', onclick: () => prepararEAbrir(voltas[0][0], voltas[0][1], voltas[0][2].code, true) }, `↩ sala ${voltas[0][2].code}`) : voltas.length ? pil('↩ salas', salas) : nada('↩', 'nenhuma sala aberta');
   const continuar = ult ? h('a', { class: 'jg-pil go', href: `#/jogos/${ult.id}` }, `▶ ${ult.nome}`) : nada('▶', 'nenhum jogo em andamento');
-  const PAULS = ['bateria', 'guitarra', 'teclado', 'microfone', 'pandeiro', 'lendo-partitura', 'ouvindo', 'estudando', 'baquetas-pra-cima', 'metronomo']; // o Paul colorido (adesivos da Bea, sem moldura) muda a cada vez
+  const PAULS = ['bateria', 'guitarra', 'teclado', 'microfone', 'pandeiro', 'lendo-partitura', 'ouvindo', 'estudando', 'baquetas-pra-cima', 'metronomo', 'cajon', 'oculos', 'agua', 'professor', 'meditando', 'selfie', 'maestro', 'produtor', 'gravando', 'dj', 'colorindo', 'pad', 'escrevendo', 'pad-metronomo', 'mostrando-partitura', 'estante']; // o Paul colorido (adesivos da Bea, sem moldura) muda a cada vez
   const paul = PAULS[Math.floor(Math.random() * PAULS.length)];
   return h('section', { class: 'card pad jg-sala-atalho', 'aria-label': 'jogar com amigos' },
     h('img', { class: 'jg-sala-paul', src: `assets/paul/colorido/paul-${paul}.webp`, alt: '', 'aria-hidden': 'true', draggable: 'false' }),
