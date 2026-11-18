@@ -2,7 +2,7 @@
 // Tocar na capa abre as fotos grandes do material (o que tem dentro), com o botão Adquirir.
 import { h } from '../util.js';
 import { toast } from '../ui.js';
-import { PASSE, PRODUTOS, COMBO, SECOES, AVISO_DIGITAL } from '../loja-config.js';
+import { PASSE, PRODUTOS, COMBO, SECOES, AVISO_DIGITAL, DENTRO } from '../loja-config.js';
 
 const CONTATO = 'fale com a equipe #BeateristaTeam pelo WhatsApp (18) 99180-4150';
 const comprar = (item) => () => {
@@ -20,13 +20,14 @@ function detalhe(p) {
   const info = h('div', { class: 'lj-dinfo' },
     p.tag ? h('span', { class: 'lj-selo' }, p.tag) : null,
     h('p', { class: 'lj-ddesc' }, p.desc || ''),
+    (DENTRO[p.id] || []).length ? h('div', { class: 'lj-dentro' }, h('b', {}, 'o que tem dentro'), h('ul', {}, ...DENTRO[p.id].map((x) => h('li', {}, x)))) : null,
     p.preco ? h('b', { class: 'lj-preco lj-preco-card' }, p.precoDe ? [h('s', { class: 'lj-de', 'aria-label': `de ${p.precoDe}` }, p.precoDe), ' por '] : null, p.preco) : null,
     h('p', { class: 'lj-ddig' }, 'material digital (PDF): você baixa depois da compra, imprime e usa.'));
   const dlg = h('dialog', { class: 'lj-dlg', 'aria-label': p.nome },
     h('div', { class: 'lj-dtop' }, h('b', {}, p.nome), h('button', { type: 'button', class: 'lj-x', 'aria-label': 'fechar', onclick: () => dlg.close() }, '✕')),
     info,
     // sem loading="lazy": dentro da janela (dialog) o iPhone não carregava as fotos e a tela ficava vazia
-    h('div', { class: 'lj-fotos' }, ...fotos.map((f, i) => h('img', { src: f, alt: `${p.nome}, imagem ${i + 1}`, decoding: 'async', onerror: (e) => { e.target.hidden = true; } }))),
+    h('div', { class: 'lj-fotos' }, ...fotos.map((f, i) => h('div', { class: `lj-foto${i > 0 ? ' marca' : ''}`, oncontextmenu: (e) => e.preventDefault() }, h('img', { src: f, alt: `${p.nome}, imagem ${i + 1}`, decoding: 'async', draggable: 'false', onerror: (e) => { e.target.parentNode.hidden = true; } })))),
     h('div', { class: 'lj-dbot' }, botao('Adquirir', p)));
   dlg.addEventListener('close', () => dlg.remove()); dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
   document.body.append(dlg); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
