@@ -7,16 +7,13 @@ import { sheet, toast } from './ui.js';
 export const NAV_KEY = 'setting-nav';
 export const NAV_DEFAULT = [
   ['#/inicio', 'home', 'Início'],
-  ['#/hub/ritmo', 'kit', 'Ritmos'],
+  ['#/hub/ritmo', 'kit', 'Criar ritmos'],
   ['#/estudos', 'study', 'Estudos'],
-  ['#/codigos', 'lock', 'Códigos'],
+  ['#/jogos', 'star', 'Jogos'],
   ['#/jogos-alunos', 'bulb', 'Alunos'], // o site dos alunos, igualzinho ao que eles veem
 ];
-/** Barra antiga (até 18/nov/2026): quem nunca personalizou continua recebendo o padrão novo; quem escolheu outros atalhos mantém os dele. */
-const NAV_ANTIGO = ['#/inicio', '#/hub/ritmo', '#/estudos', '#/jogos', '#/jogos-alunos'];
-const EXTRAS = [['#/jogos', 'star', 'Jogos']]; // continua podendo ser escolhido no editor da barra
 export function navChoices() {
-  const m = new Map([...NAV_DEFAULT, ...EXTRAS].map((n) => [n[0], n]));
+  const m = new Map(NAV_DEFAULT.map((n) => [n[0], n]));
   for (const x of MODULES) if (x.route && !m.has(x.route)) m.set(x.route, [x.route, x.icon, x.label]);
   return m;
 }
@@ -24,7 +21,7 @@ export function navChoices() {
 export function loadNav(nav) {
   const d = store.get(NAV_KEY); const ch = navChoices();
   let items = NAV_DEFAULT;
-  if (d && Array.isArray(d.data.items) && (d.data.items.length === 4 || d.data.items.length === 5) && d.data.items.join() !== NAV_ANTIGO.join() && d.data.items.join() !== NAV_ANTIGO.slice(0, 4).join()) { const list = d.data.items.length === 4 && !d.data.items.includes('#/jogos-alunos') ? [...d.data.items, '#/jogos-alunos'] : d.data.items; const m = list.map((x) => ch.get(x)); if (m.every(Boolean)) items = m; }
+  if (d && Array.isArray(d.data.items) && (d.data.items.length === 4 || d.data.items.length === 5)) { const list = d.data.items.length === 4 && !d.data.items.includes('#/jogos-alunos') ? [...d.data.items, '#/jogos-alunos'] : d.data.items; const m = list.map((x) => ch.get(x)); if (m.every(Boolean)) items = m; }
   nav.splice(0, nav.length, ...items);
 }
 export function openNavEditor() {
