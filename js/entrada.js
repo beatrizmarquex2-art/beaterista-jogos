@@ -10,6 +10,10 @@ const A = 'assets/entrada/';
 // Checkout oficial do Beaterista Play (Passe Anual Robôterista).
 // Esta versão só deve entrar no site após validar uma compra completa com webhook e e-mail.
 const PASSE_LINK = () => 'https://pay.hotmart.com/Y108629105P';
+// Preço Pix do lançamento (mais 5% sobre R$49,90 = R$47,41).
+// Não exibir até existir uma oferta Hotmart com link verificado e pagamento restrito a Pix.
+// Após 15/12, a oferta de lançamento encerra e este botão fica oculto.
+const PASSE_PIX_LANCAMENTO = { link: '', preco: 'R$ 47,41' };
 const PAULS = [[`${A}paul-meditando.webp`, 'Paul meditando', 170], [`${A}paul-professor.webp`, 'Paul ensinando no quadro', 215], [`${A}paul-guitarra.webp`, 'Paul tocando guitarra', 215]];
 const KEY = 'beaterista-entrada-paul';
 const sorteia = () => { let ult = -1; try { ult = Number(sessionStorage.getItem(KEY) ?? localStorage.getItem(KEY) ?? -1); } catch { /* sem storage */ } let i = Math.floor(Math.random() * PAULS.length); if (i === ult) i = (i + 1) % PAULS.length; try { localStorage.setItem(KEY, String(i)); sessionStorage.setItem(KEY, String(i)); } catch { /* ok */ } return PAULS[i]; };
@@ -79,8 +83,12 @@ export function entradaNova(p) {
     h('section', { class: 'en-box passe', id: 'en-passe' }, h('img', { class: 'en-passe-paul', src: 'assets/paul/animacoes/web/paul-presente.webp', alt: '', width: 104, height: 104, draggable: 'false', decoding: 'async' }), h('h2', {}, 'um ano inteiro de ', h('span', {}, 'música, jogos e descobertas!')),
       h('p', { class: 'p1' }, 'aprenda brincando com o Robôterista Paul! explore jogos educativos, desafios musicais, colecione figurinhas e aprenda no seu ritmo.'),
       h('p', { class: 'p2' }, 'um único pagamento. 12 meses de acesso.'),
-      h('div', { class: 'pr solo' }, h('div', {}, PP.oferta ? h('span', { class: 'bf' }, 'oferta black friday · até ', PP.ate) : null, PP.oferta ? h('s', {}, `de ${PP.de}`) : null, h('b', { class: 'pix' }, PP.atual), h('small', {}, 'à vista no pix'))),
+      h('div', { class: 'pr solo' }, h('div', {}, PP.oferta ? h('span', { class: 'bf' }, 'oferta black friday · até ', PP.ate) : null, PP.oferta ? h('s', {}, `de ${PP.de}`) : null, h('b', { class: 'pix' }, PP.atual), h('small', {}, 'pagamento único'))),
       h('a', { class: 'en-btn y en-passe-btn', href: PASSE_LINK(PP.atual), target: '_blank', rel: 'noopener noreferrer' }, '🎮 quero meu passe anual'),
+      PP.oferta && PASSE_PIX_LANCAMENTO.link
+        ? h('a', { class: 'en-btn en-passe-btn', href: PASSE_PIX_LANCAMENTO.link, target: '_blank', rel: 'noopener noreferrer' },
+          `pagar no Pix · ${PASSE_PIX_LANCAMENTO.preco} (5% a mais de desconto)`)
+        : null,
       h('p', { class: 'p3' }, 'já é aluno da escola Beaterista? seu acesso anual está incluso! ', h('a', { href: '#en-experimentar', onclick: (e) => { e.preventDefault(); boxAluno.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => cod.focus({ preventScroll: true }), 450); } }, 'entre com seu código.'))),
     h('section', { class: 'en-sec' }, h('h3', {}, 'veja ', h('span', {}, 'por dentro')), h('p', { class: 'en-pq' }, 'telas reais do app. cada jogo diz o que desenvolve.'),
       rol('', ...JOGOS.map(([f, n, d]) => h('div', { class: 'en-jg' }, h('div', { class: 'ph' }, h('img', { src: `${A}${f}.jpg`, alt: `Tela: ${n}`, loading: 'lazy' })), h('b', {}, n), h('p', {}, d))))),
