@@ -206,7 +206,7 @@ export function mount(host) {
     status);
   const tempoDe = (x) => (x.dias ? CODE.nomeTempo(x.dias) : '—');
   const venc = (x) => (x.expira_em ? `vence ${dia(x.expira_em)}` : x.tipo === 'passe' ? 'conta a partir do 1º uso' : '—');
-  const filtrados = () => { const t = q.trim().toLowerCase(); return list.filter((x) => (!t || (x.nome || '').toLowerCase().includes(t) || x.code.toLowerCase().includes(t)) && (!fTipo || (x.categoria || 'aluno') === fTipo) && (!fTempo || String(x.dias) === fTempo) && (!fAtivo || (fAtivo === 'ativo') === !!x.ativo)); };
+  const filtrados = () => { const t = q.trim().toLowerCase(); return list.filter((x) => !CODE.codigoHotmart(x.code)).filter((x) => (!t || (x.nome || '').toLowerCase().includes(t) || x.code.toLowerCase().includes(t)) && (!fTipo || (x.categoria || 'aluno') === fTipo) && (!fTempo || String(x.dias) === fTempo) && (!fAtivo || (fAtivo === 'ativo') === !!x.ativo)); };
   const run = async (fn, ok) => { if (busy) return; busy = true; try { await fn(); toast(ok, { id: 'cod-ok', ms: 2200 }); await carrega(); } catch (e) { toast(`não deu (${e.message})`, { id: 'cod-err', ms: 3500 }); } busy = false; desenhaLista(); };
   const mudarTempo = (x) => sheet(`tempo de acesso · ${x.nome || x.code}`, (close) => { let v = x.dias || 365; const s = sel(CODE.TEMPOS, v, (n) => { v = Number(n); }, 'Novo tempo de acesso');
     return h('div', { class: 'sheet-body' }, h('p', { class: 'muted' }, x.expira_em || x.iniciado_em ? 'o código já começou a contar: o novo tempo vale a partir de hoje.' : 'o código ainda não foi usado: a contagem do novo tempo começa no 1º uso.'), h('label', { class: 'field' }, h('span', {}, 'tempo'), s),
@@ -240,8 +240,8 @@ export function mount(host) {
   const mandar = (x) => window.open(`https://wa.me/?text=${encodeURIComponent(msgAluno(x))}`, '_blank', 'noopener');
   const porNome = (a, b) => ((a.nome || '\uffff').toLowerCase()).localeCompare((b.nome || '\uffff').toLowerCase(), 'pt');
   const desenhaLista = () => {
-    const rows = filtrados(); const n = list.filter((x) => x.ativo).length;
-    const topo = h('p', { class: 'muted' }, `${rows.length} de ${list.length} código${list.length === 1 ? '' : 's'} · ${n} ativo${n === 1 ? '' : 's'}`);
+    const rows = filtrados(); const manuais = list.filter((x) => !CODE.codigoHotmart(x.code)); const n = manuais.filter((x) => x.ativo).length;
+    const topo = h('p', { class: 'muted' }, `${rows.length} de ${manuais.length} código${list.length === 1 ? '' : 's'} · ${n} ativo${n === 1 ? '' : 's'}`);
     if (modo === 'lista') {
       listaBox.replaceChildren(topo, rows.length ? h('ul', { class: 'cod-simples' }, ...rows.slice().sort(porNome).map((x) => h('li', { class: x.ativo ? '' : 'off' },
         h('button', { type: 'button', class: 'cod-s-nome cod-nome-bt', 'aria-label': `editar ${x.nome || x.code}`, onclick: () => editarCodigo(x) }, x.nome || 'sem nome', x.ativo ? null : h('small', {}, ' · desativado'), h('i', { 'aria-hidden': 'true' }, ' ✎')),
@@ -260,16 +260,81 @@ export function mount(host) {
   };
   const busca = h('input', { class: 'field', type: 'search', placeholder: 'procurar nome ou código', 'aria-label': 'Procurar código' }); busca.addEventListener('input', () => { q = busca.value; desenhaLista(); });
   const abas2 = h('div', { class: 'cod-modo', role: 'group', 'aria-label': 'jeito de ver a lista' }, ...[['lista', 'lista simples'], ['cartoes', 'detalhada']].map(([id, rot]) => h('button', { type: 'button', class: `cod-modo-bt${modo === id ? ' on' : ''}`, 'aria-pressed': String(modo === id), 'data-modo': id, onclick: (e) => { modo = id; abas2.querySelectorAll('button').forEach((b) => { const on = b.dataset.modo === modo; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); }); desenhaLista(); } }, rot)));
-  const copiarTudo = () => copy(['nome\tcódigo', ...list.slice().sort(porNome).map((x) => `${x.nome || ''}\t${x.code}`)].join('\n'), 'lista copiada (cola na planilha)');
+  const copiarTudo = () => copy(['nome\tcódigo', ...list.filter((x) => !CODE.codigoHotmart(x.code)).slice().sort(porNome).map((x) => `${x.nome || ''}\t${x.code}`)].join('\n'), 'lista copiada (cola na planilha)');
   const listaCard = h('section', { class: 'card pad' }, h('div', { class: 'row between' }, h('b', {}, 'códigos dos alunos'), h('button', { class: 'btn small ghost', type: 'button', onclick: copiarTudo }, 'copiar tudo')), abas2, busca,
     h('div', { class: 'cod-filtros' },
       sel([['', 'todos os tipos'], ...CODE.CATEGORIAS], fTipo, (v) => { fTipo = v; desenhaLista(); }, 'Filtrar por tipo'),
       sel([['', 'todos os tempos'], ...CODE.TEMPOS], fTempo, (v) => { fTempo = v; desenhaLista(); }, 'Filtrar por tempo'),
       sel([['', 'ativos e desativados'], ['ativo', 'só ativos'], ['off', 'só desativados']], fAtivo, (v) => { fAtivo = v; desenhaLista(); }, 'Filtrar por situação')), listaBox);
   async function carrega() { try { list = await CODE.listar(); } catch (e) { toast(e.message === 'entre no app' ? 'entre no app pra ver os códigos' : `não consegui ler os códigos (${e.message})`, { id: 'cod-err', ms: 3500 }); } if (!gone) desenhaLista(); }
+  // Compras recebidas pela Hotmart. Somente a conta administrativa pode consultar a RPC.
+  let vendasHotmart = [];
+  let buscaHotmart = '';
+  let erroHotmart = '';
+  const hotmartBox = h('div', { class: 'cod-lista' });
+  const pesquisarHotmart = h('input', {
+    class: 'field', type: 'search', placeholder: 'buscar comprador, e-mail ou código',
+    'aria-label': 'Buscar compras Hotmart'
+  });
+  pesquisarHotmart.addEventListener('input', () => {
+    buscaHotmart = pesquisarHotmart.value.trim().toLowerCase();
+    desenhaHotmart();
+  });
+  const statusHotmart = (v) => ({
+    aprovada: 'aprovada', reembolsada: 'reembolsada',
+    chargeback: 'chargeback', cancelada: 'cancelada',
+  }[v] || v || '—');
+  const desenhaHotmart = () => {
+    if (gone) return;
+    const todas = vendasHotmart;
+    const aprovadas = todas.filter((x) => x.status === 'aprovada').length;
+    const entregues = todas.filter((x) => !!x.email_enviado_em).length;
+    const filtradas = todas.filter((x) => {
+      const t = buscaHotmart; return !t ||
+        [x.comprador_nome, x.comprador_email, x.codigo, x.transacao]
+          .some((v) => String(v || '').toLowerCase().includes(t));
+    });
+    hotmartBox.replaceChildren(
+      h('p', { class: 'muted' }, erroHotmart ||
+        `${todas.length} compra(s) · ${aprovadas} aprovada(s) · ${entregues} e-mail(s) registrado(s)`),
+      ...filtradas.map((x) => h('article', {
+        class: `cod-item${x.status === 'aprovada' ? '' : ' off'}`
+      },
+        h('div', { class: 'cod-item-top' },
+          h('span', { class: 'cod-av', 'aria-hidden': 'true' }, 'H'),
+          h('div', { class: 'cod-item-id' },
+            h('b', {}, x.comprador_nome || 'comprador sem nome'),
+            h('small', { class: 'muted' }, x.comprador_email || 'e-mail não informado'),
+            h('b', { class: 'rg-code cod-item-code' }, x.codigo || 'sem código')),
+          h('span', { class: 'cod-tag' }, statusHotmart(x.status))),
+        h('small', { class: 'muted' },
+          `compra: ${when(x.criado_em)} · ${x.expira_em ? 'vence ' + dia(x.expira_em) : 'sem vencimento'}`),
+        h('small', { class: 'muted' },
+          `entrega: ${x.email_enviado_em ? 'e-mail enviado em ' + when(x.email_enviado_em) : 'e-mail não confirmado'} · transação: ${x.transacao}`),
+        x.codigo ? h('div', { class: 'row cod-item-act' },
+          h('button', { class: 'btn small ghost', type: 'button',
+            onclick: () => copy(x.codigo, 'código Hotmart copiado') }, 'copiar código')) : null)),
+      ...(!filtradas.length ? [h('p', { class: 'empty muted' },
+        erroHotmart ? 'confira a configuração de acesso' :
+        buscaHotmart ? 'nenhuma compra com essa busca.' : 'nenhuma compra da Hotmart registrada ainda.')] : []));
+  };
+  const carregaHotmart = async () => {
+    try {
+      vendasHotmart = await CODE.listarHotmart();
+      erroHotmart = '';
+    } catch (e) { erroHotmart = `não foi possível carregar as compras (${e.message})`; }
+    desenhaHotmart();
+  };
+  const hotmartCard = h('section', { class: 'card pad' },
+    h('div', { class: 'row between' },
+      h('b', {}, 'Hotmart · acessos automáticos'),
+      h('button', { class: 'btn small ghost', type: 'button', onclick: carregaHotmart }, 'atualizar')),
+    h('p', { class: 'muted' },
+      'códigos vendidos pelo Passe Anual; atualização automática após aprovação. Reembolsos e cancelamentos são bloqueados pelo servidor.'),
+    pesquisarHotmart, hotmartBox);
   const mais = h('details', { class: 'card pad cod-mais' }, h('summary', {}, 'mais ferramentas: importar lista, passe anual, test drive'), h('div', { class: 'cod-mais-in' }));
-  host.append(banner('Códigos', 'gere, compartilhe e controle o acesso'), h('div', { class: 'pad-x', style: 'display:grid;gap:12px' }, novoCard, listaCard, mais));
+  host.append(banner('Códigos', 'gere, compartilhe e controle o acesso'), h('div', { class: 'pad-x', style: 'display:grid;gap:12px' }, novoCard, hotmartCard, listaCard, mais));
   let legado = null; mais.addEventListener('toggle', () => { if (mais.open && !legado) legado = montarLegado(mais.querySelector('.cod-mais-in'), { semBanner: true }); });
-  desenhaNovo(); desenhaLista(); carrega().then(() => { if (!salvo && !list.some((x) => x.code === code)) return; });
+  desenhaNovo(); desenhaLista(); desenhaHotmart(); carregaHotmart(); carrega().then(() => { if (!salvo && !list.some((x) => x.code === code)) return; });
   return () => { gone = true; if (typeof legado === 'function') legado(); };
 }
