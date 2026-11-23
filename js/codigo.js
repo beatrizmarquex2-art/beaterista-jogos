@@ -84,6 +84,18 @@ export async function listar() {
   if (!r.ok) throw new Error(String(r.status)); return r.json();
 }
 /** Categorias e tempos de acesso da aba Códigos. */
+/** Vendas Hotmart: leitura administrativa, separada da lista manual de códigos. */
+export async function listarHotmart() {
+  const r = await fetch(`${base}/rpc/hotmart_passe_listar`, {
+    method: 'POST', headers: await head(), body: '{}',
+  });
+  if (!r.ok) throw new Error(r.status === 404 ? 'painel Hotmart ainda não instalado' : `erro ${r.status}`);
+  const dados = await r.json();
+  return Array.isArray(dados) ? dados : [];
+}
+/** Formato exclusivo do código gerado pela integração Hotmart (P + 9 caracteres). */
+export const codigoHotmart = (c) => /^P[A-Z0-9]{9}$/.test(String(c || ''));
+
 export const CATEGORIAS = [['aluno', 'Alunos'], ['amigo', 'Amigos'], ['marca', 'Marcas'], ['outro', 'Outros']];
 export const TEMPOS = [[1, '1 dia'], [3, '3 dias'], [7, '7 dias'], [30, '1 mês'], [90, '3 meses'], [180, '6 meses'], [365, '1 ano']];
 export const nomeTempo = (d) => (TEMPOS.find((t) => t[0] === d) || [d, `${d} dia${d === 1 ? '' : 's'}`])[1];
