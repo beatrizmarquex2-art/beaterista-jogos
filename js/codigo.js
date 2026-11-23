@@ -6,7 +6,8 @@ const base = `${CONFIG.SUPABASE_URL}/rest/v1`;
 const anon = { apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
 const KEY = 'beaterista-aluno-codigo';
 const OK_KEY = 'beaterista-aluno-codigo-ok'; // última vez que o código foi confirmado (vale offline)
-const OFFLINE_DAYS = 365; // o código fica salvo 1 ano neste aparelho (a Bea desativa quando quiser; vale na próxima vez que ele abrir com internet)
+const OFFLINE_DAYS = 365; // códigos antigos preservam a tolerância offline já existente
+const PASSE_OFFLINE_HOURS = 24; // passes Hotmart revalidam a cada 24h: reembolso e chargeback não permanecem liberados por 1 ano
 
 export const norm = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
 /** O código escondido pra mostrar na tela (pedido da Bea, 15/nov/2026: o código não fica inteiro à vista, nem num print): só o 1º e o último caractere. Desde 19/nov/2026 o topo tem um olhinho que mostra o código inteiro por 8 segundos (escolha da Bea). */
@@ -15,7 +16,11 @@ export const saved = () => { try { return localStorage.getItem(KEY) || ''; } cat
 const ESC_KEY = 'beaterista-aluno-escopo'; // telas que o passe libera (null = tudo)
 function guardarEscopo(j) { try { if (Array.isArray(j) && j.length) localStorage.setItem(ESC_KEY, JSON.stringify(j)); else localStorage.removeItem(ESC_KEY); } catch { /* ok */ } }
 function remember(c) { try { if (c) { localStorage.setItem(KEY, c); localStorage.setItem(OK_KEY, String(Date.now())); } else { localStorage.removeItem(KEY); localStorage.removeItem(OK_KEY); localStorage.removeItem(ESC_KEY); } } catch { window.__alunoCodigo = c || ''; } }
-const recentlyOk = () => { try { return Date.now() - Number(localStorage.getItem(OK_KEY) || 0) < OFFLINE_DAYS * 864e5; } catch { return false; } };
+const recentlyOk = (code = '') => { try {
+  const idade = Date.now() - Number(localStorage.getItem(OK_KEY) || 0);
+  const limite = /^P[A-Z0-9]{9}$/.test(norm(code)) ? PASSE_OFFLINE_HOURS * 36e5 : OFFLINE_DAYS * 864e5;
+  return idade >= 0 && idade < limite;
+} catch { return false; } };
 
 /** Id deste aparelho (aleatório, fica no navegador). O servidor conta no máximo 2 aparelhos por código de aluno. */
 const AP_KEY = 'beaterista-aparelho-id';
@@ -48,7 +53,7 @@ export async function entrar(code) { const c = norm(code); const ok = await veri
 /** Ao abrir: o código guardado ainda vale? Sem internet, vale se foi confirmado no último ano. Desativado pela Bea = tranca de novo. */
 export async function revalidar() {
   const c = saved(); if (!c) return false;
-  try { const ok = await verificar(c); if (!ok) remember(''); else remember(c); return ok; } catch { return recentlyOk(); }
+  try { const ok = await verificar(c); if (!ok) remember(''); else remember(c); return ok; } catch { return recentlyOk(c); }
 }
 export const sair = () => remember('');
 /** Guarda um código já conferido (troca de aluno no mesmo aparelho). */
