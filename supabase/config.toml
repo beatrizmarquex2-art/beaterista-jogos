@@ -1,0 +1,4 @@
+# A Hotmart chama este endpoint sem JWT do Supabase.
+# O handler confere X-HOTMART-HOTTOK antes de qualquer acesso ao banco.
+[functions.hotmart-passe]
+verify_jwt = false
