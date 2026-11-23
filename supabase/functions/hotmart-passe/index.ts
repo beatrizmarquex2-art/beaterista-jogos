@@ -1,7 +1,7 @@
 // Hotmart 2.0.0 -> Supabase -> codigo anual -> email.
 // Nao publicar sem configurar os secrets, o SQL e o webhook na Hotmart.
 // Webhook externo: verify_jwt = false, mas exige X-HOTMART-HOTTOK.
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.57.0";
 
 const PRODUCT_ID = 9051614;
 const ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
