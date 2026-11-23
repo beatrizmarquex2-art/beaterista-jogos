@@ -7,8 +7,9 @@ import { TERMO_DE_USO } from './termo-de-uso.js';
 import { precoPasse } from './passe-preco.js';
 
 const A = 'assets/entrada/';
-// Passe anual: ainda não existe link de pagamento (Hotmart); até lá o botão chama a equipe no WhatsApp com a mensagem pronta. Quando tiver o link, é só trocar aqui.
-const PASSE_LINK = (preco) => 'https://wa.me/5518991804150?text=' + encodeURIComponent(`Oi! Quero o passe anual do Robôterista Paul (12 meses de acesso), ${preco} no pix.`);
+// Checkout oficial do Beaterista Play (Passe Anual Robôterista).
+// Esta versão só deve entrar no site após validar uma compra completa com webhook e e-mail.
+const PASSE_LINK = () => 'https://pay.hotmart.com/Y108629105P';
 const PAULS = [[`${A}paul-meditando.webp`, 'Paul meditando', 170], [`${A}paul-professor.webp`, 'Paul ensinando no quadro', 215], [`${A}paul-guitarra.webp`, 'Paul tocando guitarra', 215]];
 const KEY = 'beaterista-entrada-paul';
 const sorteia = () => { let ult = -1; try { ult = Number(sessionStorage.getItem(KEY) ?? localStorage.getItem(KEY) ?? -1); } catch { /* sem storage */ } let i = Math.floor(Math.random() * PAULS.length); if (i === ult) i = (i + 1) % PAULS.length; try { localStorage.setItem(KEY, String(i)); sessionStorage.setItem(KEY, String(i)); } catch { /* ok */ } return PAULS[i]; };
