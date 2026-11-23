@@ -4,7 +4,6 @@ import { h } from '../util.js';
 import { iconePaul } from '../icone-paul.js';
 import { toast } from '../ui.js';
 import { PASSE, PRODUTOS, COMBO, ANUAL, SECOES, AVISO_DIGITAL, DENTRO } from '../loja-config.js';
-import { precoPasse } from '../passe-preco.js';
 
 const CONTATO = 'fale com a equipe #BeateristaTeam pelo WhatsApp (18) 99180-4150';
 const comprar = (item) => () => {
@@ -35,12 +34,11 @@ function detalhe(p) {
   document.body.append(dlg); if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
 }
 
-/** Banner do acesso anual por R$ 49,90 (especial lançamento): fica em cima do combo enquanto vale a oferta. */
+/** Destaque permanente do Pix a R$ 49,90 pelo Mercado Pago. */
 function destaqueAnual() {
-  if (!precoPasse().oferta) return null;
   return h('article', { class: 'lj-bf lj-bf-topo lj-anual', 'data-id': ANUAL.id },
-    h('button', { type: 'button', class: 'lj-bf-link', 'aria-label': 'comprar o acesso anual por R$ 49,90', onclick: comprar(ANUAL) }, h('img', { class: 'lj-bf-arte', src: ANUAL.img, alt: ANUAL.desc, width: ANUAL.w, height: ANUAL.h })),
-    h('div', { class: 'lj-bf-cta' }, botao('Quero o acesso anual', ANUAL, 'amarelo')));
+    h('button', { type: 'button', class: 'lj-bf-link', 'aria-label': 'comprar o acesso anual no Pix por R$ 49,90', onclick: comprar(ANUAL) }, h('img', { class: 'lj-bf-arte', src: ANUAL.img, alt: ANUAL.desc, width: ANUAL.w, height: ANUAL.h })),
+    h('div', { class: 'lj-bf-cta' }, botao('Pagar com Pix · R$ 49,90', ANUAL, 'amarelo')));
 }
 
 /** Destaque do combo Black Friday: primeira coisa da Lojinha. */
@@ -84,5 +82,5 @@ export function vitrine(secao = '') {
     h('p', { class: 'lj-digital' }, h('b', {}, '📄 materiais digitais. '), AVISO_DIGITAL),
     PASSE.link ? h('article', { class: 'lj-passe' }, h('img', { src: PASSE.img, alt: '', loading: 'lazy' }),
       h('div', { class: 'lj-pm' }, h('h3', {}, iconePaul('passe-beaterista', 30), PASSE.nome), h('ul', {}, ...PASSE.info.map((x) => h('li', {}, x)))),
-      h('div', { class: 'lj-pp' }, h('span', { class: 'lj-preco' }, precoPasse().atual), precoPasse().oferta ? h('small', { class: 'lj-de' }, `de ${precoPasse().de} · oferta até ${precoPasse().ate}`) : null, botao('Adquirir passe', PASSE, 'amarelo'))) : null);
+      h('div', { class: 'lj-pp' }, h('span', { class: 'lj-preco' }, PASSE.preco), h('small', { class: 'lj-de' }, 'cartão pela Hotmart · Pix a R$ 49,90 no destaque acima'), botao('Pagar no cartão', PASSE, 'amarelo'))) : null);
 }
