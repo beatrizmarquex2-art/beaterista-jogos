@@ -6,7 +6,7 @@ import { sheet, toast } from './ui.js';
 import { CONFIG } from './config.js';
 import * as CODE from './codigo.js';
 import * as AC from './acesso.js';
-import { FAIXAS, INSTRUMENTOS, PRESENTES, PRESENTE_DA_FAIXA } from './presente-config.js';
+import { FAIXAS, INSTRUMENTOS, ICONE_INSTRUMENTO, PRESENTES, PRESENTE_DA_FAIXA } from './presente-config.js';
 
 const KEY = 'beaterista-presente-paul'; // só guarda { faixa, em }: o cartão some depois que a pessoa abriu
 const previa = () => { try { return /[?&]presente-preview(?:[=&#]|$)/.test(location.search); } catch { return false; } };
@@ -27,12 +27,13 @@ const chamar = async (corpo) => {
 
 function telaPresente(faixa, fecha) {
   const p = presenteDaFaixa(faixa);
-  return h('div', { class: 'sheet-body pr-ok' },
-    h('img', { class: 'pr-paul', src: 'assets/paul/animacoes/web/paul-presente.webp', alt: '', width: 96, height: 96 }),
-    h('h2', { class: 'hand' }, 'seu presente chegou! 🎁'),
-    h('p', { class: 'muted' }, 'obrigado! o Paul separou isto pra você pintar. toque pra abrir ou salvar.'),
-    h('div', { class: 'pr-lista' }, ...p.arquivos.map((a) => h('a', { class: 'btn primary wide', href: a.arquivo, target: '_blank', rel: 'noopener', download: '' }, `🎨 ${a.nome}`))),
-    h('button', { type: 'button', class: 'btn wide ghost', onclick: fecha }, 'fechar'));
+  const confete = h('div', { class: 'pr-confete', 'aria-hidden': 'true' }, ...Array.from({ length: 14 }, (_, i) => h('i', { style: `--i:${i}` })));
+  return h('div', { class: 'sheet-body pr-ok' }, confete,
+    h('img', { class: 'pr-paul-fest', src: 'assets/paul/animacoes/web/paul-comemoracao.webp', alt: '', width: 150, height: 150, draggable: 'false' }),
+    h('h2', { class: 'pr-ok-tit' }, 'seu presente chegou!'),
+    h('p', { class: 'pr-ok-sub' }, 'o Paul separou isto pra você pintar. toque pra abrir ou salvar:'),
+    h('div', { class: 'pr-lista' }, ...p.arquivos.map((a, i) => h('a', { class: 'pr-ticket', href: a.arquivo, target: '_blank', rel: 'noopener', download: '' }, h('span', { class: 'pr-ticket-n' }, String(i + 1)), h('span', { class: 'pr-ticket-t' }, a.nome), h('b', {}, '🎨 abrir')))),
+    h('button', { type: 'button', class: 'pr-fechar', onclick: fecha }, 'fechar'));
 }
 
 /** Abre o formulário numa folha. `aoAbrir` roda quando o presente é liberado (o cartão some). */
@@ -49,7 +50,7 @@ export function abrirFormulario(aoAbrir) {
     const erro = h('p', { class: 'pr-erro', role: 'alert' });
     const botao = h('button', { type: 'button', class: 'btn primary wide' }, 'abrir meu presente 🎁');
     const fichas = (lista, atual, onPick, rotulo) => { const box = h('div', { class: 'pr-chips', role: 'radiogroup', 'aria-label': rotulo }); const pinta = () => box.querySelectorAll('button').forEach((b) => { const on = b.dataset.v === atual(); b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); });
-      lista.forEach(([v, t]) => box.append(h('button', { type: 'button', role: 'radio', 'aria-checked': 'false', 'data-v': v, class: 'pr-chip', onclick: () => { onPick(v); pinta(); } }, t))); return { box, pinta }; };
+      lista.forEach(([v, t]) => box.append(h('button', { type: 'button', role: 'radio', 'aria-checked': 'false', 'data-v': v, class: 'pr-chip', onclick: () => { onPick(v); pinta(); } }, ICONE_INSTRUMENTO[v] && rotulo === 'Instrumento favorito' ? h('span', { class: 'pr-chip-i', 'aria-hidden': 'true' }, ICONE_INSTRUMENTO[v]) : null, t))); return { box, pinta }; };
     const fx = fichas(FAIXAS, () => faixa, (v) => { faixa = v; }, 'Idade'); const ins = fichas(INSTRUMENTOS, () => instr, (v) => { instr = v; outro.hidden = v !== 'outro'; if (v === 'outro') outro.focus(); }, 'Instrumento favorito');
     botao.addEventListener('click', async () => {
       erro.textContent = '';
@@ -68,13 +69,15 @@ export function abrirFormulario(aoAbrir) {
         if (aoAbrir) aoAbrir(); box.replaceChildren(telaPresente(faixa, close));
       } catch { erro.textContent = 'sem internet agora. tente de novo.'; } finally { botao.disabled = false; botao.textContent = 'abrir meu presente 🎁'; }
     });
+    const sec = (n, titulo, ...filhos) => h('section', { class: 'pr-sec' }, h('div', { class: 'pr-sec-topo' }, h('i', {}, n), h('b', {}, titulo)), ...filhos);
     const box = h('div', { class: 'sheet-body pr-form' },
-      h('p', { class: 'muted pr-intro' }, 'o Paul preparou um presente pra você pintar! 🎨 conta um pouquinho de você:'),
-      campo('seu nome', nome), campo('e-mail', email), campo('WhatsApp', zap),
-      h('div', { class: 'field pr-campo' }, h('span', {}, 'sua idade'), fx.box),
-      h('div', { class: 'field pr-campo' }, h('span', {}, 'qual instrumento você mais ama?'), ins.box, outro),
-      h('label', { class: 'pr-aceita' }, aceita, h('span', {}, 'quero receber novidades e ofertas da Beaterista')),
-      h('p', { class: 'muted pr-lgpd' }, 'se você tem menos de 18 anos, coloque o contato de um responsável. usamos os dados só pra te enviar o presente e, se você marcar a caixinha, também novidades. você pode pedir pra sair da lista quando quiser.'),
+      h('header', { class: 'pr-topo' }, h('img', { src: 'assets/paul/colorido/paul-colorindo.webp', alt: '', width: 96, height: 88, draggable: 'false' }),
+        h('div', {}, h('small', {}, 'presente especial'), h('h2', {}, 'o Paul preparou um presente pra você pintar! 🎨'), h('p', {}, 'conta um pouquinho de você:'))),
+      sec('1', 'quem é você', campo('seu nome', nome), h('div', { class: 'field pr-campo' }, h('span', {}, 'sua idade'), fx.box)),
+      sec('2', 'onde a gente envia o presente', campo('✉️ e-mail', email), campo('📱 WhatsApp', zap)),
+      sec('3', 'o que você toca', h('div', { class: 'field pr-campo' }, h('span', {}, 'qual instrumento você mais ama?'), ins.box, outro)),
+      h('label', { class: 'pr-aceita' }, aceita, h('span', {}, h('b', {}, 'quero receber novidades e ofertas'), h('small', {}, 'da Beaterista · você pode sair quando quiser'))),
+      h('p', { class: 'pr-lgpd' }, '🔒 se você tem menos de 18 anos, coloque o contato de um responsável. usamos os dados só pra te enviar o presente e, se você marcar a caixinha acima, também novidades.'),
       erro, botao);
     fx.pinta(); ins.pinta(); return box;
   });
@@ -84,8 +87,8 @@ export function abrirFormulario(aoAbrir) {
 export function cartaoPresente() {
   if (!presenteAtivo() || !semCodigo() || lerAbriu()) return null;
   const el = h('section', { class: 'pr-cartao', 'aria-label': 'presente especial do Paul' },
-    h('img', { src: 'assets/paul/animacoes/web/paul-presente.webp', alt: '', width: 72, height: 72, loading: 'lazy', draggable: 'false' }),
-    h('div', {}, h('b', {}, 'quer um presente especial do Paul?'), h('small', {}, 'toque aqui pra abrir 🎁')),
-    h('button', { type: 'button', class: 'pr-abrir', onclick: () => abrirFormulario(() => el.remove()) }, 'abrir'));
+    h('span', { class: 'pr-fita' }, 'presente'),
+    h('img', { class: 'pr-cartao-paul', src: 'assets/paul/animacoes/web/paul-presente.webp', alt: '', width: 96, height: 96, loading: 'lazy', draggable: 'false' }),
+    h('div', { class: 'pr-cartao-txt' }, h('b', {}, 'quer um presente especial do Paul?'), h('small', {}, 'artes pra pintar, de graça'), h('button', { type: 'button', class: 'pr-abrir', onclick: () => abrirFormulario(() => el.remove()) }, 'abrir meu presente 🎁')));
   return el;
 }
