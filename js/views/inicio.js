@@ -222,11 +222,20 @@ export function mount(host, { nome = '' } = {}) {
     h('a', { href: '#/tocar' }, h('b', {}, 'palco'), 'bateria, violão, teclado e xilofone'),
     h('a', { href: '#/lojinha' }, h('b', {}, 'lojinha'), 'cards e apostilas pra imprimir'));
 
+  // Ex-alunos com matrícula encerrada: oferta para manter o mesmo código e progresso.
+  const exAluno = CODE.saved() && CODE.motivoFalha() === 'matricula'
+    ? h('section', { class: 'in-exaluno', role: 'status' },
+      h('strong', {}, 'quer continuar jogando?'),
+      h('p', {}, 'sua matrícula terminou, mas suas estrelas, figurinhas e conquistas continuam guardadas!'),
+      h('p', {}, h('b', {}, 'R$ 49,90 · pagamento único · 1 ano de acesso'), ' a partir da ativação do passe pago.'),
+      h('a', { class: 'in-exaluno-bt', href: `https://wa.me/5518991804150?text=${encodeURIComponent(`Olá! Minha matrícula terminou e quero continuar no Beaterista Play por R$ 49,90 (1 ano). Meu código é ${CODE.saved()}.`)}`, target: '_blank', rel: 'noopener noreferrer' }, 'quero continuar jogando'))
+    : null;
+
   // aviso de versão nova: aparece aqui dentro do Início (cartão no topo) e o aviso solto do topo some nesta aba (css/inicio.css)
   const botAtu = h('button', { type: 'button', class: 'in-btn in-atu-bt', onclick: (e) => { e.currentTarget.disabled = true; atualizarAgora(); } }, 'atualizar');
   const avisoAtu = h('section', { class: 'in-atu', role: 'status', 'aria-live': 'polite', hidden: true }, h('span', { 'aria-hidden': 'true' }, '✨'), h('p', {}, h('b', {}, 'tem coisa nova no app!'), h('small', {}, 'toque pra atualizar e ver as novidades')), botAtu);
   const mostraAtu = () => { avisoAtu.hidden = false; };
   try { if (document.querySelector('.atualiza-bar, .top-atu.tem-novo')) mostraAtu(); const tinha = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', () => { if (tinha) mostraAtu(); }); } catch { /* sem service worker */ }
-  host.append(h('div', { class: 'inicio' }, avisoAtu, passe, dividir, tres, continuar, roleta, novidades, atalhos));
+  host.append(h('div', { class: 'inicio' }, avisoAtu, exAluno, passe, dividir, tres, continuar, roleta, novidades, atalhos));
   return () => { window.removeEventListener('bt-foto-perfil', carregaFoto); if (urlFoto) URL.revokeObjectURL(urlFoto); };
 }
