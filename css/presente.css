@@ -50,3 +50,8 @@
 .pl-lista{display:grid;gap:8px}.pl-item{display:grid;gap:2px;padding:8px 10px;border:1px solid var(--line,#ccc);border-radius:10px;font:600 13px/1.35 var(--body,sans-serif)}.pl-item b{font-size:14px}
 .pl-novid{display:inline-block;margin-left:6px;padding:1px 8px;border-radius:99px;background:var(--ok,#1f6b3f);color:#fff;font-size:11px;font-weight:800}
 .pl-filtros{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+
+/* idade: menu com setinha */
+.pr-select{appearance:none;-webkit-appearance:none;width:100%;min-height:50px;padding:10px 46px 10px 14px;border:3px solid var(--pr-ink);border-radius:8px;color:var(--pr-ink);font:800 16px/1.2 var(--body,sans-serif);cursor:pointer;box-shadow:3px 3px 0 var(--pr-ink);
+  background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='14' viewBox='0 0 22 14'><path d='M2 2l9 9 9-9' fill='none' stroke='%23b5162b' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 14px center}
+.pr-select:focus-visible{outline:3px solid var(--pr-red);outline-offset:2px}
