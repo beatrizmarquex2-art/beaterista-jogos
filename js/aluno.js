@@ -555,8 +555,8 @@ function askName() {
   let indo = false;
   // comCodigo = true: "já sou aluno" (confere o código); false: "experimentar grátis" (só o nome, modo livre)
   const entrar = async (nomeV, codV, comCodigo, err) => { if (indo) return; indo = true; try {
-    const n = cleanName(nomeV);
-    if (n.length < 2) { err.textContent = 'escreva pelo menos 2 letras.'; return; }
+    let n = cleanName(nomeV);
+    if (!comCodigo && n.length < 2) { err.textContent = 'escreva pelo menos 2 letras.'; return; }
     const modo = (comCodigo && CODE.norm(codV).length >= 4) || CODE.pendente() ? 'codigo' : 'sem código';
     if (comCodigo && modo !== 'codigo') { err.textContent = 'digite o seu código de aluno (4 a 12 letras e números).'; return; }
     if (modo === 'codigo') {
@@ -565,6 +565,11 @@ function askName() {
         try { if (!(await CODE.entrar(codV))) { err.textContent = CODE.msgFalha(); return; } } catch { err.textContent = 'sem internet agora. tente de novo.'; return; }
       }
       err.textContent = '';
+    }
+    if (n.length < 2) { // "já sou aluno" só com o código: o nome vem da conta já guardada neste aparelho (mantém o progresso de sempre) ou do cadastro da professora
+      const guardada = (CONTAS.lista().find((x) => x.code === CODE.norm(codV)) || {}).nome;
+      const doServidor = cleanName(String(CODE.nomeDoCodigo() || '').trim().split(/\s+/)[0]);
+      n = cleanName(guardada) || (doServidor.length >= 2 ? doServidor : 'Aluno');
     }
     const o = modo === 'codigo' ? (CODE.pendente() ? 'pediu código de acesso' : 'aluno beaterista (código de acesso)') : 'não informou';
     try { localStorage.setItem(ORIGEM_KEY, o); } catch { window.__alunoOrigem = o; }

@@ -64,3 +64,8 @@
 .en .en-box.passe .en-passe-duo .en-passe-btn small{color:inherit;opacity:.92}
 .en .en-box.passe .en-passe-duo .en-btn.y small{color:#1b2a4a}
 .en .en-box.passe .en-passe-duo .en-btn.r small{color:#fff4e2}
+
+/* entrada: subtítulos das caixas e novo texto do Paul */
+.en .en-sub{margin:-6px 0 10px;font:700 13px/1.3 "Hanken Grotesk",sans-serif;color:rgb(255 255 255 / .8);letter-spacing:.01em}
+.en .en-mao .en-start{display:inline-block;margin-bottom:4px;font-size:1.18em;color:#f3ab1c}
+.en .en-mao .en-epico{display:inline-block;margin-top:2px;color:#f3ab1c;font-weight:800}

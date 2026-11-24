@@ -40,14 +40,13 @@ const svg = (inner, n = 22) => { const s = document.createElementNS('http://www.
 export function entradaNova(p) {
   const [pSrc, pAlt, pH] = sorteia(); const PIX = pixAtivo();
   const nome1 = h('input', { class: 'en-f', type: 'text', maxlength: 20, autocomplete: 'username', autocapitalize: 'words', 'aria-label': 'Seu nome', placeholder: 'seu nome' });
-  const nome2 = h('input', { class: 'en-f', type: 'text', maxlength: 20, autocomplete: 'username', autocapitalize: 'words', 'aria-label': 'Seu nome', placeholder: 'seu nome' });
   const cod = h('input', { class: 'en-f en-cod', type: 'text', maxlength: 14, autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', 'aria-label': 'Código de aluno', placeholder: 'código de aluno' });
   const err1 = h('p', { class: 'en-err', role: 'alert' }); const err2 = h('p', { class: 'en-err', role: 'alert' });
   const exp = h('button', { type: 'button', class: 'en-btn y', onclick: () => p.onExperimentar(nome1.value, err1) }, 'experimentar');
-  const ent = h('button', { type: 'button', class: 'en-btn r', onclick: () => p.onEntrar(nome2.value, cod.value, err2) }, 'entrar');
-  for (const [c, f] of [[nome1, () => exp.click()], [nome2, () => cod.focus()], [cod, () => ent.click()]]) c.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); f(); } });
-  const boxExp = h('section', { class: 'en-box', id: 'en-experimentar' }, h('h2', {}, 'experimentar ', h('span', {}, 'grátis')), nome1, err1, exp);
-  const boxAluno = h('section', { class: 'en-box' }, h('h2', {}, 'já sou ', h('span', {}, 'aluno')), nome2, cod, p.pedido || null, err2, ent);
+  const ent = h('button', { type: 'button', class: 'en-btn r', onclick: () => p.onEntrar('', cod.value, err2) }, 'entrar');
+  for (const [c, f] of [[nome1, () => exp.click()], [cod, () => ent.click()]]) c.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); f(); } });
+  const boxExp = h('section', { class: 'en-box', id: 'en-experimentar' }, h('h2', {}, 'experimentar ', h('span', {}, 'grátis')), h('p', { class: 'en-sub' }, 'acesso limitado'), nome1, err1, exp);
+  const boxAluno = h('section', { class: 'en-box' }, h('h2', {}, 'já sou ', h('span', {}, 'aluno')), h('p', { class: 'en-sub' }, 'acesso completo · só o código, não precisa do nome'), cod, p.pedido || null, err2, ent);
   const modal = h('div', { class: 'en-modal', hidden: true, onclick: () => { modal.hidden = true; } }, h('img', { src: `${A}por-que-paul.jpg`, alt: 'Por que Paul? Meu nome é uma homenagem ao Paul McCartney, um dos músicos favoritos da Bea.' }), h('i', { 'aria-hidden': 'true' }, '×'));
   const irLoja = (e) => { e.preventDefault(); p.onLojinha(); };
   const rol = (cls, ...kids) => h('div', { class: `en-rol ${cls || ''}`.trim() }, ...kids);
@@ -69,7 +68,7 @@ export function entradaNova(p) {
     h('div', { class: 'en-top' }, h('img', { class: 's', src: 'assets/logo-512.png', alt: '', width: 42, height: 42 }), h('img', { class: 'n', src: 'assets/logo-nome.png', alt: 'Beaterista, escola de música', width: 88, height: 30 }), h('span', { class: 'sp' }),
       ...REDES.map(([n, d], i) => { const l = (p.links || []).find((x) => x[0] === n); return h('a', { class: 'en-red', href: l ? l[1] : '#', target: '_blank', rel: 'noopener noreferrer', 'aria-label': n }, svg(d)); })),
     h('header', { class: 'en-hero' }, h('img', { class: 'en-logo', src: `${A}logo-paul-branco.png`, alt: 'Robôterista Paul', width: 215, height: 91 }),
-      h('p', { class: 'en-mao' }, 'te ajuda a tocar e aprender música através de ', h('b', {}, 'Aulas'), ', ', h('b', {}, 'Jogos'), ' e mais'),
+      h('p', { class: 'en-mao' }, h('b', { class: 'en-start' }, 'Dê START nas suas aulas!'), h('br'), 'Te ensino música através de ', h('b', {}, 'jogos interativos'), ', ', h('b', {}, 'mini aulas didáticas'), ', te levo pro ', h('b', {}, 'palco'), ' comigo e ainda ', h('b', {}, 'colecionamos juntos'), '! ', h('span', { class: 'en-epico' }, 'Vai ser épico!')),
       h('img', { class: 'en-paul', src: pSrc, alt: pAlt, style: `height:${pH}px` })),
     h('div', { class: 'en-tiles' }, tile('bulb', 'Jogos'), tile('study', 'Estudos'), tile('nota', 'Palco'), tile('bag', 'Lojinha', { href: '#/lojinha', amarelo: true, sub: 'toque aqui' })),
     h('button', { type: 'button', class: 'en-pqp', onclick: () => { modal.hidden = false; } }, h('img', { src: `${A}por-que-paul.jpg`, alt: '' }), h('span', {}, h('b', {}, 'por que Paul?'), h('small', {}, 'o nome tem uma homenagem. toque pra ler.')), h('i', { 'aria-hidden': 'true' }, '›')),
