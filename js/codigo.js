@@ -6,7 +6,9 @@ const base = `${CONFIG.SUPABASE_URL}/rest/v1`;
 const anon = { apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' };
 const KEY = 'beaterista-aluno-codigo';
 const OK_KEY = 'beaterista-aluno-codigo-ok'; // última vez que o código foi confirmado (vale offline)
-const OFFLINE_DAYS = 365; // o código fica salvo 1 ano neste aparelho (a Bea desativa quando quiser; vale na próxima vez que ele abrir com internet)
+const OFFLINE_DAYS = 365; // passe pago
+const TURMA_OFFLINE_DAYS = 1; // matrícula gratuita: revalidar em até 24h
+const TIPO_KEY = 'beaterista-aluno-tipo';
 
 export const norm = (s) => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
 /** O código escondido pra mostrar na tela (pedido da Bea, 15/nov/2026: o código não fica inteiro à vista, nem num print): só o 1º e o último caractere. Desde 19/nov/2026 o topo tem um olhinho que mostra o código inteiro por 8 segundos (escolha da Bea). */
@@ -15,7 +17,7 @@ export const saved = () => { try { return localStorage.getItem(KEY) || ''; } cat
 const ESC_KEY = 'beaterista-aluno-escopo'; // telas que o passe libera (null = tudo)
 function guardarEscopo(j) { try { if (Array.isArray(j) && j.length) localStorage.setItem(ESC_KEY, JSON.stringify(j)); else localStorage.removeItem(ESC_KEY); } catch { /* ok */ } }
 function remember(c) { try { if (c) { localStorage.setItem(KEY, c); localStorage.setItem(OK_KEY, String(Date.now())); } else { localStorage.removeItem(KEY); localStorage.removeItem(OK_KEY); localStorage.removeItem(ESC_KEY); } } catch { window.__alunoCodigo = c || ''; } }
-const recentlyOk = () => { try { return Date.now() - Number(localStorage.getItem(OK_KEY) || 0) < OFFLINE_DAYS * 864e5; } catch { return false; } };
+const recentlyOk = () => { try { const dias = localStorage.getItem(TIPO_KEY) === 'turma' ? TURMA_OFFLINE_DAYS : OFFLINE_DAYS; return Date.now() - Number(localStorage.getItem(OK_KEY) || 0) < dias * 864e5; } catch { return false; } };
 
 /** Id deste aparelho (aleatório, fica no navegador). O servidor conta no máximo 2 aparelhos por código de aluno. */
 const AP_KEY = 'beaterista-aparelho-id';
@@ -28,13 +30,13 @@ let motivo = '';
 /** Por que o último `verificar` disse não: 'codigo' (não existe/desativado), 'vencido' ou 'aparelhos' (já está em 2 aparelhos). */
 export const motivoFalha = () => motivo;
 /** Texto pra mostrar quando o código não entrou. */
-export const msgFalha = () => (motivo === 'aparelhos' ? 'esse código já está em 2 aparelhos. saia num deles (trocar aluno) ou fale com a sua professora.' : motivo === 'vencido' ? 'esse código venceu. fale com a sua professora.' : 'não achei esse código. confira com a sua professora.');
+export const msgFalha = () => (motivo === 'matricula' ? 'sua matrícula terminou. para continuar jogando por R$ 49,90 (1 ano), fale com a Beaterista. suas conquistas estão guardadas.' : motivo === 'aparelhos' ? 'esse código já está em 2 aparelhos. saia num deles (trocar aluno) ou fale com a sua professora.' : motivo === 'vencido' ? 'esse código venceu. fale com a sua professora.' : 'não achei esse código. confira com a sua professora.');
 /** Confere um código no servidor (e registra este aparelho). true/false; lança erro se não deu pra falar com o servidor. */
 export async function verificar(code) {
   motivo = ''; const c = norm(code); if (c.length < 4) return false;
   const r = await fetch(`${base}/rpc/aluno_acesso`, { method: 'POST', headers: anon, body: JSON.stringify({ p_code: c, p_aparelho: aparelhoProf() ? null : aparelhoId(), p_ua: String(navigator.userAgent || '').slice(0, 160) }) });
   let j = null; if (r.ok) { try { j = await r.json(); } catch { j = null; } }
-  if (j && typeof j === 'object' && typeof j.ok === 'boolean') { if (j.ok) { guardarEscopo(j.jogos); if (j.tipo === 'prof') { try { localStorage.setItem(PROF_KEY, '1'); } catch { /* ok */ } } return true; } motivo = j.motivo || 'codigo'; return false; }
+  if (j && typeof j === 'object' && typeof j.ok === 'boolean') { if (j.ok) { guardarEscopo(j.jogos); try { if (j.tipo) localStorage.setItem(TIPO_KEY, j.tipo); } catch { /* ok */ } if (j.tipo === 'prof') { try { localStorage.setItem(PROF_KEY, '1'); } catch { /* ok */ } } return true; } motivo = j.motivo || 'codigo'; return false; }
   if (r.ok || r.status === 404) { // servidor sem a função nova (ou resposta que não entendi): confere do jeito antigo
     const r2 = await fetch(`${base}/rpc/aluno_codigo_ok`, { method: 'POST', headers: anon, body: JSON.stringify({ p_code: c }) });
     if (!r2.ok) throw new Error(String(r2.status)); const ok = (await r2.json()) === true; if (!ok) motivo = 'codigo'; return ok;
@@ -48,7 +50,7 @@ export async function entrar(code) { const c = norm(code); const ok = await veri
 /** Ao abrir: o código guardado ainda vale? Sem internet, vale se foi confirmado no último ano. Desativado pela Bea = tranca de novo. */
 export async function revalidar() {
   const c = saved(); if (!c) return false;
-  try { const ok = await verificar(c); if (!ok) remember(''); else remember(c); return ok; } catch { return recentlyOk(); }
+  try { const ok = await verificar(c); if (!ok && motivo !== 'matricula') remember(''); else if (ok) remember(c); return ok; } catch { return recentlyOk(); }
 }
 export const sair = () => remember('');
 /** Guarda um código já conferido (troca de aluno no mesmo aparelho). */
@@ -102,6 +104,27 @@ export async function criar(nome) {
   const code = gerar(); const r = await fetch(`${base}/alunos_codigos`, { method: 'POST', headers: await head({ Prefer: 'return=minimal' }), body: JSON.stringify({ code, nome: String(nome || '').slice(0, 60) }) });
   if (!r.ok) throw new Error(String(r.status)); return code;
 }
+/** Encerra matrícula gratuita sem apagar dados vinculados ao código. */
+export async function encerrarMatricula(code) {
+  const c = norm(code); if (!c) throw new Error('código inválido');
+  const r = await fetch(`${base}/alunos_codigos?code=eq.${encodeURIComponent(c)}&tipo=eq.turma&ativo=is.true`,
+    { method: 'PATCH', headers: await head({ Prefer: 'return=representation' }), body: JSON.stringify({ ativo: false }) });
+  if (!r.ok) throw new Error(String(r.status));
+  if (!(await r.json()).length) throw new Error('matrícula ativa não encontrada');
+}
+/** Após pagamento de R$ 49,90 confirmado, libera 12 meses no mesmo código. */
+export async function converterEmPasseAnual(code) {
+  const c = norm(code); if (!c) throw new Error('código inválido');
+  const { daquiA12Meses } = await import('./passe-anual.js');
+  const agora = new Date(), expira = daquiA12Meses(agora);
+  const patch = { tipo: 'passe', ativo: true, dias: 365, iniciado_em: agora.toISOString(), expira_em: expira.toISOString(), max_aparelhos: 2 };
+  const r = await fetch(`${base}/alunos_codigos?code=eq.${encodeURIComponent(c)}&tipo=eq.turma&ativo=is.false`,
+    { method: 'PATCH', headers: await head({ Prefer: 'return=representation' }), body: JSON.stringify(patch) });
+  if (!r.ok) throw new Error(String(r.status));
+  if (!(await r.json()).length) throw new Error('matrícula encerrada não encontrada ou passe já convertido');
+  return expira;
+}
+
 export async function alterar(code, patch) {
   const r = await fetch(`${base}/alunos_codigos?code=eq.${encodeURIComponent(code)}`, { method: 'PATCH', headers: await head({ Prefer: 'return=minimal' }), body: JSON.stringify(patch) });
   if (!r.ok) throw new Error(String(r.status));
