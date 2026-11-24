@@ -1,0 +1,10 @@
+/* "Meu passe" no Perfil: usa as cores e a tipografia do app (papel/creme, vermelho, grafite) */
+.mp{display:grid;gap:8px;padding:16px;border:2px solid var(--ink);border-radius:var(--radius,14px);background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.mp p{margin:0;font:600 14px/1.45 var(--body)}.mp .mp-nota{font-size:12.5px;color:var(--muted)}
+.mp h3{margin:0;font:var(--dstyle) var(--dw) 24px/1.1 var(--display);text-transform:lowercase}
+.mp .mp-rot{display:block;background:none;padding:0;font:800 10.5px/1.2 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.mp-ok{border-color:var(--ok)}.mp-ok h3{color:var(--ok)}
+.mp-ex{border-color:var(--accent)}.mp-ex h3{color:var(--accent);text-transform:uppercase;font-family:Anton,var(--display);font-style:normal;font-weight:400}
+.mp-preco b{font:400 34px/1 Anton,sans-serif;color:var(--accent)}.mp-preco{display:flex;align-items:baseline;gap:6px}.mp-preco2{font:800 15px/1.2 var(--body)!important;text-transform:uppercase;letter-spacing:.05em}
+.mp-btn{display:flex;align-items:center;justify-content:center;min-height:48px;margin-top:4px;padding:10px 16px;border:2px solid var(--ink);border-radius:10px;background:var(--accent);color:var(--accent-ink);font:900 15px/1 var(--body);text-decoration:none;text-transform:lowercase;box-shadow:3px 3px 0 var(--ink)}
+.mp-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
