@@ -40,13 +40,14 @@ const svg = (inner, n = 22) => { const s = document.createElementNS('http://www.
 export function entradaNova(p) {
   const [pSrc, pAlt, pH] = sorteia(); const PIX = pixAtivo();
   const nome1 = h('input', { class: 'en-f', type: 'text', maxlength: 20, autocomplete: 'username', autocapitalize: 'words', 'aria-label': 'Seu nome', placeholder: 'seu nome' });
+  const nome2 = h('input', { class: 'en-f', type: 'text', maxlength: 20, autocomplete: 'username', autocapitalize: 'words', 'aria-label': 'Seu nome de verdade', placeholder: 'seu nome de verdade' });
   const cod = h('input', { class: 'en-f en-cod', type: 'text', maxlength: 14, autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', 'aria-label': 'Código de aluno', placeholder: 'código de aluno' });
   const err1 = h('p', { class: 'en-err', role: 'alert' }); const err2 = h('p', { class: 'en-err', role: 'alert' });
   const exp = h('button', { type: 'button', class: 'en-btn y', onclick: () => p.onExperimentar(nome1.value, err1) }, 'experimentar');
-  const ent = h('button', { type: 'button', class: 'en-btn r', onclick: () => p.onEntrar('', cod.value, err2) }, 'entrar');
-  for (const [c, f] of [[nome1, () => exp.click()], [cod, () => ent.click()]]) c.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); f(); } });
-  const boxExp = h('section', { class: 'en-box', id: 'en-experimentar' }, h('h2', {}, 'experimentar ', h('span', {}, 'grátis')), h('p', { class: 'en-sub' }, 'acesso limitado'), nome1, err1, exp);
-  const boxAluno = h('section', { class: 'en-box' }, h('h2', {}, 'já sou ', h('span', {}, 'aluno')), h('p', { class: 'en-sub' }, 'acesso completo · só o código, não precisa do nome'), cod, p.pedido || null, err2, ent);
+  const ent = h('button', { type: 'button', class: 'en-btn r', onclick: () => p.onEntrar(nome2.value, cod.value, err2) }, 'entrar');
+  for (const [c, f] of [[nome1, () => exp.click()], [nome2, () => cod.focus()], [cod, () => ent.click()]]) c.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); f(); } });
+  const boxExp = h('section', { class: 'en-box', id: 'en-experimentar' }, h('h2', {}, 'experimentar ', h('span', {}, 'grátis')), h('p', { class: 'en-sub' }, 'acesso limitado'), nome1, h('p', { class: 'en-dica' }, '✏️ use sempre o mesmo nome toda vez, pra o app guardar as suas figurinhas e o seu progresso.'), err1, exp);
+  const boxAluno = h('section', { class: 'en-box' }, h('h2', {}, 'já sou ', h('span', {}, 'aluno')), h('p', { class: 'en-sub' }, 'acesso completo'), nome2, cod, h('p', { class: 'en-dica' }, '✏️ use sempre o seu nome de verdade, escrito do mesmo jeito toda vez. é assim que o app encontra as suas figurinhas e o seu progresso.'), p.pedido || null, err2, ent);
   const modal = h('div', { class: 'en-modal', hidden: true, onclick: () => { modal.hidden = true; } }, h('img', { src: `${A}por-que-paul.jpg`, alt: 'Por que Paul? Meu nome é uma homenagem ao Paul McCartney, um dos músicos favoritos da Bea.' }), h('i', { 'aria-hidden': 'true' }, '×'));
   const irLoja = (e) => { e.preventDefault(); p.onLojinha(); };
   const rol = (cls, ...kids) => h('div', { class: `en-rol ${cls || ''}`.trim() }, ...kids);

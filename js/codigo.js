@@ -27,9 +27,6 @@ export function aparelhoId() {
 const PROF_KEY = 'beaterista-aparelho-prof'; // aparelho da professora (já entrou com código de professora): não ocupa vaga dos alunos
 const aparelhoProf = () => { try { return localStorage.getItem(PROF_KEY) === '1'; } catch { return false; } };
 let motivo = '';
-let nomeServidor = ''; // nome cadastrado pra este código (devolvido por aluno_acesso); só fica em memória
-/** Nome que a professora cadastrou pro último código conferido ('' se não veio). Serve pra entrar só com o código, sem digitar o nome. */
-export const nomeDoCodigo = () => nomeServidor;
 /** Por que o último `verificar` disse não: 'codigo' (não existe/desativado), 'vencido' ou 'aparelhos' (já está em 2 aparelhos). */
 export const motivoFalha = () => motivo;
 /** Texto pra mostrar quando o código não entrou. */
@@ -39,7 +36,7 @@ export async function verificar(code) {
   motivo = ''; const c = norm(code); if (c.length < 4) return false;
   const r = await fetch(`${base}/rpc/aluno_acesso`, { method: 'POST', headers: anon, body: JSON.stringify({ p_code: c, p_aparelho: aparelhoProf() ? null : aparelhoId(), p_ua: String(navigator.userAgent || '').slice(0, 160) }) });
   let j = null; if (r.ok) { try { j = await r.json(); } catch { j = null; } }
-  if (j && typeof j === 'object' && typeof j.ok === 'boolean') { if (j.ok) { nomeServidor = typeof j.nome === 'string' ? j.nome : ''; guardarEscopo(j.jogos); try { if (j.tipo) localStorage.setItem(TIPO_KEY, j.tipo); } catch { /* ok */ } if (j.tipo === 'prof') { try { localStorage.setItem(PROF_KEY, '1'); } catch { /* ok */ } } return true; } motivo = j.motivo || 'codigo'; return false; }
+  if (j && typeof j === 'object' && typeof j.ok === 'boolean') { if (j.ok) { guardarEscopo(j.jogos); try { if (j.tipo) localStorage.setItem(TIPO_KEY, j.tipo); } catch { /* ok */ } if (j.tipo === 'prof') { try { localStorage.setItem(PROF_KEY, '1'); } catch { /* ok */ } } return true; } motivo = j.motivo || 'codigo'; return false; }
   if (r.ok || r.status === 404) { // servidor sem a função nova (ou resposta que não entendi): confere do jeito antigo
     const r2 = await fetch(`${base}/rpc/aluno_codigo_ok`, { method: 'POST', headers: anon, body: JSON.stringify({ p_code: c }) });
     if (!r2.ok) throw new Error(String(r2.status)); const ok = (await r2.json()) === true; if (!ok) motivo = 'codigo'; return ok;
