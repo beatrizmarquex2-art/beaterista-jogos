@@ -222,11 +222,26 @@ export function mount(host, { nome = '' } = {}) {
     h('a', { href: '#/tocar' }, h('b', {}, 'palco'), 'bateria, violão, teclado e xilofone'),
     h('a', { href: '#/lojinha' }, h('b', {}, 'lojinha'), 'cards e apostilas pra imprimir'));
 
+  // Aviso responsivo da mudança de endereço e como salvar o Beaterista Play na tela inicial.
+  const avisoMudanca = h('section', { class: 'in-mudanca', 'aria-label': 'novo endereço do Beaterista Play' },
+    h('div', { class: 'in-mudanca-cabecalho' },
+      h('img', { src: 'assets/paul/sprites/bateria-idle_02.webp', alt: 'Robôterista Paul' }),
+      h('div', { class: 'in-mudanca-titulos' },
+        h('strong', {}, 'HEY! MUDAMOS DE ENDEREÇO!'),
+        h('p', {}, 'pra jogar, entre sempre por:'),
+        h('a', { class: 'in-mudanca-link', href: 'https://play.beaterista.com.br/' }, 'play.beaterista.com.br'))),
+    h('div', { class: 'in-mudanca-instalar' },
+      h('b', {}, 'ou salve como app no seu celular'),
+      h('div', { class: 'in-mudanca-passos' },
+        h('p', {}, h('strong', {}, 'iPhone · Safari'), h('span', {}, 'Compartilhar ↑ → Adicionar à Tela de Início → Adicionar')),
+        h('p', {}, h('strong', {}, 'Android · Chrome'), h('span', {}, 'Menu ⋮ → Instalar app ou Adicionar à tela inicial'))),
+      h('small', {}, 'o atalho vai aparecer como Beaterista Play.')));
+
   // aviso de versão nova: aparece aqui dentro do Início (cartão no topo) e o aviso solto do topo some nesta aba (css/inicio.css)
   const botAtu = h('button', { type: 'button', class: 'in-btn in-atu-bt', onclick: (e) => { e.currentTarget.disabled = true; atualizarAgora(); } }, 'atualizar');
   const avisoAtu = h('section', { class: 'in-atu', role: 'status', 'aria-live': 'polite', hidden: true }, h('span', { 'aria-hidden': 'true' }, '✨'), h('p', {}, h('b', {}, 'tem coisa nova no app!'), h('small', {}, 'toque pra atualizar e ver as novidades')), botAtu);
   const mostraAtu = () => { avisoAtu.hidden = false; };
   try { if (document.querySelector('.atualiza-bar, .top-atu.tem-novo')) mostraAtu(); const tinha = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', () => { if (tinha) mostraAtu(); }); } catch { /* sem service worker */ }
-  host.append(h('div', { class: 'inicio' }, avisoAtu, passe, dividir, tres, continuar, roleta, novidades, atalhos));
+  host.append(h('div', { class: 'inicio' }, avisoAtu, avisoMudanca, passe, dividir, tres, continuar, roleta, novidades, atalhos));
   return () => { window.removeEventListener('bt-foto-perfil', carregaFoto); if (urlFoto) URL.revokeObjectURL(urlFoto); };
 }
