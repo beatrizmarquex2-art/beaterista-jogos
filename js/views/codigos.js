@@ -20,7 +20,7 @@ const ABAS = [
 ];
 const rotasDe = (ids) => ABAS.filter((x) => ids.includes(x[0])).flatMap((x) => x[2]);
 const abasDe = (jogos) => (Array.isArray(jogos) ? ABAS.filter((x) => jogos.includes(x[2][0])).map((x) => x[0]) : ABAS.map((x) => x[0]));
-const SITE = 'https://jogos.beaterista.com.br';
+const SITE = 'https://play.beaterista.com.br';
 
 export function montarLegado(host, { semBanner = false } = {}) {
   let list = []; let busy = false; let gone = false; let last = null; // last = linhas da última importação/geração (pra mostrar só elas)
@@ -205,7 +205,7 @@ export function mount(host) {
       : h('div', { class: 'row' }, h('button', { class: 'btn primary', type: 'button', disabled: busy, onclick: importarAgora }, 'importar agora')),
     status);
   const tempoDe = (x) => (x.dias ? CODE.nomeTempo(x.dias) : '—');
-  const venc = (x) => (x.expira_em ? `vence ${dia(x.expira_em)}` : x.tipo === 'passe' ? 'conta a partir do 1º uso' : '—');
+  const venc = (x) => (x.tipo === 'turma' ? (x.ativo ? 'grátis enquanto matriculado' : 'matrícula encerrada · conquistas guardadas') : x.expira_em ? `vence ${dia(x.expira_em)}` : 'conta a partir do 1º uso');
   const filtrados = () => { const t = q.trim().toLowerCase(); return list.filter((x) => (!t || (x.nome || '').toLowerCase().includes(t) || x.code.toLowerCase().includes(t)) && (!fTipo || (x.categoria || 'aluno') === fTipo) && (!fTempo || String(x.dias) === fTempo) && (!fAtivo || (fAtivo === 'ativo') === !!x.ativo)); };
   const run = async (fn, ok) => { if (busy) return; busy = true; try { await fn(); toast(ok, { id: 'cod-ok', ms: 2200 }); await carrega(); } catch (e) { toast(`não deu (${e.message})`, { id: 'cod-err', ms: 3500 }); } busy = false; desenhaLista(); };
   const mudarTempo = (x) => sheet(`tempo de acesso · ${x.nome || x.code}`, (close) => { let v = x.dias || 365; const s = sel(CODE.TEMPOS, v, (n) => { v = Number(n); }, 'Novo tempo de acesso');
@@ -236,6 +236,16 @@ export function mount(host) {
       desenha(); return box;
     });
   }
+  const encerrarMatricula = async (x) => {
+    if (busy || x.tipo !== 'turma' || !x.ativo) return;
+    if (!(await confirmSheet('Encerrar matrícula?', `${x.nome || x.code} perde o acesso gratuito. O código, as figurinhas e o progresso continuam guardados. Pode continuar por R$ 49,90 durante 1 ano.`, 'Encerrar matrícula'))) return;
+    run(() => CODE.encerrarMatricula(x.code), 'matrícula encerrada · progresso guardado ✓');
+  };
+  const confirmarPasse = async (x) => {
+    if (busy || x.tipo !== 'turma' || x.ativo) return;
+    if (!(await confirmSheet('Pagamento de R$ 49,90 confirmado?', `confirme só depois de conferir o recebimento. ${x.nome || x.code} terá 12 meses de acesso a partir de agora, mantendo o mesmo código e as conquistas.`, 'Confirmar pagamento'))) return;
+    run(() => CODE.converterEmPasseAnual(x.code), 'passe pago ativado por 1 ano ✓');
+  };
   const msgAluno = (x) => `oi${x.nome ? ` ${x.nome.split(' ')[0]}` : ''}! seu código de acesso da Beaterista é ${x.code}\nentre em ${SITE} e digite o código em "já sou aluno" (ou toque em "tenho código" no app). 🥁`;
   const mandar = (x) => window.open(`https://wa.me/?text=${encodeURIComponent(msgAluno(x))}`, '_blank', 'noopener');
   const porNome = (a, b) => ((a.nome || '\uffff').toLowerCase()).localeCompare((b.nome || '\uffff').toLowerCase(), 'pt');
@@ -256,12 +266,18 @@ export function mount(host) {
           h('span', { class: `cod-tag c-${x.categoria || 'aluno'}` }, nomeCat(x.categoria || 'aluno')),
           interruptor(!!x.ativo, '', () => run(() => CODE.alterar(x.code, { ativo: !x.ativo }), x.ativo ? 'desativado' : 'ativado ✓'), `${x.ativo ? 'Desativar' : 'Ativar'} ${x.nome || x.code}`)),
         h('small', { class: 'muted cod-item-meta' }, `${x.usos ?? 0} uso${x.usos === 1 ? '' : 's'} · ${Array.isArray(x.jogos) && x.jogos.length ? ABAS.filter((a) => abasDe(x.jogos).includes(a[0])).map((a) => a[1].replace(' (tocar)', '').replace('Álbum, roleta e perfil', 'Álbum')).join(', ') : 'todas as abas'}`),
-        h('div', { class: 'row cod-item-act' }, h('button', { class: 'btn small ghost', type: 'button', onclick: () => copy(x.code, 'código copiado') }, 'copiar'), h('button', { class: 'btn small ghost', type: 'button', disabled: busy, onclick: () => mudarTempo(x) }, 'mudar tempo')))) : [h('p', { class: 'empty muted' }, list.length ? 'nenhum código com esse filtro.' : 'nenhum código ainda.')]));
+        h('div', { class: 'row cod-item-act' },
+          h('button', { class: 'btn small ghost', type: 'button', onclick: () => copy(x.code, 'código copiado') }, 'copiar'),
+          x.tipo === 'turma' && x.ativo ? h('button', { class: 'btn small', type: 'button', disabled: busy, onclick: () => encerrarMatricula(x) }, 'encerrar matrícula') : null,
+          x.tipo === 'turma' && !x.ativo ? h('button', { class: 'btn small primary', type: 'button', disabled: busy, onclick: () => confirmarPasse(x) }, 'pagou R$ 49,90 · ativar 1 ano') : null,
+          x.tipo === 'turma' && !x.ativo ? h('button', { class: 'btn small ghost', type: 'button', disabled: busy, onclick: () => run(() => CODE.alterar(x.code, { ativo: true, expira_em: null }), 'matrícula reativada ✓') }, 'voltou à escola · grátis') : null,
+          x.tipo === 'passe' ? h('small', { class: 'muted' }, 'passe pago · independente da matrícula') : null,
+          h('button', { class: 'btn small ghost', type: 'button', disabled: busy, onclick: () => mudarTempo(x) }, 'mudar tempo')))) : [h('p', { class: 'empty muted' }, list.length ? 'nenhum código com esse filtro.' : 'nenhum código ainda.')]));
   };
   const busca = h('input', { class: 'field', type: 'search', placeholder: 'procurar nome ou código', 'aria-label': 'Procurar código' }); busca.addEventListener('input', () => { q = busca.value; desenhaLista(); });
   const abas2 = h('div', { class: 'cod-modo', role: 'group', 'aria-label': 'jeito de ver a lista' }, ...[['lista', 'lista simples'], ['cartoes', 'detalhada']].map(([id, rot]) => h('button', { type: 'button', class: `cod-modo-bt${modo === id ? ' on' : ''}`, 'aria-pressed': String(modo === id), 'data-modo': id, onclick: (e) => { modo = id; abas2.querySelectorAll('button').forEach((b) => { const on = b.dataset.modo === modo; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); }); desenhaLista(); } }, rot)));
   const copiarTudo = () => copy(['nome\tcódigo', ...list.slice().sort(porNome).map((x) => `${x.nome || ''}\t${x.code}`)].join('\n'), 'lista copiada (cola na planilha)');
-  const listaCard = h('section', { class: 'card pad' }, h('div', { class: 'row between' }, h('b', {}, 'códigos dos alunos'), h('button', { class: 'btn small ghost', type: 'button', onclick: copiarTudo }, 'copiar tudo')), abas2, busca,
+  const listaCard = h('section', { class: 'card pad' }, h('p', { class: 'muted' }, 'matriculados jogam de graça. na visão detalhada: encerre a matrícula sem apagar dados; após confirmar o pagamento de R$ 49,90, ative 1 ano no mesmo código.'), h('div', { class: 'row between' }, h('b', {}, 'códigos dos alunos'), h('button', { class: 'btn small ghost', type: 'button', onclick: copiarTudo }, 'copiar tudo')), abas2, busca,
     h('div', { class: 'cod-filtros' },
       sel([['', 'todos os tipos'], ...CODE.CATEGORIAS], fTipo, (v) => { fTipo = v; desenhaLista(); }, 'Filtrar por tipo'),
       sel([['', 'todos os tempos'], ...CODE.TEMPOS], fTempo, (v) => { fTempo = v; desenhaLista(); }, 'Filtrar por tempo'),
