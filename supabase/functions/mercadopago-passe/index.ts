@@ -63,15 +63,18 @@ function env(name: string): string {
 }
 function cliente() {
   if (!env("SUPABASE_URL") || !env("SUPABASE_SERVICE_ROLE_KEY")) throw Error("supabase_not_configured");
+  if (!/^[\x21-\x7E]+$/.test(env("SUPABASE_SERVICE_ROLE_KEY"))) throw Error("supabase_service_key_non_ascii");
   return createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 }
 async function mpPagamento(id: string): Promise<any> {
   if (!/^\d{4,25}$/.test(id)) throw Error("invalid_payment_id");
-  if (!env("MP_ACCESS_TOKEN")) throw Error("mp_not_configured");
+  const token = env("MP_ACCESS_TOKEN");
+  if (!token) throw Error("mp_not_configured");
+  if (!/^[\x21-\x7E]+$/.test(token)) throw Error("mp_access_token_non_ascii");
   const r = await fetch("https://api.mercadopago.com/v1/payments/" + id, {
-    headers: { Authorization: "Bearer " + env("MP_ACCESS_TOKEN") },
+    headers: { Authorization: "Bearer " + token },
     signal: AbortSignal.timeout(10000),
   });
   if (!r.ok) throw Error("mp_get_payment_" + r.status);
@@ -87,6 +90,7 @@ async function assinaturaValida(req: Request, paymentId: string): Promise<boolea
   const assinatura = req.headers.get("x-signature") || "";
   const requestId = (req.headers.get("x-request-id") || "").trim();
   if (!chave) return falha("secret_missing");
+  if (!/^[\x21-\x7E]+$/.test(chave)) return falha("secret_non_ascii");
   if (!assinatura) return falha("signature_header_missing");
   if (!requestId) return falha("request_id_missing");
   if (!paymentId) return falha("payment_id_missing");
