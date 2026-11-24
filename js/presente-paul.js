@@ -31,8 +31,8 @@ function telaPresente(faixa, fecha) {
   return h('div', { class: 'sheet-body pr-ok' }, confete,
     h('img', { class: 'pr-paul-fest', src: 'assets/paul/animacoes/web/paul-comemoracao.webp', alt: '', width: 150, height: 150, draggable: 'false' }),
     h('h2', { class: 'pr-ok-tit' }, 'seu presente chegou!'),
-    h('p', { class: 'pr-ok-sub' }, 'o Paul separou isto pra você pintar. toque pra abrir ou salvar:'),
-    h('div', { class: 'pr-lista' }, ...p.arquivos.map((a, i) => h('a', { class: 'pr-ticket', href: a.arquivo, target: '_blank', rel: 'noopener', download: '' }, h('span', { class: 'pr-ticket-n' }, String(i + 1)), h('span', { class: 'pr-ticket-t' }, a.nome), h('b', {}, '🎨 abrir')))),
+    h('p', { class: 'pr-ok-sub' }, 'o Paul separou este presente pra você. toque pra abrir ou salvar:'),
+    h('div', { class: 'pr-lista' }, ...p.arquivos.map((a, i) => h('a', { class: 'pr-ticket', href: a.arquivo, target: '_blank', rel: 'noopener', download: '' }, h('span', { class: 'pr-ticket-n' }, String(i + 1)), h('span', { class: 'pr-ticket-t' }, a.nome), h('b', {}, '🎁 abrir')))),
     h('button', { type: 'button', class: 'pr-fechar', onclick: fecha }, 'fechar'));
 }
 
@@ -72,8 +72,8 @@ export function abrirFormulario(aoAbrir) {
     });
     const sec = (n, titulo, ...filhos) => h('section', { class: 'pr-sec' }, h('div', { class: 'pr-sec-topo' }, h('i', {}, n), h('b', {}, titulo)), ...filhos);
     const box = h('div', { class: 'sheet-body pr-form' },
-      h('header', { class: 'pr-topo' }, h('img', { src: 'assets/paul/colorido/paul-colorindo.webp', alt: '', width: 96, height: 88, draggable: 'false' }),
-        h('div', {}, h('small', {}, 'presente especial'), h('h2', {}, 'o Paul preparou um presente pra você pintar! 🎨'), h('p', {}, 'conta um pouquinho de você:'))),
+      h('header', { class: 'pr-topo' }, h('img', { src: 'assets/paul/animacoes/web/paul-presente.webp', alt: '', width: 96, height: 88, draggable: 'false' }),
+        h('div', {}, h('small', {}, 'presente especial'), h('h2', {}, 'o Paul preparou um presente pra você! 🎁'), h('p', {}, 'conta um pouquinho de você:'))),
       sec('1', 'quem é você', campo('seu nome', nome), h('div', { class: 'field pr-campo' }, h('span', {}, 'sua idade'), fx.box)),
       sec('2', 'onde a gente envia o presente', campo('✉️ e-mail', email), campo('📱 WhatsApp', zap)),
       sec('3', 'o que você toca', h('div', { class: 'field pr-campo' }, h('span', {}, 'qual instrumento você mais ama?'), ins.box, outro)),
@@ -90,6 +90,6 @@ export function cartaoPresente() {
   const el = h('section', { class: 'pr-cartao', 'aria-label': 'presente especial do Paul' },
     h('span', { class: 'pr-fita' }, 'presente'),
     h('img', { class: 'pr-cartao-paul', src: 'assets/paul/animacoes/web/paul-presente.webp', alt: '', width: 96, height: 96, loading: 'lazy', draggable: 'false' }),
-    h('div', { class: 'pr-cartao-txt' }, h('b', {}, 'quer um presente especial do Paul?'), h('small', {}, 'artes pra pintar, de graça'), h('button', { type: 'button', class: 'pr-abrir', onclick: () => abrirFormulario(() => el.remove()) }, 'abrir meu presente 🎁')));
+    h('div', { class: 'pr-cartao-txt' }, h('b', {}, 'quer um presente especial do Paul?'), h('small', {}, 'uma surpresa de graça pra você 🎁'), h('button', { type: 'button', class: 'pr-abrir', onclick: () => abrirFormulario(() => el.remove()) }, 'abrir meu presente 🎁')));
   return el;
 }
