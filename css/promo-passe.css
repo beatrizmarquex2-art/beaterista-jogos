@@ -53,3 +53,14 @@
 .ep-logo{display:block;height:40px;width:auto;margin:0 0 4px}
 .pp-logo{display:block;height:34px;width:auto;margin:0 0 4px}
 .en-passe-logo{display:block;height:44px;width:auto;margin:0 0 8px}
+
+/* entrada: Pix e cartão direto na página (mais específico que o lote3.css) */
+.en .en-box.passe small.en-passe-tag{color:#f3ab1c;opacity:1}
+.en .en-box.passe .pr div small{color:rgb(255 255 255 / .88);opacity:1}
+.en-passe-duo{display:grid;gap:10px;margin:0 0 4px}
+.en .en-box.passe .en-passe-duo .en-passe-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;margin:0;padding:12px 14px;text-decoration:none}
+.en-passe-duo .en-passe-btn b{font:inherit;font-size:1.05em}
+.en-passe-duo .en-passe-btn small{display:block;font:700 12.5px/1.2 "Hanken Grotesk",sans-serif;text-transform:none;letter-spacing:0;opacity:.95}
+.en .en-box.passe .en-passe-duo .en-passe-btn small{color:inherit;opacity:.92}
+.en .en-box.passe .en-passe-duo .en-btn.y small{color:#1b2a4a}
+.en .en-box.passe .en-passe-duo .en-btn.r small{color:#fff4e2}

@@ -4,7 +4,7 @@
 import { h } from './util.js';
 import { icon } from './util.js';
 import { TERMO_DE_USO } from './termo-de-uso.js';
-import { MARCA, PASSE_NOME, TXT_PIX, TXT_CARTAO, TXT_SELO, URL_CARTAO, pixAtivo, CHAMADAS, BENEFICIOS } from './oferta.js';
+import { MARCA, PASSE_NOME, TXT_PIX, TXT_CARTAO, TXT_SELO, URL_PIX, URL_CARTAO, pixAtivo, CHAMADAS, BENEFICIOS } from './oferta.js';
 import { ligarCompra } from './escolha-pagamento.js';
 
 const A = 'assets/entrada/';
@@ -74,12 +74,16 @@ export function entradaNova(p) {
     h('div', { class: 'en-tiles' }, tile('bulb', 'Jogos'), tile('study', 'Estudos'), tile('nota', 'Palco'), tile('bag', 'Lojinha', { href: '#/lojinha', amarelo: true, sub: 'toque aqui' })),
     h('button', { type: 'button', class: 'en-pqp', onclick: () => { modal.hidden = false; } }, h('img', { src: `${A}por-que-paul.jpg`, alt: '' }), h('span', {}, h('b', {}, 'por que Paul?'), h('small', {}, 'o nome tem uma homenagem. toque pra ler.')), h('i', { 'aria-hidden': 'true' }, '›')),
     boxExp, boxAluno,
-    h('section', { class: 'en-box passe', id: 'en-passe' }, h('img', { class: 'en-passe-paul', src: 'assets/paul/animacoes/web/paul-presente.webp', alt: '', width: 104, height: 104, draggable: 'false', decoding: 'async' }), h('img', { class: 'en-passe-logo', src: 'assets/logo-beaterista-play.webp', alt: MARCA, width: 133, height: 44, loading: 'lazy', draggable: 'false' }), h('small', { class: 'en-passe-tag' }, PASSE_NOME), h('h2', {}, 'aprenda música ', h('span', {}, 'jogando.')),
+    h('section', { class: 'en-box passe', id: 'en-passe' }, h('img', { class: 'en-passe-paul', src: 'assets/paul/animacoes/web/paul-presente.webp', alt: '', width: 104, height: 104, draggable: 'false', decoding: 'async' }), h('img', { class: 'en-passe-logo', src: 'assets/logo-beaterista-play.webp', alt: MARCA, width: 133, height: 44, decoding: 'async', draggable: 'false' }), h('small', { class: 'en-passe-tag' }, PASSE_NOME), h('h2', {}, 'aprenda música ', h('span', {}, 'jogando.')),
       h('p', { class: 'p1' }, CHAMADAS.verbos, ' Jogos educativos, desafios musicais, figurinhas e aulas com o Robôterista Paul, no seu ritmo.'),
       h('p', { class: 'p2' }, PIX ? CHAMADAS.ano : CHAMADAS.anoSemPix),
       h('div', { class: 'pr solo' }, h('div', {}, h('b', { class: 'pix' }, PIX ? TXT_PIX : TXT_CARTAO), h('small', {}, PIX ? `no Pix, pagamento único · ${TXT_SELO.toLowerCase()} · ou ${TXT_CARTAO} no cartão` : 'no cartão, pagamento único · Pix em breve'))),
       h('ul', { class: 'en-passe-lista' }, ...BENEFICIOS.map((b) => h('li', {}, b))),
-      ligarCompra(h('a', { class: 'en-btn y en-passe-btn', href: URL_CARTAO, target: '_blank', rel: 'noopener noreferrer', 'data-compra': PIX ? 'escolha' : 'cartao' }, '🎮 quero meu passe anual'), 'entrada'),
+      // Pix e cartão direto na página: o Pix em destaque (amarelo), o cartão logo abaixo (vermelho). Sem Pix ativo, só o cartão.
+      PIX ? h('div', { class: 'en-passe-duo' },
+        h('a', { class: 'en-btn y en-passe-btn', href: URL_PIX, 'data-compra': 'pix' }, h('b', {}, '⚡ comprar com Pix'), h('small', {}, `${TXT_PIX} · ${TXT_SELO.toLowerCase()}`)),
+        h('a', { class: 'en-btn r en-passe-btn', href: URL_CARTAO, target: '_blank', rel: 'noopener noreferrer', 'data-compra': 'cartao' }, h('b', {}, '💳 comprar com cartão'), h('small', {}, `${TXT_CARTAO} · pela Hotmart`)))
+        : h('a', { class: 'en-btn y en-passe-btn', href: URL_CARTAO, target: '_blank', rel: 'noopener noreferrer', 'data-compra': 'cartao' }, '🎮 quero meu passe anual'),
       h('p', { class: 'p3' }, 'já é aluno da escola Beaterista? seu acesso anual está incluso! ', h('a', { href: '#en-experimentar', onclick: (e) => { e.preventDefault(); boxAluno.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => cod.focus({ preventScroll: true }), 450); } }, 'entre com seu código.'))),
     h('section', { class: 'en-sec' }, h('h3', {}, 'veja ', h('span', {}, 'por dentro')), h('p', { class: 'en-pq' }, 'telas reais do app. cada jogo diz o que desenvolve.'),
       rol('', ...JOGOS.map(([f, n, d]) => h('div', { class: 'en-jg' }, h('div', { class: 'ph' }, h('img', { src: `${A}${f}.jpg`, alt: `Tela: ${n}`, loading: 'lazy' })), h('b', {}, n), h('p', {}, d))))),
