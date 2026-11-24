@@ -111,7 +111,7 @@ export function mount(host, { nome = '' } = {}) {
   let ganhas = []; let todas = new Map(); let fav = FAV.favoritos();
   const slots = h('div', { class: 'in-favs', role: 'group', 'aria-label': 'bandas e cantores favoritos' });
   const desenhaFav = () => {
-    slots.replaceChildren(...[0, 1, 2, 3, 4, 5].map((i) => {
+    slots.replaceChildren(...[0, 1, 2, 3, 4].map((i) => {
       const nomeF = fav[i]; const a = nomeF && (todas.get(nomeF) || { nome: nomeF, foto: '', rosto: null });
       return h('button', { type: 'button', class: `in-fav${a ? ' tem' : ''}`, 'aria-label': a ? `favorito ${i + 1}: ${a.nome}. tocar pra trocar` : `escolher favorito ${i + 1}`, onclick: () => escolher(i) },
         h('span', { class: 'in-fav-foto' }, a ? (a.foto ? h('img', { src: a.foto, alt: '', style: `object-position:${rostoPos(a.rosto)}` }) : h('i', {}, '♪')) : h('i', {}, '+')),
@@ -180,7 +180,7 @@ export function mount(host, { nome = '' } = {}) {
     bt.disabled = true;
     try {
       const M = await import('../figurinhas/passe-card.js'); const bl = await D.metaLer('perfil-foto').catch(() => null);
-      const favs = FAV.favoritos().slice(0, 6).map((n) => { const a = todas.get(n); return { nome: n, foto: a ? a.foto : '', rosto: a ? a.rosto : null }; });
+      const favs = FAV.favoritos().slice(0, 5).map((n) => { const a = todas.get(n); return { nome: n, foto: a ? a.foto : '', rosto: a ? a.rosto : null }; });
       const r = await M.compartilhar({ nome: nome || '', foto: bl, sobre: PERF.perfil(), favs, formato });
       if (r === 'baixado') toast('imagem baixada: é só postar!'); else if (r === 'compartilhado') toast('compartilhado!');
     } catch { toast('não consegui montar a imagem agora.'); }
