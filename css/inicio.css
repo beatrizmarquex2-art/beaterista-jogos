@@ -169,3 +169,26 @@ body:has(.inicio) .atualiza-bar { display: none !important; }
 .in-share > span { flex: 1; opacity: .85; }
 .in-share-bt { border: 2px solid #f2a91b; background: transparent; color: #f2a91b; border-radius: 99px !important; padding: 6px 16px; font: 800 13px "Hanken Grotesk", sans-serif; cursor: pointer; }
 .in-share-bt:disabled { opacity: .5; }
+
+/* Aviso de novo endereço: faixa editorial compacta, legível no celular. */
+.in-mudanca { position: relative; overflow: hidden; padding: 12px; background: #fff1d6; color: #25171b; border: 2px solid #291c27; border-radius: 15px !important; box-shadow: 4px 5px 0 #090e20; }
+.in-mudanca::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: repeating-linear-gradient(90deg, #b9202e 0 48px, #1f3a74 48px 68px, #f4b321 68px 78px); }
+.in-mudanca-cabecalho { display: flex; align-items: center; gap: 8px; }
+.in-mudanca-cabecalho > img { width: 75px; height: 94px; object-fit: contain; flex-shrink: 0; }
+.in-mudanca-titulos { flex: 1; min-width: 0; }
+.in-mudanca-titulos > strong { display: inline-block; background: #af1b2e; color: #fff6e6; padding: 5px 9px 4px; font: 400 18px/1.12 'Anton', sans-serif; letter-spacing: .03em; transform: rotate(-1deg); }
+.in-mudanca-titulos > p { margin: 8px 0 3px; font: 700 12px/1.25 'Hanken Grotesk', sans-serif; }
+.in-mudanca-link { display: block; padding: 5px 7px; background: #fffdf9; color: #ad172c !important; border: 2px solid #281c28; border-radius: 7px !important; overflow-wrap: anywhere; font: 900 15px/1.25 'Hanken Grotesk', sans-serif; text-decoration: underline; }
+.in-mudanca-instalar { margin-top: 9px; padding: 10px 11px; background: #f5dcae; border-radius: 9px !important; border: 1px dashed #b98734; }
+.in-mudanca-instalar > b { display: block; color: #a7192a; text-transform: uppercase; letter-spacing: .03em; font: 400 17px/1.1 'Anton', sans-serif; }
+.in-mudanca-passos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 7px; }
+.in-mudanca-passos p { margin: 0; font: 600 11px/1.38 'Hanken Grotesk', sans-serif; }
+.in-mudanca-passos strong { display: block; color: #1c2c58; font-size: 12px; }
+.in-mudanca-passos span { display: block; }
+.in-mudanca-instalar > small { display: block; margin-top: 7px; font: 700 10px/1.3 'Hanken Grotesk', sans-serif; }
+@media (max-width: 380px) {
+  .in-mudanca-cabecalho > img { width: 60px; height: 80px; }
+  .in-mudanca-titulos > strong { font-size: 16px; }
+  .in-mudanca-link { font-size: 13px; }
+  .in-mudanca-passos { grid-template-columns: 1fr; gap: 7px; }
+}
