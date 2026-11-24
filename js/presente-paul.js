@@ -49,8 +49,8 @@ export function abrirFormulario(aoAbrir) {
     const aceita = h('input', { type: 'checkbox', id: 'pr-aceita' });
     const erro = h('p', { class: 'pr-erro', role: 'alert' });
     const botao = h('button', { type: 'button', class: 'btn primary wide' }, 'abrir meu presente 🎁');
-    const fichas = (lista, atual, onPick, rotulo) => { const box = h('div', { class: 'pr-chips', role: 'radiogroup', 'aria-label': rotulo }); const pinta = () => box.querySelectorAll('button').forEach((b) => { const on = b.dataset.v === atual(); b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); });
-      lista.forEach(([v, t]) => box.append(h('button', { type: 'button', role: 'radio', 'aria-checked': 'false', 'data-v': v, class: 'pr-chip', onclick: () => { onPick(v); pinta(); } }, ICONE_INSTRUMENTO[v] && rotulo === 'Instrumento favorito' ? h('span', { class: 'pr-chip-i', 'aria-hidden': 'true' }, ICONE_INSTRUMENTO[v]) : null, t))); return { box, pinta }; };
+    const fichas = (lista, atual, onPick, rotulo) => { const box = h('div', { class: `pr-chips${rotulo === 'Instrumento favorito' ? ' pr-inst' : ''}`, role: 'radiogroup', 'aria-label': rotulo }); const pinta = () => box.querySelectorAll('button').forEach((b) => { const on = b.dataset.v === atual(); b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); });
+      lista.forEach(([v, t]) => box.append(h('button', { type: 'button', role: 'radio', 'aria-checked': 'false', 'data-v': v, class: 'pr-chip', onclick: () => { onPick(v); pinta(); } }, ICONE_INSTRUMENTO[v] && rotulo === 'Instrumento favorito' ? h('span', { class: 'pr-chip-i', 'aria-hidden': 'true' }, ICONE_INSTRUMENTO[v]) : null, rotulo === 'Instrumento favorito' ? h('small', {}, t) : t))); return { box, pinta }; };
     const idade = h('select', { class: 'field pr-select', 'aria-label': 'Sua idade' }, h('option', { value: '', disabled: true, selected: true }, 'toque pra escolher'), ...FAIXAS.map(([v, t]) => h('option', { value: v }, t))); idade.addEventListener('change', () => { faixa = idade.value; });
     const fx = { box: idade, pinta: () => {} }; const ins = fichas(INSTRUMENTOS, () => instr, (v) => { instr = v; outro.hidden = v !== 'outro'; if (v === 'outro') outro.focus(); }, 'Instrumento favorito');
     botao.addEventListener('click', async () => {
@@ -75,7 +75,7 @@ export function abrirFormulario(aoAbrir) {
         h('div', {}, h('small', {}, 'presente especial'), h('h2', {}, 'o Paul preparou um presente pra você! 🎁'), h('p', {}, 'conta um pouquinho de você:'))),
       h('section', { class: 'pr-sec' },
         campo('nome', nome), h('div', { class: 'field pr-campo' }, h('span', {}, 'idade'), fx.box), campo('e-mail', email), campo('WhatsApp', zap),
-        h('div', { class: 'field pr-campo' }, h('span', {}, 'qual instrumento você mais ama?'), ins.box, outro)),
+        h('div', { class: 'field pr-campo' }, h('span', {}, 'instrumento que você mais ama'), ins.box, outro)),
       h('label', { class: 'pr-aceita' }, aceita, h('span', {}, h('b', {}, 'quero receber novidades e ofertas'), h('small', {}, 'da Beaterista · você pode sair quando quiser'))),
       h('p', { class: 'pr-lgpd' }, '🔒 se você tem menos de 18 anos, coloque o contato de um responsável. usamos os dados só pra te enviar o presente e, se você marcar a caixinha acima, também novidades.'),
       erro, botao);

@@ -123,3 +123,11 @@
 /* títulos em branco */
 .sheet:has(.pr-form) .sheet-head h2,.sheet:has(.pr-ok) .sheet-head h2{color:#fff!important}
 .pr-ok-tit{color:#fff}
+
+/* instrumento: uma linha só, bem compacto (emoji grande + nome pequenininho) */
+.pr-chips.pr-inst{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.pr-inst .pr-chip{flex-direction:column;justify-content:center;gap:1px;min-height:54px;padding:5px 2px;border-width:2px;border-left-width:2px;border-radius:10px;box-shadow:2px 2px 0 var(--pr-ink)}
+.pr-inst .pr-chip-i{font-size:24px;line-height:1}.pr-inst .pr-chip small{font:800 10.5px/1.1 var(--body,sans-serif);letter-spacing:0}
+.pr-inst .pr-chip.on::after{content:none}.pr-inst .pr-chip.on{transform:none;box-shadow:2px 2px 0 var(--pr-ink)}
+.pr-inst .pr-chip[data-v]{border-left-width:2px}
+.pr-inst .pr-chip:not(.on)[data-v]{border-bottom:5px solid var(--c)}
