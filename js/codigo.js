@@ -126,7 +126,7 @@ export async function criar(nome) {
   if (!r.ok) throw new Error(String(r.status)); return code;
 }
 /** Encerra matrícula gratuita sem apagar dados vinculados ao código. */
-export async function encerrarMatricula(code) {
+async function encerrarMatriculaLegado(code) {
   const c = norm(code); if (!c) throw new Error('código inválido');
   const r = await fetch(`${base}/alunos_codigos?code=eq.${encodeURIComponent(c)}&tipo=eq.turma&ativo=is.true`,
     { method: 'PATCH', headers: await head({ Prefer: 'return=representation' }), body: JSON.stringify({ ativo: false }) });
@@ -134,7 +134,7 @@ export async function encerrarMatricula(code) {
   if (!(await r.json()).length) throw new Error('matrícula ativa não encontrada');
 }
 /** Após pagamento de R$ 49,90 confirmado, libera 12 meses no mesmo código. */
-export async function converterEmPasseAnual(code) {
+async function converterEmPasseAnualLegado(code) {
   const c = norm(code); if (!c) throw new Error('código inválido');
   const { daquiA12Meses } = await import('./passe-anual.js');
   const agora = new Date(), expira = daquiA12Meses(agora);
@@ -145,6 +145,40 @@ export async function converterEmPasseAnual(code) {
   if (!(await r.json()).length) throw new Error('matrícula encerrada não encontrada ou passe já convertido');
   return expira;
 }
+
+/* ---------- Painel de matrículas (supabase/022_matriculas_passes.sql). Tudo pelo SERVIDOR; se a 022 ainda não está no banco, o jeito antigo continua valendo ---------- */
+async function rpcBea(fn, body = {}) {
+  const r = await fetch(`${base}/rpc/${fn}`, { method: 'POST', headers: await head(), body: JSON.stringify(body) });
+  if (r.status === 404) { const e = new Error('a nova função ainda não está no banco'); e.semBanco = true; throw e; }
+  if (!r.ok) { let m = ''; try { m = (await r.json()).message || ''; } catch { /* sem corpo */ } throw new Error(m || String(r.status)); }
+  return r.json();
+}
+/** Encerra a matrícula: suspende SÓ o acesso gratuito (código, progresso, figurinhas e conquistas ficam). */
+export async function encerrarMatricula(code, obs = '') {
+  const c = norm(code); if (!c) throw new Error('código inválido');
+  try { return await rpcBea('matricula_encerrar', { p_code: c, p_obs: obs || null }); } catch (e) { if (e.semBanco) return encerrarMatriculaLegado(c); throw e; }
+}
+/** Reativa a matrícula (acesso gratuito de volta). Um passe pago que ainda valha fica guardado. */
+export async function reativarMatricula(code, obs = '') {
+  const c = norm(code); if (!c) throw new Error('código inválido');
+  try { return await rpcBea('matricula_reativar', { p_code: c, p_obs: obs || null }); } catch (e) { if (e.semBanco) return alterar(c, { ativo: true, expira_em: null }); throw e; }
+}
+/** Ex-aluno pagou R$ 49,90 (confirmado à mão): 12 meses no MESMO código. `ref` = de onde veio o pagamento (obrigatório). */
+export async function converterEmPasseAnual(code, ref = '') {
+  const c = norm(code); if (!c) throw new Error('código inválido');
+  try { const r = await rpcBea('passe_pago_ativar', { p_code: c, p_confirmado: true, p_ref: ref, p_obs: null }); return r && r.passe_pago_ate ? new Date(r.passe_pago_ate) : null; }
+  catch (e) { if (e.semBanco) return converterEmPasseAnualLegado(c); throw e; }
+}
+/** Aluno que a professora cadastrou à mão (passe de aluno) passa a constar como matriculado. */
+export const marcarMatriculado = (code, obs = '') => rpcBea('matricula_marcar', { p_code: norm(code), p_obs: obs || null });
+/** Aparelhos registrados de um código. */
+export const aparelhosDoCodigo = (code) => rpcBea('codigo_aparelhos', { p_code: norm(code) });
+export const liberarAparelhoDoCodigo = (code, aparelho) => rpcBea('codigo_aparelho_liberar', { p_code: norm(code), p_aparelho: aparelho });
+export const limiteAparelhos = (code, max) => rpcBea('codigo_max_aparelhos', { p_code: norm(code), p_max: max });
+/** Quantos aparelhos cada código tem (pra lista). Sem a 022, devolve vazio. */
+export async function resumoAparelhos() { try { return await rpcBea('codigos_resumo'); } catch (e) { if (e.semBanco) return []; throw e; } }
+/** Progresso de um aluno (SÓ LEITURA): nuvem, figurinhas e histórico de ações. */
+export const progressoDoCodigo = (code) => rpcBea('codigo_progresso', { p_code: norm(code) });
 
 export async function alterar(code, patch) {
   const r = await fetch(`${base}/alunos_codigos?code=eq.${encodeURIComponent(code)}`, { method: 'PATCH', headers: await head({ Prefer: 'return=minimal' }), body: JSON.stringify(patch) });
