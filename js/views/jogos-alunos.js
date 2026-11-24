@@ -3,7 +3,7 @@
 import { h } from '../util.js';
 import { banner } from '../ui.js';
 
-export const SITE_ALUNOS = 'https://play.beaterista.com.br/';
+export const SITE_ALUNOS = 'https://jogos.beaterista.com.br/';
 
 export function mount(host) {
   const frame = h('iframe', {
