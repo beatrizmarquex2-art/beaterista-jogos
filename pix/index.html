@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#141b28">
+  <title>Pagamento Pix · Beaterista Play</title>
+  <style>
+    :root{--fundo:#131b29;--cartao:#1e2b40;--borda:#42506a;--texto:#f7f3eb;--muted:#c5cfdd;--red:#ed4c51;--creme:#fff4d5;--amarelo:#ffcb65}
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(ellipse at top left,#2f2438,var(--fundo) 68%);color:var(--texto);font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+    main{max-width:590px;margin:0 auto;padding:22px 18px 64px}
+    a{color:var(--amarelo)}
+    .voltar{display:inline-block;text-decoration:none;color:var(--muted);font-size:14px;margin:8px 0 28px}
+    .marca{font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--amarelo);margin:0}
+    h1{font-size:clamp(30px,7vw,46px);line-height:1.08;letter-spacing:-.04em;margin:12px 0}
+    .intro{color:var(--muted);margin:14px 0 25px}
+    .preco{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--borda);border-radius:14px;background:rgba(255,255,255,.05);padding:14px 18px;margin-bottom:18px;gap:14px}
+    .preco b{font-size:30px;color:var(--amarelo)}
+    .preco small{color:var(--muted);display:block}
+    .painel{background:var(--cartao);border:1px solid var(--borda);padding:24px;border-radius:18px}
+    h2{font-size:20px;margin:0 0 16px}
+    label{display:block;font-weight:650;font-size:14px;margin:15px 0 7px}
+    input{font:inherit;padding:13px 14px;border-radius:9px;background:#fff;color:#182132;width:100%;border:2px solid transparent}
+    input:focus{border-color:var(--amarelo);outline:3px solid transparent}
+    button,.botao{font:inherit;font-weight:750;border:0;border-radius:11px;min-height:50px;padding:12px 16px;cursor:pointer;text-align:center}
+    button:disabled{opacity:.55;cursor:wait}
+    .principal{background:var(--amarelo);color:#232333;width:100%;margin-top:20px}
+    .secundario{background:transparent;border:1px solid var(--borda);color:var(--texto);display:inline-block;text-decoration:none}
+    .ajuda{font-size:12px;color:var(--muted);margin:9px 0 0}
+    .erro{color:#ffd5d5;background:#6b2d38;border:1px solid #ca626b;border-radius:9px;padding:12px;margin:14px 0}
+    [hidden]{display:none!important}
+    .qrbox{background:white;padding:14px;border-radius:12px;max-width:245px;margin:18px auto;display:flex;justify-content:center}
+    .qrbox img{display:block;width:100%;height:auto}
+    textarea{font:12px/1.5 monospace;resize:none;width:100%;min-height:84px;border:1px solid var(--borda);border-radius:9px;padding:10px;background:#11192a;color:#fff;overflow-wrap:anywhere}
+    .acao{display:grid;gap:10px;margin-top:10px}
+    .centro{text-align:center}
+    .status{background:rgba(255,255,255,.05);padding:12px;border-radius:9px;margin:17px 0;color:var(--creme)}
+    .ok{border-left:4px solid #77d1a1}
+    .alerta{border-left:4px solid var(--amarelo)}
+    .rodape{font-size:13px;color:var(--muted);margin-top:26px;text-align:center}
+    @media(max-width:410px){.painel{padding:17px}.preco{flex-wrap:wrap}}
+  </style>
+</head>
+<body>
+<main>
+  <a class="voltar" href="https://jogos.beaterista.com.br/?entrar">← voltar ao Robôterista</a>
+  <p class="marca">beaterista play</p>
+  <p class="status alerta" role="note">Checkout em homologação · teste controlado de pagamento real. Ainda não divulgado ao público.</p>
+  <h1>seu passe anual, no Pix.</h1>
+  <p class="intro">12 meses de jogos, estudos, desafios e álbum de figurinhas. pagamento único, sem mensalidade.</p>
+  <div class="preco">
+    <div><small>Pix · 37,55% mais barato que o preço de R$79,90</small><b>R$49,90</b></div>
+    <div><small>prefere cartão?</small><a href="https://pay.hotmart.com/Y108629105P" target="_blank" rel="noopener">Hotmart · R$79,90</a></div>
+  </div>
+  <section id="inicio" class="painel" aria-labelledby="cabecalho">
+    <h2 id="cabecalho">gerar meu Pix</h2>
+    <form id="form">
+      <label for="nome">nome completo</label>
+      <input id="nome" name="nome" autocomplete="name" minlength="2" maxlength="80" required>
+      <label for="email">e-mail que receberá o código</label>
+      <input id="email" name="email" type="email" autocomplete="email" maxlength="200" required>
+      <label for="cpf">CPF do pagador</label>
+      <input id="cpf" name="cpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14" required>
+      <p class="ajuda">o CPF é usado para gerar o pagamento no Mercado Pago e não fica armazenado no nosso cadastro.</p>
+      <button id="gerar" type="submit" class="principal">gerar Pix de R$49,90</button>
+    </form>
+    <p id="erro" class="erro" role="alert" hidden></p>
+  </section>
+  <section id="pagamento" class="painel" aria-labelledby="cabecalho-pagamento" hidden>
+    <h2 id="cabecalho-pagamento">pague com Pix</h2>
+    <p>use o QR Code ou copie a chave abaixo. o Pix costuma ser válido por até 30 minutos.</p>
+    <div id="qrbox" class="qrbox" hidden><img id="qr" alt="QR Code Pix do Mercado Pago"></div>
+    <div id="copiar-bloco" hidden>
+      <label for="chave">Pix copia e cola</label>
+      <textarea id="chave" readonly></textarea>
+      <div class="acao"><button id="copiar" type="button" class="principal">copiar código Pix</button></div>
+    </div>
+    <p id="status" class="status alerta" role="status" aria-live="polite">aguardando pagamento...</p>
+    <div class="acao">
+      <a id="mp" class="botao secundario" href="#" target="_blank" rel="noopener noreferrer" hidden>abrir Pix no Mercado Pago</a>
+      <button id="conferir" class="botao secundario" type="button">já paguei · conferir pagamento</button>
+      <button id="novo" class="botao secundario" type="button" hidden>gerar um novo Pix</button>
+    </div>
+    <p class="ajuda">após a confirmação, o código anual chega automaticamente ao seu e-mail. não é necessário enviar comprovante.</p>
+    <p id="erro2" class="erro" role="alert" hidden></p>
+  </section>
+  <section id="sucesso" class="painel centro" hidden>
+    <h2>pagamento confirmado!</h2>
+    <p>seu passe anual está ativo. o código foi enviado para o e-mail informado.</p>
+    <a class="botao principal" href="https://jogos.beaterista.com.br/?entrar" style="display:block;text-decoration:none">entrar no Robôterista</a>
+  </section>
+  <p class="rodape">pagamento processado pelo Mercado Pago · acesso enviado pela equipe Beaterista</p>
+</main>
+<script>
+(() => {
+  "use strict";
+  const API = "https://fnxgjxatremjdxaqmswu.supabase.co/functions/v1/mercadopago-passe";
+  const $ = (id) => document.getElementById(id);
+  let pedido = sessionStorage.getItem("beaterista-pix-pedido") || "";
+  let timer = null;
+  let consultando = false;
+  const erro = (el, msg) => { el.hidden = !msg; el.textContent = msg || ""; };
+  async function chamar(modo, body) {
+    const r = await fetch(API + "?acao=" + modo, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body), cache: "no-store",
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      const msgs = {
+        pix_nao_configurado: "o Pix está sendo configurado. por enquanto, utilize o cartão na Hotmart.",
+        email_nao_configurado: "o envio automático está indisponível. tente novamente mais tarde.",
+        verifique_nome_email_cpf: "confira seu nome, e-mail e CPF.",
+        muitas_tentativas_tente_mais_tarde: "muitas tentativas. tente novamente em 15 minutos.",
+        falha_ao_gerar_pix: "não foi possível gerar o Pix. tente novamente.",
+        falha_temporaria_ao_gerar_pix: "não foi possível confirmar a geração do Pix. aguarde e tente novamente.",
+      };
+      throw Error(msgs[data.erro] || "não foi possível concluir agora. tente novamente.");
+    }
+    return data;
+  }
+  function pagamento(data) {
+    $("inicio").hidden = true;
+    $("pagamento").hidden = false;
+    $("sucesso").hidden = true;
+    if (data.qr_code_base64 && /^[a-zA-Z0-9+/=]+$/.test(data.qr_code_base64)) {
+      $("qr").src = "data:image/png;base64," + data.qr_code_base64;
+      $("qrbox").hidden = false;
+    }
+    if (data.qr_code) {
+      $("chave").value = data.qr_code;
+      $("copiar-bloco").hidden = false;
+    }
+    if (data.ticket_url && /^https:\/\//.test(data.ticket_url)) {
+      $("mp").href = data.ticket_url;
+      $("mp").hidden = false;
+    }
+    $("status").textContent = "aguardando confirmação do Pix...";
+    if (!timer) timer = setInterval(conferir, 7000);
+  }
+  function finalizado(enviado) {
+    clearInterval(timer); timer = null;
+    sessionStorage.removeItem("beaterista-pix-pedido"); pedido = "";
+    $("inicio").hidden = true;
+    $("pagamento").hidden = true;
+    $("sucesso").hidden = false;
+    if (!enviado) {
+      $("sucesso").querySelector("p").textContent =
+        "seu acesso já foi liberado, mas o e-mail ainda está sendo enviado. aguarde alguns instantes e confira a caixa de spam.";
+    }
+  }
+  async function conferir() {
+    if (!pedido || consultando || document.hidden) return;
+    consultando = true;
+    try {
+      const data = await chamar("status", { pedido });
+      if (data.status === "aprovada" && data.email_enviado) finalizado(true);
+      else if (data.status === "aprovada") {
+        $("status").textContent = "Pagamento confirmado. Estamos enviando o código ao seu e-mail; não pague novamente.";
+        $("qrbox").hidden = true; $("copiar-bloco").hidden = true; $("mp").hidden = true;
+        if (!timer) timer = setInterval(conferir, 7000);
+      }
+      else if (["reembolsada", "chargeback", "cancelada", "falhou"].includes(data.status)) {
+        clearInterval(timer); timer = null;
+        $("status").textContent = "esse pagamento não foi aprovado. volte e gere um novo Pix, se desejar.";
+        $("status").className = "status alerta";
+        $("qrbox").hidden = true; $("copiar-bloco").hidden = true; $("mp").hidden = true; $("conferir").hidden = true; $("novo").hidden = false;
+        sessionStorage.removeItem("beaterista-pix-pedido");
+        pedido = "";
+      } else {
+        $("status").textContent = "Pix pendente. quando o pagamento for aprovado, seu acesso será enviado por e-mail.";
+        if ($("pagamento").hidden) pagamento(data);
+        if (data.ticket_url || data.qr_code || data.qr_code_base64) pagamento(data);
+      }
+      erro($("erro2"), "");
+    } catch (e) {
+      erro($("erro2"), String(e.message || e));
+    } finally {
+      consultando = false;
+    }
+  }
+  $("form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    erro($("erro"), "");
+    $("gerar").disabled = true;
+    $("gerar").textContent = "gerando Pix...";
+    try {
+      const data = await chamar("criar", {
+        nome: $("nome").value, email: $("email").value, cpf: $("cpf").value,
+      });
+      pedido = data.pedido;
+      sessionStorage.setItem("beaterista-pix-pedido", pedido);
+      pagamento(data);
+      await conferir();
+    } catch (e) {
+      erro($("erro"), String(e.message || e));
+    } finally {
+      $("gerar").disabled = false;
+      $("gerar").textContent = "gerar Pix de R$49,90";
+    }
+  });
+  $("conferir").addEventListener("click", () => conferir());
+  $("novo").addEventListener("click", () => { location.reload(); });
+  $("copiar").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText($("chave").value);
+      $("copiar").textContent = "código copiado!";
+    } catch {
+      $("chave").select();
+      $("copiar").textContent = "selecione e copie o código acima";
+    }
+  });
+  if (pedido) {
+    $("inicio").hidden = true;
+    $("pagamento").hidden = false;
+    $("status").textContent = "recuperando seu Pix...";
+    conferir();
+  }
+})();
+</script>
+</body>
+</html>
