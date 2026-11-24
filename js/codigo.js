@@ -77,6 +77,27 @@ export async function conferirPedido() {
 async function head(extra = {}) { const auth = await import('./auth.js'); const t = await auth.accessToken(); if (!t) throw new Error('entre no app'); return { apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: `Bearer ${t}`, 'Content-Type': 'application/json', ...extra }; }
 const ABC = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 export const gerar = () => { const a = new Uint32Array(6); crypto.getRandomValues(a); return [...a].map((x) => ABC[x % ABC.length]).join(''); };
+/** Cursos ofertados pela escola — usados exclusivamente no cadastro de matrículas. */
+export const CURSOS_ESCOLA = ['Bateria', 'Violão', 'Guitarra e Baixo', 'Musicalização', 'Teclado'];
+/** Cria um código individual de matrícula, ativo enquanto o aluno estudar; não converte ou substitui códigos existentes. */
+export async function cadastrarMatriculado({ nome, curso, ativo = true, code = '' }) {
+  const aluno = String(nome || '').trim().replace(/\\s+/g, ' ').slice(0, 60);
+  if (aluno.length < 2) throw new Error('informe o nome do aluno');
+  if (!CURSOS_ESCOLA.includes(curso)) throw new Error('selecione um curso válido');
+  const importado = String(code || '').trim();
+  const codigoImportado = norm(importado);
+  if (importado && (codigoImportado.length < 4 || codigoImportado.length > 12 || codigoImportado !== importado.toUpperCase())) throw new Error('código inválido: use 4 a 12 letras ou números');
+  for (let tentativa = 0; tentativa < (importado ? 1 : 8); tentativa++) {
+    const codigo = importado ? codigoImportado : gerar();
+    const body = { code: codigo, nome: aluno, curso, ativo: !!ativo, tipo: 'turma', categoria: 'aluno', max_aparelhos: 2, expira_em: null, iniciado_em: null };
+    const r = await fetch(`${base}/alunos_codigos`, { method: 'POST', headers: await head({ Prefer: 'return=minimal' }), body: JSON.stringify(body) });
+    if (r.ok) return codigo;
+    if (r.status === 409) { if (importado) throw new Error('esse código já está cadastrado: nenhum acesso foi alterado'); continue; }
+    throw new Error(`não foi possível cadastrar (${r.status})`);
+  }
+  throw new Error('não foi possível gerar um código livre');
+}
+
 export async function listar() {
   const q = (cols) => fetch(`${base}/alunos_codigos?select=${cols}&order=criado_em.desc`, { headers: head0 });
   const head0 = await head();
