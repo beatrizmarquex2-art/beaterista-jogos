@@ -1,5 +1,5 @@
 // Service worker: cacheia só o "casco" do app (código + marca). Nenhum dado do usuário passa por aqui.
-const VERSION = 'beaterista-v742';
+const VERSION = 'beaterista-v743';
 const SHELL = [
   'js/paulta/livre.js', 'js/dicas-aluno.js', 'js/boas-vindas.js', 'js/inicio-perfil.js', 'js/figurinhas/passe-card.js', 'assets/velha/baquetas.webp', 'assets/velha/palheta.webp', 'js/icone-paul.js', 'js/palavras-bloqueadas.js',
   'js/paulta/mapa.js',
@@ -479,7 +479,7 @@ const EXTRA = [
 self.addEventListener('install', (e) => {
   // o essencial entra todo ou nada; as artes dos jogos entram uma a uma (se uma falhar, as outras ficam e o app instala do mesmo jeito)
   e.waitUntil(caches.open(VERSION).then(async (c) => {
-    await c.addAll(SHELL); self.skipWaiting();
+    await c.addAll([...new Set(SHELL)]); self.skipWaiting(); // sem repetidos: um item repetido faz o addAll falhar (InvalidStateError) e o app nunca fica guardado pro uso offline
     await Promise.allSettled(EXTRA.map((u) => c.add(u)));
   }));
 });
