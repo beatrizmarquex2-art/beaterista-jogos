@@ -52,7 +52,15 @@ function strSafe(a: string, b: string): boolean {
   for (let i = 0; i < A.length; i++) n |= A[i] ^ B[i];
   return n === 0;
 }
-function env(name: string): string { return Deno.env.get(name) || ""; }
+function env(name: string): string {
+  const raw = Deno.env.get(name) || "";
+  if (name === "MP_ACCESS_TOKEN" || name === "MP_WEBHOOK_SECRET" || name === "RESEND_API_KEY") {
+    // Credentials are ASCII. Remove only whitespace and known invisible clipboard artifacts.
+    return raw.replace(/[\s\u200B-\u200D\u2060\uFEFF\uFFFC]/g, "");
+  }
+  if (name === "HOTMART_EMAIL_FROM") return raw.replace(/[\u200B-\u200D\u2060\uFEFF\uFFFC]/g, "").trim();
+  return raw;
+}
 function cliente() {
   if (!env("SUPABASE_URL") || !env("SUPABASE_SERVICE_ROLE_KEY")) throw Error("supabase_not_configured");
   return createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
@@ -277,7 +285,8 @@ async function statusPedido(req: Request, origem: string): Promise<Response> {
     const payment = await mpPagamento(data.pagamento_id);
     const atualizado = await sincronizar(sb, payment);
     pedido = atualizado;
-    detalhe = respostaPagamento(payment);
+    // Server-side reconciliation needs no QR code or payment link in its response.
+    if (body?.somente_status !== true) detalhe = respostaPagamento(payment);
   }
   return resposta({
     status: pedido.status, email_enviado: !!pedido.email_enviado_em,
