@@ -120,3 +120,6 @@
 .sheet:has(.pr-form) .sheet-head .icon-btn,.sheet:has(.pr-ok) .sheet-head .icon-btn{color:#fff}
 .sheet:has(.pr-form) .sheet-grip,.sheet:has(.pr-ok) .sheet-grip{background:rgb(255 255 255 / .4)}
 .sheet:has(.pr-form) .sheet-head + .sheet-body::before,.sheet:has(.pr-ok) .sheet-head + .sheet-body::before{background:var(--pr-gold)}
+/* títulos em branco */
+.sheet:has(.pr-form) .sheet-head h2,.sheet:has(.pr-ok) .sheet-head h2{color:#fff!important}
+.pr-ok-tit{color:#fff}
