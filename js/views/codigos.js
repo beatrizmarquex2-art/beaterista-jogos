@@ -166,16 +166,19 @@ export function mount(host) {
   const escolaCodigo = h('input', { class: 'field', type: 'text', placeholder: 'código gerado ou importado', readOnly: true, 'aria-label': 'Código cadastrado' });
   const escolaStatus = h('p', { class: 'muted', role: 'status', 'aria-live': 'polite' });
   let escolaBusy = false;
+  let ultimoCadastro = '';
   const cadastrarEscola = async (importar = false) => {
     if (escolaBusy) return;
     escolaBusy = true; escolaStatus.textContent = 'salvando matrícula…';
     try {
       if (importar && !escolaImportar.value.trim()) throw new Error('cole o código para importar');
+      const assinatura = [escolaNome.value.trim().toLowerCase(), escolaCurso.value, escolaSituacao.value].join('|');
+      if (!importar && escolaCodigo.value && assinatura === ultimoCadastro) { escolaStatus.textContent = 'este cadastro já foi salvo. altere o nome para cadastrar outro aluno.'; return; }
       const codigoSalvo = await CODE.cadastrarMatriculado({
         nome: escolaNome.value, curso: escolaCurso.value, ativo: escolaSituacao.value === 'ativo',
         code: importar ? escolaImportar.value : ''
       });
-      escolaCodigo.value = codigoSalvo; escolaStatus.textContent = `aluno cadastrado: ${escolaNome.value.trim()} · ${escolaCurso.value} · ${escolaSituacao.value} ✓`;
+      escolaCodigo.value = codigoSalvo; ultimoCadastro = assinatura; escolaStatus.textContent = `aluno cadastrado: ${escolaNome.value.trim()} · ${escolaCurso.value} · ${escolaSituacao.value} ✓`;
       escolaImportar.value = '';
       await carrega();
     } catch (err) { escolaStatus.textContent = 'não foi possível salvar: ' + String(err.message || err); }
