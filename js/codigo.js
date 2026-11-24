@@ -81,7 +81,7 @@ export const gerar = () => { const a = new Uint32Array(6); crypto.getRandomValue
 export const CURSOS_ESCOLA = ['Bateria', 'Violão', 'Guitarra e Baixo', 'Musicalização', 'Teclado'];
 /** Cria um código individual de matrícula, ativo enquanto o aluno estudar; não converte ou substitui códigos existentes. */
 export async function cadastrarMatriculado({ nome, curso, ativo = true, code = '' }) {
-  const aluno = String(nome || '').trim().replace(/\\s+/g, ' ').slice(0, 60);
+  const aluno = String(nome || '').trim().replace(/\s+/g, ' ').slice(0, 60);
   if (aluno.length < 2) throw new Error('informe o nome do aluno');
   if (!CURSOS_ESCOLA.includes(curso)) throw new Error('selecione um curso válido');
   const importado = String(code || '').trim();
