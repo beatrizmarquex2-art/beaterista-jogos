@@ -493,6 +493,7 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return; // Supabase, YouTube etc.: sempre rede, nunca cache
+  if (url.pathname.startsWith('/pix/')) return; // checkout do Pix: sempre direto da rede (nunca uma cópia velha de uma tela de pagamento)
   if (req.headers.has('range')) return; // áudio/vídeo em pedaços: deixa o navegador cuidar
   // Cópia salva primeiro (abre na hora, mesmo com sinal fraco) e atualiza por trás. A cada versão nova o app baixa tudo de novo (VERSION),
   // então a cópia nunca fica velha por mais de uma abertura.
