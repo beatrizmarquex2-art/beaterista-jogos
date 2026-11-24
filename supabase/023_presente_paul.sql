@@ -17,7 +17,7 @@ create table if not exists public.presente_leads (
   whatsapp text check (whatsapp is null or whatsapp ~ '^[0-9]{10,13}$'),
   instrumento text not null check (instrumento in ('bateria', 'guitarra', 'teclado', 'violao', 'outro')),
   instrumento_outro text check (instrumento_outro is null or char_length(instrumento_outro) <= 40),
-  faixa_idade text not null check (faixa_idade in ('3-6', '7-10', '11-14', '15+')),
+  faixa_idade text not null check (faixa_idade in ('4-12', '13-17', '18-29', '30+')),
   aceita_novidades boolean not null default false,
   aceita_em timestamptz,
   origem text not null default 'inicio' check (char_length(origem) <= 20),
@@ -36,7 +36,7 @@ declare v_nome text := left(btrim(coalesce(p_nome, '')), 60); v_email text := nu
         v_outro text := nullif(left(btrim(coalesce(p_outro, '')), 40), ''); v_id bigint;
 begin
   if (select count(*) from public.presente_leads where criado_em > now() - interval '1 minute') > 200 then raise exception 'muitas tentativas, espere um minuto'; end if;
-  if char_length(v_nome) < 2 or p_instrumento not in ('bateria', 'guitarra', 'teclado', 'violao', 'outro') or p_faixa not in ('3-6', '7-10', '11-14', '15+') then return jsonb_build_object('ok', false, 'motivo', 'dados'); end if;
+  if char_length(v_nome) < 2 or p_instrumento not in ('bateria', 'guitarra', 'teclado', 'violao', 'outro') or p_faixa not in ('4-12', '13-17', '18-29', '30+') then return jsonb_build_object('ok', false, 'motivo', 'dados'); end if;
   if v_zap = '' then v_zap := null;
   else
     if char_length(v_zap) in (10, 11) then v_zap := '55' || v_zap; end if;           -- DDD + número: assume Brasil

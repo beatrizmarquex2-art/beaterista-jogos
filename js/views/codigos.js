@@ -5,6 +5,7 @@ import { h } from '../util.js';
 import { banner, toast, confirmSheet, sheet } from '../ui.js';
 import * as CODE from '../codigo.js';
 import { precoPasse } from '../passe-preco.js';
+import { montarLeads } from './presente-leads.js';
 
 const when = (t) => (t ? new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(t)) : 'nunca');
 const dia = (t) => (t ? new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: '2-digit' }).format(new Date(t)) : '—');
@@ -329,7 +330,8 @@ export function mount(host) {
       sel([['', 'ativos e desativados'], ['ativo', 'só ativos'], ['off', 'só desativados']], fAtivo, (v) => { fAtivo = v; desenhaLista(); }, 'Filtrar por situação')), listaBox);
   async function carrega() { try { list = await CODE.listar(); } catch (e) { toast(e.message === 'entre no app' ? 'entre no app pra ver os códigos' : `não consegui ler os códigos (${e.message})`, { id: 'cod-err', ms: 3500 }); } if (!gone) desenhaLista(); }
   const mais = h('details', { class: 'card pad cod-mais' }, h('summary', {}, 'mais ferramentas: importar lista, passe anual, test drive'), h('div', { class: 'cod-mais-in' }));
-  host.append(banner('Códigos', 'gere, compartilhe e controle o acesso'), h('div', { class: 'pad-x', style: 'display:grid;gap:12px' }, escolaCard, novoCard, listaCard, mais));
+  const leadsCard = h('details', { class: 'card pad cod-mais' }, h('summary', {}, 'presente do Paul: contatos, idade e instrumento'), h('div', { class: 'cod-mais-in' })); let leadsOk = false; leadsCard.addEventListener('toggle', () => { if (leadsCard.open && !leadsOk) { leadsOk = true; montarLeads(leadsCard.querySelector('.cod-mais-in')); } });
+  host.append(banner('Códigos', 'gere, compartilhe e controle o acesso'), h('div', { class: 'pad-x', style: 'display:grid;gap:12px' }, escolaCard, novoCard, listaCard, mais, leadsCard));
   let legado = null; mais.addEventListener('toggle', () => { if (mais.open && !legado) legado = montarLegado(mais.querySelector('.cod-mais-in'), { semBanner: true }); });
   desenhaNovo(); desenhaLista(); carrega().then(() => { if (!salvo && !list.some((x) => x.code === code)) return; });
   return () => { gone = true; if (typeof legado === 'function') legado(); };
