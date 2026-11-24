@@ -20,7 +20,7 @@ const ABAS = [
 ];
 const rotasDe = (ids) => ABAS.filter((x) => ids.includes(x[0])).flatMap((x) => x[2]);
 const abasDe = (jogos) => (Array.isArray(jogos) ? ABAS.filter((x) => jogos.includes(x[2][0])).map((x) => x[0]) : ABAS.map((x) => x[0]));
-const SITE = 'https://play.beaterista.com.br';
+const SITE = 'https://jogos.beaterista.com.br';
 
 export function montarLegado(host, { semBanner = false } = {}) {
   let list = []; let busy = false; let gone = false; let last = null; // last = linhas da última importação/geração (pra mostrar só elas)
@@ -155,6 +155,48 @@ export function mount(host) {
   let modoNovo = 'gerar'; // 'gerar' (código novo) ou 'importar' (o código que o ALUNO gerou no app dele): o mesmo card, os mesmos campos
   const codeIn = h('input', { class: 'field cod-imp-in', type: 'text', maxlength: 12, placeholder: 'código do aluno', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', 'aria-label': 'Código que o aluno gerou' });
   const status = h('p', { class: 'muted', role: 'status' });
+
+  // Cadastro escolar: independente do gerador legado de passes pagos/temporizados.
+  const escolaNome = h('input', { class: 'field', type: 'text', maxlength: 60, placeholder: 'nome completo', autocomplete: 'off', 'aria-label': 'Nome do aluno' });
+  const escolaCurso = h('select', { class: 'field', 'aria-label': 'Curso do aluno' },
+    ...CODE.CURSOS_ESCOLA.map((curso) => h('option', { value: curso }, curso)));
+  const escolaImportar = h('input', { class: 'field', type: 'text', maxlength: 12, placeholder: 'cole aqui o código do aluno', autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', 'aria-label': 'Código para importar' });
+  const escolaSituacao = h('select', { class: 'field', 'aria-label': 'Situação da matrícula' },
+    h('option', { value: 'ativo' }, 'Ativo'), h('option', { value: 'inativo' }, 'Inativo'));
+  const escolaCodigo = h('input', { class: 'field', type: 'text', placeholder: 'código gerado ou importado', readOnly: true, 'aria-label': 'Código cadastrado' });
+  const escolaStatus = h('p', { class: 'muted', role: 'status', 'aria-live': 'polite' });
+  let escolaBusy = false;
+  const cadastrarEscola = async (importar = false) => {
+    if (escolaBusy) return;
+    escolaBusy = true; escolaStatus.textContent = 'salvando matrícula…';
+    try {
+      if (importar && !escolaImportar.value.trim()) throw new Error('cole o código para importar');
+      const codigoSalvo = await CODE.cadastrarMatriculado({
+        nome: escolaNome.value, curso: escolaCurso.value, ativo: escolaSituacao.value === 'ativo',
+        code: importar ? escolaImportar.value : ''
+      });
+      escolaCodigo.value = codigoSalvo; escolaStatus.textContent = `aluno cadastrado: ${escolaNome.value.trim()} · ${escolaCurso.value} · ${escolaSituacao.value} ✓`;
+      escolaImportar.value = '';
+      await carrega();
+    } catch (err) { escolaStatus.textContent = 'não foi possível salvar: ' + String(err.message || err); }
+    finally { escolaBusy = false; }
+  };
+  const escolaCard = h('section', { class: 'card pad cod-novo' },
+    h('h2', {}, 'cadastrar aluno'),
+    h('p', { class: 'muted' }, 'matrícula da Escola de Música Beaterista · acesso gratuito enquanto estiver matriculado · código individual'),
+    h('div', { class: 'cod-form' },
+      h('label', { class: 'field' }, h('span', {}, 'nome do aluno'), escolaNome),
+      h('label', { class: 'field' }, h('span', {}, 'curso'), escolaCurso),
+      h('label', { class: 'field' }, h('span', {}, 'situação'), escolaSituacao)),
+    h('div', { class: 'row' },
+      h('button', { type: 'button', class: 'btn primary', onclick: () => cadastrarEscola(false) }, 'gerar código')),
+    h('label', { class: 'field' }, h('span', {}, 'código cadastrado'), escolaCodigo),
+    h('div', { class: 'row' },
+      h('button', { type: 'button', class: 'btn ghost', onclick: () => escolaCodigo.value ? copy(escolaCodigo.value, 'código copiado') : toast('gere ou importe um código primeiro') }, 'copiar')),
+    h('label', { class: 'field' }, h('span', {}, 'importar código do aluno'), escolaImportar),
+    h('div', { class: 'row' },
+      h('button', { type: 'button', class: 'btn', onclick: () => cadastrarEscola(true) }, 'importar código')),
+    escolaStatus);
   const novoCard = h('section', { class: 'card pad cod-novo' });
   const listaBox = h('div', { class: 'cod-lista' });
   const nomeCat = (c) => (CODE.CATEGORIAS.find((x) => x[0] === c) || ['', 'Alunos'])[1];
@@ -262,7 +304,7 @@ export function mount(host) {
     listaBox.replaceChildren(topo,
       ...(rows.length ? rows.map((x) => h('article', { class: `cod-item${x.ativo ? '' : ' off'}` },
         h('div', { class: 'cod-item-top' }, h('span', { class: `cod-av c-${x.categoria || 'aluno'}`, 'aria-hidden': 'true' }, (x.nome || x.code)[0].toUpperCase()),
-          h('div', { class: 'cod-item-id' }, h('button', { type: 'button', class: 'cod-nome-bt', 'aria-label': `editar ${x.nome || x.code}`, onclick: () => editarCodigo(x) }, x.nome || 'sem nome', h('i', { 'aria-hidden': 'true' }, ' ✎')), h('b', { class: 'rg-code cod-item-code' }, x.code), h('small', { class: 'muted' }, `${tempoDe(x)} · ${venc(x)}`)),
+          h('div', { class: 'cod-item-id' }, h('button', { type: 'button', class: 'cod-nome-bt', 'aria-label': `editar ${x.nome || x.code}`, onclick: () => editarCodigo(x) }, x.nome || 'sem nome', h('i', { 'aria-hidden': 'true' }, ' ✎')), h('b', { class: 'rg-code cod-item-code' }, x.code), h('small', { class: 'muted' }, `${x.curso ? x.curso + ' · ' : ''}${tempoDe(x)} · ${venc(x)}`)),
           h('span', { class: `cod-tag c-${x.categoria || 'aluno'}` }, nomeCat(x.categoria || 'aluno')),
           interruptor(!!x.ativo, '', () => run(() => CODE.alterar(x.code, { ativo: !x.ativo }), x.ativo ? 'desativado' : 'ativado ✓'), `${x.ativo ? 'Desativar' : 'Ativar'} ${x.nome || x.code}`)),
         h('small', { class: 'muted cod-item-meta' }, `${x.usos ?? 0} uso${x.usos === 1 ? '' : 's'} · ${Array.isArray(x.jogos) && x.jogos.length ? ABAS.filter((a) => abasDe(x.jogos).includes(a[0])).map((a) => a[1].replace(' (tocar)', '').replace('Álbum, roleta e perfil', 'Álbum')).join(', ') : 'todas as abas'}`),
@@ -284,7 +326,7 @@ export function mount(host) {
       sel([['', 'ativos e desativados'], ['ativo', 'só ativos'], ['off', 'só desativados']], fAtivo, (v) => { fAtivo = v; desenhaLista(); }, 'Filtrar por situação')), listaBox);
   async function carrega() { try { list = await CODE.listar(); } catch (e) { toast(e.message === 'entre no app' ? 'entre no app pra ver os códigos' : `não consegui ler os códigos (${e.message})`, { id: 'cod-err', ms: 3500 }); } if (!gone) desenhaLista(); }
   const mais = h('details', { class: 'card pad cod-mais' }, h('summary', {}, 'mais ferramentas: importar lista, passe anual, test drive'), h('div', { class: 'cod-mais-in' }));
-  host.append(banner('Códigos', 'gere, compartilhe e controle o acesso'), h('div', { class: 'pad-x', style: 'display:grid;gap:12px' }, novoCard, listaCard, mais));
+  host.append(banner('Códigos', 'gere, compartilhe e controle o acesso'), h('div', { class: 'pad-x', style: 'display:grid;gap:12px' }, escolaCard, novoCard, listaCard, mais));
   let legado = null; mais.addEventListener('toggle', () => { if (mais.open && !legado) legado = montarLegado(mais.querySelector('.cod-mais-in'), { semBanner: true }); });
   desenhaNovo(); desenhaLista(); carrega().then(() => { if (!salvo && !list.some((x) => x.code === code)) return; });
   return () => { gone = true; if (typeof legado === 'function') legado(); };
