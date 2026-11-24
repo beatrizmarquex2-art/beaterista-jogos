@@ -70,18 +70,39 @@ async function mpPagamento(id: string): Promise<any> {
   return await r.json();
 }
 async function assinaturaValida(req: Request, paymentId: string): Promise<boolean> {
-  const chave = env("MP_WEBHOOK_SECRET");
+  // Log only categorical failure reasons, never headers, signatures, IDs or secrets.
+  const falha = (motivo: string): false => {
+    console.warn("mp_webhook_signature_rejected", motivo);
+    return false;
+  };
+  const chave = env("MP_WEBHOOK_SECRET").trim();
   const assinatura = req.headers.get("x-signature") || "";
-  const requestId = req.headers.get("x-request-id") || "";
-  if (!chave || !requestId || !paymentId) return false;
-  const ts = assinatura.match(/(?:^|,)ts=([0-9]+)/)?.[1] || "";
-  const v1 = assinatura.match(/(?:^|,)v1=([a-fA-F0-9]{64})(?:,|$)/)?.[1] || "";
-  if (!ts || !v1) return false;
+  const requestId = (req.headers.get("x-request-id") || "").trim();
+  if (!chave) return falha("secret_missing");
+  if (!assinatura) return falha("signature_header_missing");
+  if (!requestId) return falha("request_id_missing");
+  if (!paymentId) return falha("payment_id_missing");
+  const campos = new Map<string, string>();
+  for (const parte of assinatura.split(",")) {
+    const pos = parte.indexOf("=");
+    if (pos < 0) continue;
+    const nome = parte.slice(0, pos).trim();
+    const valor = parte.slice(pos + 1).trim();
+    if (nome !== "ts" && nome !== "v1") continue;
+    if (campos.has(nome)) return falha("duplicate_signature_field");
+    campos.set(nome, valor);
+  }
+  const ts = campos.get("ts") || "";
+  const v1 = campos.get("v1") || "";
+  if (!/^[0-9]+$/.test(ts)) return falha("timestamp_invalid");
+  if (!/^[a-fA-F0-9]{64}$/.test(v1)) return falha("hash_format_invalid");
   const manifest = "id:" + paymentId + ";request-id:" + requestId + ";ts:" + ts + ";";
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(chave), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const hash = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(manifest)));
   const hex = Array.from(hash, (b) => b.toString(16).padStart(2, "0")).join("");
-  return strSafe(hex, v1.toLowerCase());
+  if (!strSafe(hex, v1.toLowerCase())) return falha("hmac_mismatch");
+  console.info("mp_webhook_signature_verified");
+  return true;
 }
 function conferePagamento(p: any, pedido: Pedido): void {
   if (String(p?.id) !== pedido.pagamento_id && pedido.pagamento_id !== null) throw Error("payment_id_mismatch");
@@ -268,7 +289,11 @@ async function webhook(req: Request): Promise<Response> {
   const id = url.searchParams.get("data.id") || "";
   const tipo = url.searchParams.get("type") || url.searchParams.get("topic") || "";
   if (tipo !== "payment") return resposta({ ok: true, ignorado: true });
-  if (!/^\d{4,25}$/.test(id) || !(await assinaturaValida(req, id))) {
+  if (!/^\d{4,25}$/.test(id)) {
+    console.warn("mp_webhook_signature_rejected", "payment_id_invalid");
+    return resposta({ erro: "assinatura_invalida" }, 401);
+  }
+  if (!(await assinaturaValida(req, id))) {
     return resposta({ erro: "assinatura_invalida" }, 401);
   }
   const mp = await mpPagamento(id);
