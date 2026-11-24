@@ -70,13 +70,12 @@ export function abrirFormulario(aoAbrir) {
         if (aoAbrir) aoAbrir(); box.replaceChildren(telaPresente(faixa, close));
       } catch { erro.textContent = 'sem internet agora. tente de novo.'; } finally { botao.disabled = false; botao.textContent = 'abrir meu presente 🎁'; }
     });
-    const sec = (n, titulo, ...filhos) => h('section', { class: 'pr-sec' }, h('div', { class: 'pr-sec-topo' }, h('i', {}, n), h('b', {}, titulo)), ...filhos);
     const box = h('div', { class: 'sheet-body pr-form' },
       h('header', { class: 'pr-topo' }, h('img', { src: 'assets/paul/animacoes/web/paul-presente.webp', alt: '', width: 96, height: 88, draggable: 'false' }),
         h('div', {}, h('small', {}, 'presente especial'), h('h2', {}, 'o Paul preparou um presente pra você! 🎁'), h('p', {}, 'conta um pouquinho de você:'))),
-      sec('1', 'quem é você', campo('seu nome', nome), h('div', { class: 'field pr-campo' }, h('span', {}, 'sua idade'), fx.box)),
-      sec('2', 'onde a gente envia o presente', campo('✉️ e-mail', email), campo('📱 WhatsApp', zap)),
-      sec('3', 'o que você toca', h('div', { class: 'field pr-campo' }, h('span', {}, 'qual instrumento você mais ama?'), ins.box, outro)),
+      h('section', { class: 'pr-sec' },
+        campo('nome', nome), h('div', { class: 'field pr-campo' }, h('span', {}, 'idade'), fx.box), campo('e-mail', email), campo('WhatsApp', zap),
+        h('div', { class: 'field pr-campo' }, h('span', {}, 'qual instrumento você mais ama?'), ins.box, outro)),
       h('label', { class: 'pr-aceita' }, aceita, h('span', {}, h('b', {}, 'quero receber novidades e ofertas'), h('small', {}, 'da Beaterista · você pode sair quando quiser'))),
       h('p', { class: 'pr-lgpd' }, '🔒 se você tem menos de 18 anos, coloque o contato de um responsável. usamos os dados só pra te enviar o presente e, se você marcar a caixinha acima, também novidades.'),
       erro, botao);
