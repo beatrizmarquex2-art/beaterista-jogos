@@ -2,7 +2,7 @@
 // Importar código de aluno (Beaterista / escola): cola uma lista, o app gera os códigos que faltam e mostra a tabela atualizada pra copiar. cada código vale 1 ano e você desativa quando quiser.
 // O aluno usa o código no site dos alunos pra liberar o Beat Hero e as Músicas MIDI. Só a conta da Bea mexe aqui.
 import { h } from '../util.js';
-import { banner, toast, confirmSheet, sheet } from '../ui.js';
+import { banner, toast, confirmSheet, sheet, closeSheets } from '../ui.js';
 import * as CODE from '../codigo.js';
 import { precoPasse } from '../passe-preco.js';
 import { montarLeads } from './presente-leads.js';
@@ -145,7 +145,7 @@ export function montarLegado(host, { semBanner = false } = {}) {
 /* ---------- aba Códigos (2 cards) ---------- */
 const msgNovo = (code, dias) => `oi! aqui está o seu código da Beaterista: ${code}\nentre em ${SITE}, toque em "já sou aluno" e digite o código. vale o site todo, em até 2 aparelhos, por ${CODE.nomeTempo(dias)} a partir da 1ª vez que você usar. 🥁`;
 export function mount(host) {
-  let list = []; let gone = false; let busy = false;
+  let list = []; let gone = false; let busy = false; let resumo = {}; // resumo = aparelhos por código
   let code = CODE.gerar(); let salvo = false; let cat = 'aluno'; let dias = 365; let ativo = true; let abas = []; let abasAberto = false; // abas = [] quer dizer "todas as abas" // estado do card "novo código"
   let q = ''; let fTipo = ''; let fTempo = ''; let fAtivo = ''; let modo = 'lista'; // modo: 'lista' (simples, em ordem alfabética: nome, código, copiar) ou 'cartoes' (detalhada, com tempo e ativar/desativar)
   const sel = (opts, valor, onChange, label) => { const s = h('select', { class: 'field', 'aria-label': label }, ...opts.map(([v, t]) => h('option', { value: String(v), selected: String(v) === String(valor) }, t))); s.addEventListener('change', () => onChange(s.value)); return s; };
@@ -283,15 +283,42 @@ export function mount(host) {
     });
   }
   const encerrarMatricula = async (x) => {
-    if (busy || x.tipo !== 'turma' || !x.ativo) return;
+    if (busy || estMat(x) !== 'ativa' || !x.ativo) return;
     if (!(await confirmSheet('Encerrar matrícula?', `${x.nome || x.code} perde o acesso gratuito. O código, as figurinhas e o progresso continuam guardados. Pode continuar por R$ 49,90 durante 1 ano.`, 'Encerrar matrícula'))) return;
     run(() => CODE.encerrarMatricula(x.code), 'matrícula encerrada · progresso guardado ✓');
   };
-  const confirmarPasse = async (x) => {
-    if (busy || x.tipo !== 'turma' || x.ativo) return;
-    if (!(await confirmSheet('Pagamento de R$ 49,90 confirmado?', `confirme só depois de conferir o recebimento. ${x.nome || x.code} terá 12 meses de acesso a partir de agora, mantendo o mesmo código e as conquistas.`, 'Confirmar pagamento'))) return;
-    run(() => CODE.converterEmPasseAnual(x.code), 'passe pago ativado por 1 ano ✓');
-  };
+  /* ---- matrículas e passes ---- */
+  const estMat = (x) => x.matricula || (x.tipo === 'turma' ? (x.ativo ? 'ativa' : 'encerrada') : null);
+  const pagoValido = (x) => !!x.passe_pago_ate && new Date(x.passe_pago_ate).getTime() > Date.now();
+  const situ = (x) => { const m = estMat(x); if (m === 'ativa') return 'matriculado · grátis'; if (m === 'encerrada') return pagoValido(x) ? 'ex-aluno · passe pago' : 'matrícula encerrada'; return x.tipo === 'passe' ? ((x.categoria || 'aluno') === 'aluno' ? 'passe de aluno (não matriculado)' : 'passe') : '—'; };
+  const reativar = async (x) => { if (busy) return; if (!(await confirmSheet('Reativar matrícula?', `${x.nome || x.code} volta a ter acesso gratuito enquanto estiver matriculado. O progresso, as figurinhas e as conquistas continuam como estão.`, 'Reativar'))) return; run(() => CODE.reativarMatricula(x.code), 'matrícula reativada ✓'); };
+  const marcar = async (x) => { if (busy) return; if (!(await confirmSheet('Marcar como matriculado?', `${x.nome || x.code} passa a ser aluno matriculado: acesso gratuito enquanto a matrícula estiver ativa, sem vencimento. O código e tudo do aluno continuam iguais.`, 'Marcar como matriculado'))) return; run(() => CODE.marcarMatriculado(x.code), 'agora é matriculado ✓'); };
+  const confirmarPasse = (x) => { if (busy) return; sheet('ativar passe anual · R$ 49,90', (close) => {
+    const ref = h('input', { class: 'field', type: 'text', maxlength: 80, placeholder: 'ex.: Pix de 24/11, Maria Souza', 'aria-label': 'Referência do pagamento' }); const ok = h('input', { type: 'checkbox', 'aria-label': 'Conferi o recebimento' });
+    const bt = h('button', { class: 'btn primary', type: 'button', disabled: true, onclick: () => { close(); run(() => CODE.converterEmPasseAnual(x.code, ref.value.trim()), 'passe pago ativado por 12 meses ✓'); } }, 'confirmar pagamento'); const sync = () => { bt.disabled = !(ok.checked && ref.value.trim().length >= 3); }; ref.addEventListener('input', sync); ok.addEventListener('change', sync);
+    return h('div', { class: 'sheet-body' }, h('p', {}, h('b', {}, x.nome || x.code), ' terá 12 meses de acesso a partir de agora, no mesmo código, com todo o progresso.'), h('label', { class: 'field' }, h('span', {}, 'referência do pagamento'), ref),
+      h('label', { class: 'jg-chk' }, ok, ' conferi que os R$ 49,90 foram recebidos'), h('div', { class: 'row end' }, h('button', { class: 'btn ghost', type: 'button', onclick: close }, 'cancelar'), bt)); }); };
+  const aparelho = (ua) => { const u = String(ua || ''); const so = /iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) ? 'iPad' : /Android/.test(u) ? 'Android' : /Windows/.test(u) ? 'Windows' : /Mac/.test(u) ? 'Mac' : /Linux/.test(u) ? 'Linux' : 'aparelho'; const nav = /Edg\//.test(u) ? 'Edge' : /CriOS|Chrome/.test(u) ? 'Chrome' : /Firefox/.test(u) ? 'Firefox' : /Safari/.test(u) ? 'Safari' : ''; return nav ? `${so} · ${nav}` : so; };
+  const verAparelhos = (x) => sheet(`aparelhos · ${x.nome || x.code}`, (close) => {
+    const box = h('div', { class: 'sheet-body' }, h('p', { class: 'muted' }, 'carregando…'));
+    const desenha = async () => { let lista; try { lista = await CODE.aparelhosDoCodigo(x.code); } catch (e) { box.replaceChildren(h('p', { class: 'muted' }, e.semBanco ? 'isto ainda não está ativado no banco.' : `não consegui ler (${e.message})`)); return; }
+      const max = (lista[0] && lista[0].max_aparelhos) || x.max_aparelhos || 2; let novo = max; const s = sel([[1, '1 aparelho'], [2, '2 aparelhos'], [3, '3 aparelhos'], [4, '4 aparelhos'], [5, '5 aparelhos']], max, (v) => { novo = Number(v); }, 'Limite de aparelhos');
+      box.replaceChildren(h('p', { class: 'muted' }, `${lista.length} de ${max} aparelho${max === 1 ? '' : 's'} em uso. dois aparelhos da mesma criança contam como um aluno só.`),
+        ...(lista.length ? lista.map((a) => h('div', { class: 'cod-ap' }, h('b', {}, aparelho(a.ua)), h('small', { class: 'muted' }, `entrou ${when(a.primeiro_uso)} · último uso ${when(a.ultimo_uso)}`),
+          h('button', { class: 'btn small ghost', type: 'button', onclick: async () => { if (!(await confirmSheet('Liberar este aparelho?', 'ele sai da lista e a vaga fica livre. o aluno entra de novo com o código.', 'Liberar'))) return; try { await CODE.liberarAparelhoDoCodigo(x.code, a.aparelho); toast('aparelho liberado ✓', { ms: 2000 }); desenha(); carrega(); } catch (e) { toast(`não deu (${e.message})`, { ms: 3000 }); } } }, 'liberar'))) : [h('p', { class: 'muted' }, 'nenhum aparelho registrado ainda.')]),
+        h('label', { class: 'field' }, h('span', {}, 'limite de aparelhos'), s), h('div', { class: 'row end' }, h('button', { class: 'btn ghost', type: 'button', onclick: close }, 'fechar'), h('button', { class: 'btn primary', type: 'button', onclick: async () => { if (novo === max) return close(); if (!(await confirmSheet('Mudar o limite?', `o limite deste código passa de ${max} para ${novo} aparelho${novo === 1 ? '' : 's'}.`, 'Mudar'))) return; try { await CODE.limiteAparelhos(x.code, novo); toast('limite atualizado ✓', { ms: 2000 }); close(); carrega(); } catch (e) { toast(`não deu (${e.message})`, { ms: 3000 }); } } }, 'salvar limite'))); };
+    desenha(); return box; });
+  const acaoRot = { matricula_encerrada: 'matrícula encerrada', matricula_reativada: 'matrícula reativada', matricula_marcada: 'marcado como matriculado', passe_pago_ativado: 'passe pago ativado', aparelho_liberado: 'aparelho liberado', limite_aparelhos: 'limite de aparelhos mudou' };
+  const verProgresso = (x) => sheet(`progresso · ${x.nome || x.code}`, () => {
+    const box = h('div', { class: 'sheet-body' }, h('p', { class: 'muted' }, 'carregando…'));
+    CODE.progressoDoCodigo(x.code).then((r) => { const n = r.nuvem; const f = r.figurinhas;
+      box.replaceChildren(h('p', { class: 'muted' }, 'só consulta: nada aqui altera conquistas, estrelas ou figurinhas.'),
+        h('div', { class: 'cod-ap' }, h('b', {}, 'jogos e estudos (nuvem)'), h('small', { class: 'muted' }, n ? `atualizado ${when(n.atualizado_em)} · ${n.salvos} salvamento${n.salvos === 1 ? '' : 's'} · ${(n.jogos || []).length} jogo${(n.jogos || []).length === 1 ? '' : 's'}${(n.jogos || []).length ? `: ${(n.jogos || []).join(', ')}` : ''}` : 'nada na nuvem ainda (o progresso fica no aparelho até ele conectar)')),
+        h('div', { class: 'cod-ap' }, h('b', {}, 'álbum de figurinhas'), h('small', { class: 'muted' }, f ? `${f.coladas ?? 0} coladas · ${f.acessos ?? 0} acessos · último acesso ${when(f.ultimo_acesso)}` : 'ainda não abriu o álbum')),
+        h('div', { class: 'cod-ap' }, h('b', {}, 'histórico do código'), ...(r.historico && r.historico.length ? r.historico.map((e) => h('small', { class: 'muted' }, `${when(e.em)} · ${acaoRot[e.acao] || e.acao}${e.detalhe && e.detalhe.ref ? ` (${e.detalhe.ref})` : ''}`)) : [h('small', { class: 'muted' }, 'nenhuma ação registrada ainda')])),
+        h('div', { class: 'row end' }, h('button', { class: 'btn ghost', type: 'button', onclick: () => closeSheets() }, 'fechar')));
+    }).catch((e) => box.replaceChildren(h('p', { class: 'muted' }, e.semBanco ? 'isto ainda não está ativado no banco.' : `não consegui ler (${e.message})`)));
+    return box; });
   const msgAluno = (x) => `oi${x.nome ? ` ${x.nome.split(' ')[0]}` : ''}! seu código de acesso da Beaterista é ${x.code}\nentre em ${SITE} e digite o código em "já sou aluno" (ou toque em "tenho código" no app). 🥁`;
   const mandar = (x) => window.open(`https://wa.me/?text=${encodeURIComponent(msgAluno(x))}`, '_blank', 'noopener');
   const porNome = (a, b) => ((a.nome || '\uffff').toLowerCase()).localeCompare((b.nome || '\uffff').toLowerCase(), 'pt');
@@ -310,14 +337,16 @@ export function mount(host) {
         h('div', { class: 'cod-item-top' }, h('span', { class: `cod-av c-${x.categoria || 'aluno'}`, 'aria-hidden': 'true' }, (x.nome || x.code)[0].toUpperCase()),
           h('div', { class: 'cod-item-id' }, h('button', { type: 'button', class: 'cod-nome-bt', 'aria-label': `editar ${x.nome || x.code}`, onclick: () => editarCodigo(x) }, x.nome || 'sem nome', h('i', { 'aria-hidden': 'true' }, ' ✎')), h('b', { class: 'rg-code cod-item-code' }, x.code), h('small', { class: 'muted' }, `${x.curso ? x.curso + ' · ' : ''}${tempoDe(x)} · ${venc(x)}`)),
           h('span', { class: `cod-tag c-${x.categoria || 'aluno'}` }, nomeCat(x.categoria || 'aluno')),
-          interruptor(!!x.ativo, '', () => run(() => CODE.alterar(x.code, { ativo: !x.ativo }), x.ativo ? 'desativado' : 'ativado ✓'), `${x.ativo ? 'Desativar' : 'Ativar'} ${x.nome || x.code}`)),
-        h('small', { class: 'muted cod-item-meta' }, `${x.usos ?? 0} uso${x.usos === 1 ? '' : 's'} · ${Array.isArray(x.jogos) && x.jogos.length ? ABAS.filter((a) => abasDe(x.jogos).includes(a[0])).map((a) => a[1].replace(' (tocar)', '').replace('Álbum, roleta e perfil', 'Álbum')).join(', ') : 'todas as abas'}`),
+          interruptor(!!x.ativo, '', () => (estMat(x) === 'encerrada' ? toast('pra reativar um ex-aluno use “voltou à escola” ou “ativar 1 ano”', { id: 'cod-ex', ms: 3500 }) : run(() => CODE.alterar(x.code, { ativo: !x.ativo }), x.ativo ? 'desativado' : 'ativado ✓')), `${x.ativo ? 'Desativar' : 'Ativar'} ${x.nome || x.code}`)),
+        h('small', { class: 'muted cod-item-meta' }, `${situ(x)} · ${resumo[x.code] ?? 0} aparelho${(resumo[x.code] ?? 0) === 1 ? '' : 's'} · ${x.usos ?? 0} uso${x.usos === 1 ? '' : 's'} · ${Array.isArray(x.jogos) && x.jogos.length ? ABAS.filter((a) => abasDe(x.jogos).includes(a[0])).map((a) => a[1].replace(' (tocar)', '').replace('Álbum, roleta e perfil', 'Álbum')).join(', ') : 'todas as abas'}`),
         h('div', { class: 'row cod-item-act' },
           h('button', { class: 'btn small ghost', type: 'button', onclick: () => copy(x.code, 'código copiado') }, 'copiar'),
-          x.tipo === 'turma' && x.ativo ? h('button', { class: 'btn small', type: 'button', disabled: busy, onclick: () => encerrarMatricula(x) }, 'encerrar matrícula') : null,
-          x.tipo === 'turma' && !x.ativo ? h('button', { class: 'btn small primary', type: 'button', disabled: busy, onclick: () => confirmarPasse(x) }, 'pagou R$ 49,90 · ativar 1 ano') : null,
-          x.tipo === 'turma' && !x.ativo ? h('button', { class: 'btn small ghost', type: 'button', disabled: busy, onclick: () => run(() => CODE.alterar(x.code, { ativo: true, expira_em: null }), 'matrícula reativada ✓') }, 'voltou à escola · grátis') : null,
-          x.tipo === 'passe' ? h('small', { class: 'muted' }, 'passe pago · independente da matrícula') : null,
+          estMat(x) === 'ativa' && x.ativo ? h('button', { class: 'btn small', type: 'button', disabled: busy, onclick: () => encerrarMatricula(x) }, 'encerrar matrícula') : null,
+          estMat(x) === 'encerrada' && !pagoValido(x) ? h('button', { class: 'btn small primary', type: 'button', disabled: busy, onclick: () => confirmarPasse(x) }, 'pagou R$ 49,90 · ativar 1 ano') : null,
+          estMat(x) === 'encerrada' ? h('button', { class: 'btn small ghost', type: 'button', disabled: busy, onclick: () => reativar(x) }, 'voltou à escola · grátis') : null,
+          !estMat(x) && x.tipo === 'passe' && (x.categoria || 'aluno') === 'aluno' ? h('button', { class: 'btn small', type: 'button', disabled: busy, onclick: () => marcar(x) }, 'marcar como matriculado') : null,
+          (x.categoria || 'aluno') === 'aluno' ? h('button', { class: 'btn small ghost', type: 'button', onclick: () => verAparelhos(x) }, 'aparelhos') : null,
+          (x.categoria || 'aluno') === 'aluno' ? h('button', { class: 'btn small ghost', type: 'button', onclick: () => verProgresso(x) }, 'progresso') : null,
           h('button', { class: 'btn small ghost', type: 'button', disabled: busy, onclick: () => mudarTempo(x) }, 'mudar tempo')))) : [h('p', { class: 'empty muted' }, list.length ? 'nenhum código com esse filtro.' : 'nenhum código ainda.')]));
   };
   const busca = h('input', { class: 'field', type: 'search', placeholder: 'procurar nome ou código', 'aria-label': 'Procurar código' }); busca.addEventListener('input', () => { q = busca.value; desenhaLista(); });
@@ -328,9 +357,9 @@ export function mount(host) {
       sel([['', 'todos os tipos'], ...CODE.CATEGORIAS], fTipo, (v) => { fTipo = v; desenhaLista(); }, 'Filtrar por tipo'),
       sel([['', 'todos os tempos'], ...CODE.TEMPOS], fTempo, (v) => { fTempo = v; desenhaLista(); }, 'Filtrar por tempo'),
       sel([['', 'ativos e desativados'], ['ativo', 'só ativos'], ['off', 'só desativados']], fAtivo, (v) => { fAtivo = v; desenhaLista(); }, 'Filtrar por situação')), listaBox);
-  async function carrega() { try { list = await CODE.listar(); } catch (e) { toast(e.message === 'entre no app' ? 'entre no app pra ver os códigos' : `não consegui ler os códigos (${e.message})`, { id: 'cod-err', ms: 3500 }); } if (!gone) desenhaLista(); }
+  async function carrega() { try { resumo = Object.fromEntries((await CODE.resumoAparelhos()).map((r) => [r.code, r.aparelhos])); } catch { resumo = {}; } try { list = await CODE.listar(); } catch (e) { toast(e.message === 'entre no app' ? 'entre no app pra ver os códigos' : `não consegui ler os códigos (${e.message})`, { id: 'cod-err', ms: 3500 }); } if (!gone) desenhaLista(); }
   const mais = h('details', { class: 'card pad cod-mais' }, h('summary', {}, 'mais ferramentas: importar lista, passe anual, test drive'), h('div', { class: 'cod-mais-in' }));
-  const leadsCard = h('details', { class: 'card pad cod-mais' }, h('summary', {}, 'presente do Paul: contatos, idade e instrumento'), h('div', { class: 'cod-mais-in' })); let leadsOk = false; leadsCard.addEventListener('toggle', () => { if (leadsCard.open && !leadsOk) { leadsOk = true; montarLeads(leadsCard.querySelector('.cod-mais-in')); } });
+  const leadsCard = h('details', { class: 'card pad cod-leads' }, h('summary', {}, 'presente do Paul: contatos, idade e instrumento'), h('div', { class: 'cod-mais-in' })); let leadsOk = false; leadsCard.addEventListener('toggle', () => { if (leadsCard.open && !leadsOk) { leadsOk = true; montarLeads(leadsCard.querySelector('.cod-mais-in')); } });
   host.append(banner('Códigos', 'gere, compartilhe e controle o acesso'), h('div', { class: 'pad-x', style: 'display:grid;gap:12px' }, escolaCard, novoCard, listaCard, mais, leadsCard));
   let legado = null; mais.addEventListener('toggle', () => { if (mais.open && !legado) legado = montarLegado(mais.querySelector('.cod-mais-in'), { semBanner: true }); });
   desenhaNovo(); desenhaLista(); carrega().then(() => { if (!salvo && !list.some((x) => x.code === code)) return; });

@@ -131,3 +131,8 @@
 .pr-inst .pr-chip.on::after{content:none}.pr-inst .pr-chip.on{transform:none;box-shadow:2px 2px 0 var(--pr-ink)}
 .pr-inst .pr-chip[data-v]{border-left-width:2px}
 .pr-inst .pr-chip:not(.on)[data-v]{border-bottom:5px solid var(--c)}
+
+/* painel de matrículas (Códigos): linhas de aparelho e de progresso */
+.cod-ap{display:grid;gap:2px;justify-items:start;padding:8px 10px;margin:6px 0;border:1px solid var(--line-strong,#bbb);border-radius:10px}.cod-ap b{font:800 14px/1.2 var(--body)}
+
+.cod-leads summary{cursor:pointer;font-weight:800}.cod-leads .cod-mais-in{margin-top:10px}
