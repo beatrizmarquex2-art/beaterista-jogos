@@ -26,7 +26,7 @@ const anual = () => { const r = CODE.ultimoAcesso(); const e = r && r.expira_em 
 function presentesDoPasse() {
   const lista = presentesDaFaixa(''); if (!lista.length) return null;
   return h('div', { class: 'mp-presentes' }, h('b', {}, 'seus presentes do Paul 🎁'), h('small', {}, 'como você tem o passe, os 3 presentes são seus:'),
-    ...lista.map((p) => h('div', { class: 'mp-pres' }, h('span', { class: 'mp-pres-t' }, `${p.icone} ${p.titulo}`), ...p.arquivos.map((a) => h('a', { class: 'mp-pres-a', href: a.arquivo, target: '_blank', rel: 'noopener', download: '' }, a.nome)))));
+    ...lista.map((p) => h('details', { class: 'mp-pres' }, h('summary', { class: 'mp-pres-t' }, `${p.icone} ${p.titulo}`, h('small', {}, p.arquivos.length === 1 ? '1 arquivo' : `${p.arquivos.length} arquivos`)), ...p.arquivos.map((a) => h('a', { class: 'mp-pres-a', href: a.arquivo, target: '_blank', rel: 'noopener', download: '' }, a.nome)))));
 }
 export function cartaoMeuPasse() {
   const s = situacao(); if (!s) return null;

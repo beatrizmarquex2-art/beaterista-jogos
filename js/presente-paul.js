@@ -12,9 +12,9 @@ const KEY = 'beaterista-presente-paul'; // guarda só { faixa, escolha, em }: o 
 const previa = () => { try { return /[?&]presente-preview(?:[=&#]|$)/.test(location.search); } catch { return false; } };
 const lerAbriu = () => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { return null; } };
 /** Presentes disponíveis pra essa faixa de idade (só os que têm arquivo). Na prévia (?presente-preview), os 3 aparecem com um arquivo de teste. */
-export function presentesDaFaixa(faixa) {
+export function presentesDaFaixa(faixa, instr) {
   const out = []; for (const [id, p] of Object.entries(PRESENTES)) {
-    let arq = (p.arquivos || []).filter((a) => !a.faixas || !faixa || a.faixas.includes(faixa));
+    let arq = (p.arquivos || []).filter((a) => (!a.faixas || !faixa || a.faixas.includes(faixa)) && (!a.instrumentos || !instr || instr === 'outro' || a.instrumentos.includes(instr)));
     if (!arq.length && previa()) arq = [{ nome: `${p.titulo} (arquivo de teste)`, arquivo: 'assets/paul/animacoes/web/paul-presente.webp' }];
     if (arq.length) out.push({ id, ...p, arquivos: arq });
   } return out;
@@ -31,8 +31,8 @@ const chamar = async (corpo) => {
 
 const confeteEl = () => h('div', { class: 'pr-confete', 'aria-hidden': 'true' }, ...Array.from({ length: 14 }, (_, i) => h('i', { style: `--i:${i}` })));
 /** Passo 2: a pessoa ESCOLHE 1 presente. */
-function telaEscolha(faixa, escolheu) {
-  const lista = presentesDaFaixa(faixa);
+function telaEscolha(faixa, escolheu, instr) {
+  const lista = presentesDaFaixa(faixa, instr);
   return h('div', { class: 'sheet-body pr-ok pr-escolha' }, confeteEl(),
     h('img', { class: 'pr-paul-fest', src: 'assets/paul/animacoes/web/paul-comemoracao.webp', alt: '', width: 120, height: 120, draggable: 'false' }),
     h('h2', { class: 'pr-ok-tit' }, 'escolha o seu presente!'),
@@ -50,15 +50,15 @@ function telaPresente(p, fecha) {
     h('button', { type: 'button', class: 'pr-fechar', onclick: fecha }, 'fechar'));
 }
 /** Escolha + presente numa folha só (usada logo depois do formulário e quando a pessoa volta sem ter escolhido). */
-function fluxoEscolha(box, faixa, fecha, aoEscolher) {
-  const gravaEscolha = (id) => { const ja = lerAbriu() || {}; try { localStorage.setItem(KEY, JSON.stringify({ faixa, escolha: id, token: ja.token || null, em: Date.now() })); } catch { /* sem storage */ } anotaEscolha(ja.token, id); };
-  box.replaceChildren(telaEscolha(faixa, (p) => { gravaEscolha(p.id); if (aoEscolher) aoEscolher(); box.replaceChildren(telaPresente(p, fecha)); }));
+function fluxoEscolha(box, faixa, fecha, aoEscolher, instr) {
+  const gravaEscolha = (id) => { const ja = lerAbriu() || {}; try { localStorage.setItem(KEY, JSON.stringify({ faixa, instr: instr || ja.instr || null, escolha: id, token: ja.token || null, em: Date.now() })); } catch { /* sem storage */ } anotaEscolha(ja.token, id); };
+  box.replaceChildren(telaEscolha(faixa, (p) => { gravaEscolha(p.id); if (aoEscolher) aoEscolher(); box.replaceChildren(telaPresente(p, fecha)); }, instr));
 }
 
 /** Abre o formulário numa folha. `aoAbrir` roda quando o presente é liberado (o cartão some). */
 export function abrirFormulario(aoAbrir, aoPreencher) {
   sheet('presente do Paul', (close) => {
-    const ja = lerAbriu(); if (ja && !ja.escolha && ja.faixa) { const caixa = h('div', {}); fluxoEscolha(caixa, ja.faixa, close, aoAbrir); return caixa; }
+    const ja = lerAbriu(); if (ja && !ja.escolha && ja.faixa) { const caixa = h('div', {}); fluxoEscolha(caixa, ja.faixa, close, aoAbrir, ja.instr); return caixa; }
     let nomeSalvo = ''; try { nomeSalvo = localStorage.getItem('beaterista-aluno-nome') || ''; } catch { /* sem storage */ }
     let faixa = '', instr = '';
     const campo = (rot, el) => h('label', { class: 'field pr-campo' }, h('span', {}, rot), el);
@@ -86,9 +86,9 @@ export function abrirFormulario(aoAbrir, aoPreencher) {
       try {
         const r = await chamar({ p_nome: n, p_email: em || null, p_whatsapp: dz || null, p_instrumento: instr, p_outro: outro.value.trim() || null, p_faixa: faixa, p_aceita: aceita.checked, p_origem: 'inicio' });
         if (!r || r.ok !== true) { erro.textContent = r && r.motivo === 'contato' ? 'não consegui entender o contato. confira o e-mail ou o WhatsApp.' : 'não deu pra abrir agora. confira os campos e tente de novo.'; return; }
-        try { localStorage.setItem(KEY, JSON.stringify({ faixa, escolha: null, token: r.token || null, em: Date.now() })); } catch { /* sem storage */ } // guarda só o token (não é dado pessoal), nunca e-mail nem WhatsApp
+        try { localStorage.setItem(KEY, JSON.stringify({ faixa, instr, escolha: null, token: r.token || null, em: Date.now() })); } catch { /* sem storage */ } // guarda só o token (não é dado pessoal), nunca e-mail nem WhatsApp
         if (aoPreencher) aoPreencher();
-        fluxoEscolha(box, faixa, close, aoAbrir);
+        fluxoEscolha(box, faixa, close, aoAbrir, instr);
       } catch { erro.textContent = 'sem internet agora. tente de novo.'; } finally { botao.disabled = false; botao.textContent = 'abrir meu presente 🎁'; }
     });
     const box = h('div', { class: 'sheet-body pr-form' },
