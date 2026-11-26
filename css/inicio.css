@@ -169,3 +169,10 @@ body:has(.inicio) .atualiza-bar { display: none !important; }
 .in-share > span { flex: 1; opacity: .85; }
 .in-share-bt { border: 2px solid #f2a91b; background: transparent; color: #f2a91b; border-radius: 99px !important; padding: 6px 16px; font: 800 13px "Hanken Grotesk", sans-serif; cursor: pointer; }
 .in-share-bt:disabled { opacity: .5; }
+
+/* Aviso de continuidade para aluno cuja matrícula gratuita terminou. */
+.in-exaluno { border: 2px solid #f2b73a; background: #241824; color: #fff2df; border-radius: 14px !important; padding: 15px; display: grid; gap: 8px; }
+.in-exaluno > strong { font: 400 23px/1 'Anton', sans-serif; text-transform: uppercase; color: #ffd26d; }
+.in-exaluno p { margin: 0; font: 600 13px/1.45 'Hanken Grotesk', sans-serif; }
+.in-exaluno b { color: #ffd26d; }
+.in-exaluno-bt { display: inline-block; width: fit-content; border-radius: 8px !important; background: #d32132; color: white !important; padding: 10px 14px; font: 800 13px/1.25 'Hanken Grotesk', sans-serif; text-decoration: none; }

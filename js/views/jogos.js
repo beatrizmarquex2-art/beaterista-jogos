@@ -26,11 +26,6 @@ import * as rudimentos from '../jogos/rudimentos.js';
 import * as copia from '../jogos/copia.js';
 import * as paultavivo from '../jogos/paulta-vivo.js';
 import * as groove from '../jogos/groove.js';
-import * as terca from '../jogos/terca.js';
-import * as acordeOuvido from '../jogos/acorde-ouvido.js';
-import * as maiorMenor from '../jogos/maior-menor.js';
-import * as escala from '../jogos/escala.js';
-import * as aulaOuvido from '../jogos/ouvido-aula.js';
 import * as fantasma from '../jogos/fantasma.js';
 import * as paulbox from '../jogos/paulbox.js';
 import * as memart from '../jogos/memoria-artistas.js';
@@ -44,6 +39,7 @@ import { acharJogoDaSala, definirSalaAuto, salaLembrada, JOGOS_SALA } from '../j
 import { setGame, getGame } from '../jogos/base.js';
 import { musicaPausa, musicaVolta, sync as sincronizarMusica, fixarMusica } from '../jogos/musica.js';
 import { musicButton } from '../sound-btn.js';
+import { cartaoPasse } from '../promo-passe.js';
 import { lembrar as lembrarUltimo, ultimoJogo } from '../ultimo-jogo.js';
 
 const IMG = 'assets/jogos/icones/';
@@ -56,11 +52,6 @@ const GAMES = [
   ['copia', 'Copia Aí', 'copia.svg', copia, 'o Paul toca, você copia · a melodia cresce'],
   ['paultavivo', 'pauLta ao Vivo', 'pauta-vivo.svg', paultavivo, 'leia a nota e toque de verdade'],
   ['groove', 'Eco de Groove', 'groove.svg', groove, 'repita a levada do Paul · bumbo, caixa e chimbal'],
-  ['aula-ouvido', 'Aulinha: ouvido e escalas', 'copia.svg', aulaOuvido, 'graus, 3ª e 5ª, acordes, maior x menor e escalas · comece por aqui'],
-  ['terca', '3ª ou 5ª?', 'copia.svg', terca, '12 fases fácil + 12 difícil · ouça e diga o grau'],
-  ['acorde-ouvido', 'Que acorde é?', 'copia.svg', acordeOuvido, '12 fases fácil + 12 difícil · descubra o acorde'],
-  ['maior-menor', 'Maior ou menor?', 'copia.svg', maiorMenor, '12 fases fácil + 12 difícil · alegre ou triste?'],
-  ['escala', 'Escalas', 'pauta-vivo.svg', escala, '12 fases fácil + 12 difícil · escalas coloridas'],
   ['fantasma', 'Clique Fantasma', 'fantasma.svg', fantasma, 'o clique some: você segura o tempo?'],
   ['paulbox', 'PaulBox', 'paulbox.webp', paulbox, 'monte a banda do Paul · 10 instrumentos, 4 ritmos cada'],
   ['cartas', 'Uno Musical', 'cartas.webp', cartas, 'figuras rítmicas · contra o computador ou 2 celulares'],
@@ -75,7 +66,7 @@ const GAMES = [
 ];
 const BY = Object.fromEntries(GAMES.map((g) => [g[0], g]));
 // jogos abertos: abrem direto no jogo, sem escolher modo e sem Modo Aventura (pra ninguém, nem na Bea)
-const SEM_AVENTURA = new Set(['aula-ouvido', 'terca', 'acorde-ouvido', 'maior-menor', 'escala', 'paulbox', 'copia', 'paultavivo', 'groove', 'fantasma', 'toca', 'detetive', 'figurix', 'rudimentos', 'memart', 'quizuno', 'cartas', 'un', 'bingo', 'velha', 'quebra', 'cara', 'stop']);
+const SEM_AVENTURA = new Set(['paulbox', 'copia', 'paultavivo', 'groove', 'fantasma', 'toca', 'detetive', 'figurix', 'rudimentos', 'memart', 'quizuno', 'cartas', 'un', 'bingo', 'velha', 'quebra', 'cara', 'stop']);
 const inner = (id) => [id, BY[id][1], BY[id][2], BY[id][3], BY[id][4]];
 // Tudo que é jogo mora aqui. Quem tem módulo próprio abre dentro desta tela (#/jogos/<id>); o resto leva à sua tela e volta pra cá.
 const link = (href, title, img, sub, only) => [href, title, img, null, sub, href, only];
@@ -96,14 +87,6 @@ const SECTIONS = [
     [...inner('paultavivo'), undefined, 'bea'],
     [...inner('groove'), undefined, 'bea'],
     [...inner('fantasma'), undefined, 'bea'],
-  ]],
-  ['Ouvido e escalas', [
-    // em obras: aparecem SÓ no app da Bea ('bea') até ela testar. Pra liberar pros alunos, tirar o `, undefined, 'bea'`.
-    [...inner('aula-ouvido'), undefined, 'bea'],
-    [...inner('terca'), undefined, 'bea'],
-    [...inner('acorde-ouvido'), undefined, 'bea'],
-    [...inner('maior-menor'), undefined, 'bea'],
-    [...inner('escala'), undefined, 'bea'],
   ]],
   ['Leitura musical', [
     link('#/paulta', 'PauLta', 'pauta.svg', 'leitura musical: bateria, clave de sol e de fá'),
@@ -230,7 +213,7 @@ function catalog(host) {
           h('button', { type: 'button', 'aria-label': `${off ? 'Mostrar' : 'Esconder'} ${x[1]}`, onclick: () => (off ? savePrefs({ ...p, hidden: p.hidden.filter((y) => y !== k) }) : change({ ...p, hidden: [...p.hidden, k] }, `${x[1]} escondido`)) }, off ? '↺' : '✕')) : null);
     }) : [h('p', { class: 'jg-p', style: { gridColumn: '1 / -1' } }, 'Nenhum favorito ainda. Toque em “☆ marcar” e depois na ☆ de um jogo.')]));
   };
-  host.replaceChildren(banner('Jogos', 'todos os jogos num lugar só'), paulDica({ compacto: true }), h('div', { class: 'pad-x', style: 'display:grid;gap:10px' }, atalhoCodigoAluno(), atalhoContinuar(), atalhoSala()), catWrap = h('div', { class: `jg jg-wrap jg-cat${darkOn('') ? ' jg-dark' : ''}` }, bar, grid));
+  host.replaceChildren(banner('Jogos', 'todos os jogos num lugar só'), paulDica({ compacto: true }), h('div', { class: 'pad-x', style: 'display:grid;gap:10px' }, atalhoCodigoAluno(), atalhoContinuar(), atalhoSala(), cartaoPasse({ onde: 'jogos', compacto: true })), catWrap = h('div', { class: `jg jg-wrap jg-cat${darkOn('') ? ' jg-dark' : ''}` }, bar, grid));
   draw();
   // (o Paul já fala pelo cartão azul do topo, que muda a cada volta; o balão solto não aparece mais em cima dele)
   // arrastar o próprio jogo (no modo editar; no dedo, segurando um instante): a nova ordem dos que estão na tela entra no lugar deles na ordem completa

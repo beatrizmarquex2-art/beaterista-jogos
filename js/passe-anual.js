@@ -12,7 +12,7 @@ export function daquiA12Meses(de = new Date()) {
 }
 export const linhaPasse = (nome, code, expira) => ({ code, nome: `Passe ${String(nome || '').trim()}`.trim().slice(0, 60), tipo: 'passe', dias: 365, max_aparelhos: 2, expira_em: expira.toISOString(), ativo: true });
 const dataBR = (d) => new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
-export function mensagemPasse({ nome, code, expira, site = 'https://jogos.beaterista.com.br' }) {
+export function mensagemPasse({ nome, code, expira, site = 'https://play.beaterista.com.br' }) {
   const p = String(nome || '').trim().split(/\s+/)[0];
   return `oi${p ? `, ${p}` : ''}! pagamento confirmado 🎉 aqui está o seu Passe Beaterista: ${code}\nvale 12 meses (até ${dataBR(expira)}) e funciona em até 2 aparelhos.\nentre em ${site}, escreva seu nome e digite o código em "código de acesso".`;
 }

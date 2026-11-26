@@ -13,6 +13,8 @@ import * as store from '../store.js';
 import { atualizarAgora } from '../atualizar-btn.js';
 import * as PERF from '../inicio-perfil.js';
 import { toast } from '../ui.js';
+import { cartaoPasse } from '../promo-passe.js';
+import { cartaoPresente } from '../presente-paul.js';
 
 const DIAS_KEY = 'bt-inicio-dias'; const LUGAR_KEY = 'bt-inicio-lugar';
 const dia = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -109,7 +111,7 @@ export function mount(host, { nome = '' } = {}) {
   let ganhas = []; let todas = new Map(); let fav = FAV.favoritos();
   const slots = h('div', { class: 'in-favs', role: 'group', 'aria-label': 'bandas e cantores favoritos' });
   const desenhaFav = () => {
-    slots.replaceChildren(...[0, 1, 2, 3, 4, 5].map((i) => {
+    slots.replaceChildren(...[0, 1, 2, 3, 4].map((i) => {
       const nomeF = fav[i]; const a = nomeF && (todas.get(nomeF) || { nome: nomeF, foto: '', rosto: null });
       return h('button', { type: 'button', class: `in-fav${a ? ' tem' : ''}`, 'aria-label': a ? `favorito ${i + 1}: ${a.nome}. tocar pra trocar` : `escolher favorito ${i + 1}`, onclick: () => escolher(i) },
         h('span', { class: 'in-fav-foto' }, a ? (a.foto ? h('img', { src: a.foto, alt: '', style: `object-position:${rostoPos(a.rosto)}` }) : h('i', {}, '♪')) : h('i', {}, '+')),
@@ -178,7 +180,7 @@ export function mount(host, { nome = '' } = {}) {
     bt.disabled = true;
     try {
       const M = await import('../figurinhas/passe-card.js'); const bl = await D.metaLer('perfil-foto').catch(() => null);
-      const favs = FAV.favoritos().slice(0, 6).map((n) => { const a = todas.get(n); return { nome: n, foto: a ? a.foto : '', rosto: a ? a.rosto : null }; });
+      const favs = FAV.favoritos().slice(0, 5).map((n) => { const a = todas.get(n); return { nome: n, foto: a ? a.foto : '', rosto: a ? a.rosto : null }; });
       const r = await M.compartilhar({ nome: nome || '', foto: bl, sobre: PERF.perfil(), favs, formato });
       if (r === 'baixado') toast('imagem baixada: é só postar!'); else if (r === 'compartilhado') toast('compartilhado!');
     } catch { toast('não consegui montar a imagem agora.'); }
@@ -222,11 +224,20 @@ export function mount(host, { nome = '' } = {}) {
     h('a', { href: '#/tocar' }, h('b', {}, 'palco'), 'bateria, violão, teclado e xilofone'),
     h('a', { href: '#/lojinha' }, h('b', {}, 'lojinha'), 'cards e apostilas pra imprimir'));
 
+  // Ex-alunos com matrícula encerrada: oferta para manter o mesmo código e progresso.
+  const exAluno = CODE.saved() && CODE.motivoFalha() === 'matricula'
+    ? h('section', { class: 'in-exaluno', role: 'status' },
+      h('strong', {}, 'quer continuar jogando?'),
+      h('p', {}, 'sua matrícula terminou, mas suas estrelas, figurinhas e conquistas continuam guardadas!'),
+      h('p', {}, h('b', {}, 'R$ 49,90 · pagamento único · 1 ano de acesso'), ' a partir da ativação do passe pago.'),
+      h('a', { class: 'in-exaluno-bt', href: `https://wa.me/5518991804150?text=${encodeURIComponent(`Olá! Minha matrícula terminou e quero continuar no Beaterista Play por R$ 49,90 (1 ano). Meu código é ${CODE.saved()}.`)}`, target: '_blank', rel: 'noopener noreferrer' }, 'quero continuar jogando'))
+    : null;
+
   // aviso de versão nova: aparece aqui dentro do Início (cartão no topo) e o aviso solto do topo some nesta aba (css/inicio.css)
   const botAtu = h('button', { type: 'button', class: 'in-btn in-atu-bt', onclick: (e) => { e.currentTarget.disabled = true; atualizarAgora(); } }, 'atualizar');
   const avisoAtu = h('section', { class: 'in-atu', role: 'status', 'aria-live': 'polite', hidden: true }, h('span', { 'aria-hidden': 'true' }, '✨'), h('p', {}, h('b', {}, 'tem coisa nova no app!'), h('small', {}, 'toque pra atualizar e ver as novidades')), botAtu);
   const mostraAtu = () => { avisoAtu.hidden = false; };
   try { if (document.querySelector('.atualiza-bar, .top-atu.tem-novo')) mostraAtu(); const tinha = !!navigator.serviceWorker.controller; navigator.serviceWorker.addEventListener('controllerchange', () => { if (tinha) mostraAtu(); }); } catch { /* sem service worker */ }
-  host.append(h('div', { class: 'inicio' }, avisoAtu, passe, dividir, tres, continuar, roleta, novidades, atalhos));
+  host.append(h('div', { class: 'inicio' }, avisoAtu, exAluno, passe, dividir, cartaoPresente(), tres, continuar, cartaoPasse({ onde: 'inicio' }), roleta, novidades, atalhos));
   return () => { window.removeEventListener('bt-foto-perfil', carregaFoto); if (urlFoto) URL.revokeObjectURL(urlFoto); };
 }
