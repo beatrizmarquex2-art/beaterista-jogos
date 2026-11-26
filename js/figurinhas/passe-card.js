@@ -1,5 +1,5 @@
 // Cartão do meu passe pra postar (opção B "palco à noite", escolha da Bea): imagem 1080×1350 (post) ou 1080×1920 (story) com a foto de perfil
-// (ou o Paul que a pessoa escolheu), o nome, instrumento · estilo · meta, até 5 favoritos e a marca do Robôterista Paul com o endereço.
+// (ou o Paul que a pessoa escolheu), o nome, instrumento · estilo · meta, até 6 favoritos e a marca do Robôterista Paul com o endereço.
 // Gera o PNG no próprio aparelho: nada sobe pra servidor, e a foto é a que a pessoa escolheu no Perfil.
 import { SITE, ESCOLA } from './postar.js';
 import { FORMATOS } from './estrelas-card.js';
@@ -46,7 +46,7 @@ export async function desenhar({ nome = '', foto = null, sobre = {}, favs = [], 
   if (atual.length) linhas.push(atual);
   for (const ln of linhas) { const tot = ln.reduce((a, [, w]) => a + w, 0) + gap * (ln.length - 1); let x = W / 2 - tot / 2; for (const [t, w] of ln) { rr(ctx, x, y, w, h, h / 2); ctx.lineWidth = 5; ctx.strokeStyle = GOLD; ctx.stroke(); ctx.fillStyle = GOLD; ctx.fillText(t, x + w / 2, y + h / 2 + 14); x += w + gap; } y += h + 18; }
   // favoritos
-  const lista = favs.filter((f) => f && f.nome).slice(0, 5);
+  const lista = favs.filter((f) => f && f.nome).slice(0, 6);
   if (lista.length) {
     y += story ? 34 : 22; ctx.fillStyle = GOLD; ctx.font = `800 30px ${HANKEN}`; ctx.letterSpacing = '6px'; ctx.fillText('NO MEU REPERTÓRIO', W / 2, y); ctx.letterSpacing = '0px';
     const r = story ? 70 : 58, gp = story ? 16 : 14; const tot = lista.length * 2 * r + (lista.length - 1) * gp; let x = W / 2 - tot / 2 + r; y += story ? 40 + r : 30 + r;
