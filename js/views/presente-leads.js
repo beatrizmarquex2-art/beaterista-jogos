@@ -13,7 +13,10 @@ async function rpc(fn, body = {}) {
   if (!r.ok) throw new Error(r.status === 404 ? 'a função ainda não existe no banco' : String(r.status)); return r.json();
 }
 const rotPres = (l) => (l.presente && PRESENTES[l.presente] ? PRESENTES[l.presente].titulo : 'ainda não escolheu');
-const csv = (rows) => ['nome;e-mail;whatsapp;idade;instrumento;presente;assinou;novidades;data', ...rows.map((l) => [l.nome, l.email || '', l.whatsapp || '', rotFaixa(l.faixa_idade), rotInst(l), rotPres(l), l.assinou ? 'sim' : 'não', l.aceita_novidades ? 'sim' : 'não', dia(l.criado_em)].map((x) => `"${String(x).replace(/"/g, '""')}"`).join(';'))].join('\n');
+// nome legível de cada item escolhido (id do arquivo -> nome do arquivo no cadastro); id que não existe mais aparece como está
+const NOME_ITEM = (() => { const m = {}; for (const p of Object.values(PRESENTES)) for (const a of p.arquivos || []) m[String(a.arquivo || '').split('/').pop().replace(/\.[a-z0-9]+$/i, '')] = a.nome; return m; })();
+const rotItens = (l) => (Array.isArray(l.presente_itens) && l.presente_itens.length ? l.presente_itens.map((i) => NOME_ITEM[i] || i).join(', ') : '');
+const csv = (rows) => ['nome;e-mail;whatsapp;idade;instrumento;presente;itens escolhidos;assinou;novidades;data', ...rows.map((l) => [l.nome, l.email || '', l.whatsapp || '', rotFaixa(l.faixa_idade), rotInst(l), rotPres(l), rotItens(l), l.assinou ? 'sim' : 'não', l.aceita_novidades ? 'sim' : 'não', dia(l.criado_em)].map((x) => `"${String(x).replace(/"/g, '""')}"`).join(';'))].join('\n');
 
 /** Monta o cartão dentro de `host`. */
 export function montarLeads(host) {
@@ -27,7 +30,7 @@ export function montarLeads(host) {
     const f = filtrados(); resumo.textContent = `${f.length} de ${lista.length} contato${lista.length === 1 ? '' : 's'} · ${lista.filter((l) => l.aceita_novidades).length} aceitaram novidades · ${lista.filter((l) => l.assinou).length} já compraram o passe`;
     box.replaceChildren(...f.map((l) => h('article', { class: 'pl-item' },
       h('b', {}, l.nome, l.aceita_novidades ? h('span', { class: 'pl-novid' }, 'novidades') : null, l.assinou ? h('span', { class: 'pl-novid pl-ass' }, 'assinou') : null),
-      h('span', {}, [l.email, l.whatsapp].filter(Boolean).join(' · ')), h('span', { class: 'muted' }, `${rotFaixa(l.faixa_idade)} · ${rotInst(l)} · ${dia(l.criado_em)}`), h('span', { class: 'muted' }, `presente: ${rotPres(l)}`),
+      h('span', {}, [l.email, l.whatsapp].filter(Boolean).join(' · ')), h('span', { class: 'muted' }, `${rotFaixa(l.faixa_idade)} · ${rotInst(l)} · ${dia(l.criado_em)}`), h('span', { class: 'muted' }, `presente: ${rotPres(l)}${rotItens(l) ? ` · ${rotItens(l)}` : ''}`),
       h('div', { class: 'row' },
         l.aceita_novidades ? h('button', { type: 'button', class: 'btn small ghost', onclick: () => acao(() => rpc('presente_lead_novidades', { p_id: l.id, p_aceita: false }), 'tirado das novidades') }, 'tirar das novidades') : null,
         h('button', { type: 'button', class: 'btn small ghost', onclick: async () => { if (await confirmSheet('Apagar este contato?', `${l.nome} sai da lista de vez (use quando o responsável pedir).`, 'Apagar')) acao(() => rpc('presente_lead_apagar', { p_id: l.id }), 'contato apagado'); } }, 'apagar'))))); 

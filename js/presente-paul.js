@@ -8,7 +8,7 @@ import * as CODE from './codigo.js';
 import * as AC from './acesso.js';
 import { FAIXAS, INSTRUMENTOS, ICONE_INSTRUMENTO, PRESENTES } from './presente-config.js';
 
-const KEY = 'beaterista-presente-paul'; // guarda só { faixa, escolha, em }: o cartão some depois que a pessoa ESCOLHEU o presente (se fechou antes de escolher, o cartão volta direto na escolha)
+const KEY = 'beaterista-presente-paul'; // guarda só { faixa, instr, escolha, itens, token, em }: o cartão some depois que a pessoa ESCOLHEU o presente (se fechou antes de escolher, o cartão volta direto na escolha)
 const previa = () => { try { return /[?&]presente-preview(?:[=&#]|$)/.test(location.search); } catch { return false; } };
 const lerAbriu = () => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch { return null; } };
 /** Presentes disponíveis pra essa faixa de idade (só os que têm arquivo). Na prévia (?presente-preview), os 3 aparecem com um arquivo de teste. */
@@ -24,6 +24,11 @@ const semCodigo = () => { try { return document.documentElement.classList.contai
 
 /** Avisa o banco qual presente a pessoa escolheu (só com o token do contato; nunca trava nem bloqueia o presente se falhar). */
 const anotaEscolha = (token, id) => { if (!token) return; try { fetch(`${CONFIG.SUPABASE_URL}/rest/v1/rpc/presente_escolher`, { method: 'POST', keepalive: true, headers: { apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_token: token, p_presente: id }) }).catch(() => {}); } catch { /* sem rede: o presente vem do mesmo jeito */ } };
+/** Avisa o banco QUAIS itens a pessoa levou (ids dos arquivos; supabase/025_presente_itens.sql). Falha em silêncio: o presente vem do mesmo jeito. */
+const anotaItens = (token, ids) => { if (!token || !ids || !ids.length) return; try { fetch(`${CONFIG.SUPABASE_URL}/rest/v1/rpc/presente_itens`, { method: 'POST', keepalive: true, headers: { apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_token: token, p_itens: ids }) }).catch(() => {}); } catch { /* sem rede */ } };
+export const idDe = (a) => String(a.arquivo || '').split('/').pop().replace(/\.[a-z0-9]+$/i, '');
+const MAX_ITENS = 3; // wallpaper e colorir: a pessoa escolhe 3 na grade; planner vem todo do instrumento dela
+const TIPO = { planner: 'planner · PDF pra imprimir', wallpaper: 'wallpaper · imagem pro celular', colorir: 'pra colorir · PDF tamanho A4' };
 const chamar = async (corpo) => {
   const r = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/rpc/presente_registrar`, { method: 'POST', headers: { apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
   if (!r.ok) throw new Error(String(r.status)); return r.json();
@@ -40,19 +45,46 @@ function telaEscolha(faixa, escolheu, instr) {
     h('div', { class: 'pr-opcoes' }, ...lista.map((p) => h('button', { type: 'button', class: 'pr-opcao', 'data-p': p.id, onclick: () => escolheu(p) },
       h('span', { class: 'pr-opcao-i', 'aria-hidden': 'true' }, p.icone), h('span', { class: 'pr-opcao-t' }, h('b', {}, p.titulo), h('small', {}, p.desc)), h('i', { 'aria-hidden': 'true' }, '›')))));
 }
-/** Passo 3: o presente escolhido (arquivos pra abrir ou salvar). */
-function telaPresente(p, fecha) {
-  return h('div', { class: 'sheet-body pr-ok' }, confeteEl(),
-    h('img', { class: 'pr-paul-fest', src: 'assets/paul/animacoes/web/paul-comemoracao.webp', alt: '', width: 150, height: 150, draggable: 'false' }),
-    h('h2', { class: 'pr-ok-tit' }, 'seu presente chegou!'),
-    h('p', { class: 'pr-ok-sub' }, `${p.icone} ${p.titulo}: toque pra abrir ou salvar:`),
-    h('div', { class: 'pr-lista' }, ...p.arquivos.map((a, i) => h('a', { class: 'pr-ticket', href: a.arquivo, target: '_blank', rel: 'noopener', download: '' }, h('span', { class: 'pr-ticket-n' }, String(i + 1)), h('span', { class: 'pr-ticket-t' }, a.nome), h('b', {}, '🎁 abrir')))),
+/** Passo 2b: GRADE. Wallpaper e colorir: a pessoa toca em 3 miniaturas e só então o presente é liberado. */
+function telaGrade(p, liberar, voltar) {
+  const max = Math.min(MAX_ITENS, p.arquivos.length), sel = [];
+  const nomeItem = p.id === 'wallpaper' ? ['wallpaper', 'wallpapers'] : ['desenho', 'desenhos'];
+  const cont = h('b', { class: 'pr-grade-cont', 'aria-live': 'polite' }), dica = h('p', { class: 'pr-grade-dica', role: 'status' });
+  const bt = h('button', { type: 'button', class: 'pr-liberar' });
+  const tiles = p.arquivos.map((a) => { const b = h('button', { type: 'button', class: `pr-tile pr-tile-${p.id}`, 'aria-pressed': 'false', 'aria-label': a.nome, title: a.nome },
+    h('img', { src: a.mini || a.arquivo, alt: '', loading: 'lazy', draggable: 'false' }), h('span', { class: 'pr-tile-n', 'aria-hidden': 'true' }, ''));
+    b.addEventListener('click', () => { const i = sel.indexOf(a); if (i >= 0) sel.splice(i, 1); else if (sel.length < max) sel.push(a); else { dica.textContent = `já são ${max}! toque em um escolhido pra trocar.`; return; } pinta(); }); return [a, b]; });
+  const pinta = () => { const grade = tiles[0] && tiles[0][1].parentElement; if (grade) grade.classList.toggle('cheio', sel.length === max); tiles.forEach(([a, b]) => { const i = sel.indexOf(a); b.classList.toggle('on', i >= 0); b.setAttribute('aria-pressed', String(i >= 0)); b.querySelector('.pr-tile-n').textContent = i >= 0 ? String(i + 1) : ''; });
+    const falta = max - sel.length; cont.textContent = `${sel.length} de ${max}`; dica.textContent = falta > 0 ? `toque em mais ${falta} pra liberar.` : 'prontinho! agora é só liberar. 🎁';
+    bt.disabled = falta > 0; bt.textContent = falta > 0 ? `escolha mais ${falta}` : `liberar meus ${max} ${max === 1 ? nomeItem[0] : nomeItem[1]} 🎁`; };
+  bt.addEventListener('click', () => { if (sel.length === max) liberar(sel.slice()); });
+  const el = h('div', { class: 'sheet-body pr-ok pr-grade' },
+    h('button', { type: 'button', class: 'pr-voltar', onclick: voltar }, '‹ voltar'),
+    h('h2', { class: 'pr-ok-tit' }, `${p.icone} escolha ${max} ${max === 1 ? nomeItem[0] : nomeItem[1]}`),
+    h('p', { class: 'pr-ok-sub' }, 'toque nos que você mais gostar. toque de novo pra tirar.'),
+    h('div', { class: `pr-grade-grid pr-grade-${p.id}` }, ...tiles.map((t) => t[1])),
+    h('div', { class: 'pr-grade-rodape' }, h('div', { class: 'pr-grade-info' }, cont, dica), bt));
+  pinta(); return el;
+}
+/** Passo 3: ENTREGA. Cada item vira um cartão com a miniatura, o nome e o botão de baixar. */
+function telaPresente(p, itens, fecha) {
+  const n = itens.length;
+  return h('div', { class: 'sheet-body pr-ok pr-entrega' }, confeteEl(),
+    h('div', { class: 'pr-ent-topo' },
+      h('img', { class: 'pr-paul-fest', src: 'assets/paul/animacoes/web/paul-comemoracao.webp', alt: '', width: 110, height: 110, draggable: 'false' }),
+      h('div', { class: 'pr-ent-tt' }, h('span', { class: 'pr-ent-fita' }, `${p.icone} ${p.titulo}`), h('h2', { class: 'pr-ok-tit' }, 'seu presente chegou!'), h('p', { class: 'pr-ok-sub' }, `${n} ${n === 1 ? 'item' : 'itens'} pra você. é só baixar.`))),
+    h('div', { class: 'pr-cartas' }, ...itens.map((a, i) => h('article', { class: `pr-carta pr-carta-${p.id}`, style: `--r:${i % 2 ? 1.4 : -1.4}deg;--d:${i * 110}ms` },
+      h('a', { class: 'pr-carta-img', href: a.arquivo, target: '_blank', rel: 'noopener', 'aria-label': `abrir ${a.nome}` }, h('img', { src: a.mini || a.arquivo, alt: '', loading: 'lazy', draggable: 'false' }), h('i', { class: 'pr-carta-n', 'aria-hidden': 'true' }, String(i + 1))),
+      h('div', { class: 'pr-carta-t' }, h('small', {}, TIPO[p.id] || 'presente'), h('b', {}, a.nome), h('a', { class: 'pr-baixar', href: a.arquivo, download: '', target: '_blank', rel: 'noopener' }, h('span', { 'aria-hidden': 'true' }, '⬇'), ' baixar'))))),
+    p.id === 'wallpaper' ? h('p', { class: 'pr-ent-dica' }, '📱 no celular: abra a imagem, segure o dedo nela e toque em “salvar”.') : (p.id === 'planner' || p.id === 'colorir' ? h('p', { class: 'pr-ent-dica' }, '🖨️ abra o PDF e imprima em folha A4.') : null),
     h('button', { type: 'button', class: 'pr-fechar', onclick: fecha }, 'fechar'));
 }
-/** Escolha + presente numa folha só (usada logo depois do formulário e quando a pessoa volta sem ter escolhido). */
+/** Escolha + grade + entrega numa folha só (usada logo depois do formulário e quando a pessoa volta sem ter escolhido). */
 function fluxoEscolha(box, faixa, fecha, aoEscolher, instr) {
-  const gravaEscolha = (id) => { const ja = lerAbriu() || {}; try { localStorage.setItem(KEY, JSON.stringify({ faixa, instr: instr || ja.instr || null, escolha: id, token: ja.token || null, em: Date.now() })); } catch { /* sem storage */ } anotaEscolha(ja.token, id); };
-  box.replaceChildren(telaEscolha(faixa, (p) => { gravaEscolha(p.id); if (aoEscolher) aoEscolher(); box.replaceChildren(telaPresente(p, fecha)); }, instr));
+  const grava = (id, itens) => { const ja = lerAbriu() || {}; const ids = itens.map(idDe); try { localStorage.setItem(KEY, JSON.stringify({ faixa, instr: instr || ja.instr || null, escolha: id, itens: ids, token: ja.token || null, em: Date.now() })); } catch { /* sem storage */ } anotaEscolha(ja.token, id); anotaItens(ja.token, ids); };
+  const entrega = (p, itens) => { grava(p.id, itens); if (aoEscolher) aoEscolher(); box.replaceChildren(telaPresente(p, itens, fecha)); };
+  const inicio = () => box.replaceChildren(telaEscolha(faixa, (p) => { if (p.id === 'planner' || p.arquivos.length <= MAX_ITENS) entrega(p, p.arquivos); else box.replaceChildren(telaGrade(p, (itens) => entrega(p, itens), inicio)); }, instr));
+  inicio();
 }
 
 /** Abre o formulário numa folha. `aoAbrir` roda quando o presente é liberado (o cartão some). */
