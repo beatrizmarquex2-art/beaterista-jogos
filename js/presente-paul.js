@@ -22,6 +22,8 @@ export function presentesDaFaixa(faixa) {
 export const presenteAtivo = () => previa() || Object.values(PRESENTES).some((p) => (p.arquivos || []).length > 0);
 const semCodigo = () => { try { return document.documentElement.classList.contains('aluno-on') && !AC.liberado() && !CODE.saved(); } catch { return false; } };
 
+/** Avisa o banco qual presente a pessoa escolheu (só com o token do contato; nunca trava nem bloqueia o presente se falhar). */
+const anotaEscolha = (token, id) => { if (!token) return; try { fetch(`${CONFIG.SUPABASE_URL}/rest/v1/rpc/presente_escolher`, { method: 'POST', keepalive: true, headers: { apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ p_token: token, p_presente: id }) }).catch(() => {}); } catch { /* sem rede: o presente vem do mesmo jeito */ } };
 const chamar = async (corpo) => {
   const r = await fetch(`${CONFIG.SUPABASE_URL}/rest/v1/rpc/presente_registrar`, { method: 'POST', headers: { apikey: CONFIG.SUPABASE_ANON_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) });
   if (!r.ok) throw new Error(String(r.status)); return r.json();
@@ -49,7 +51,7 @@ function telaPresente(p, fecha) {
 }
 /** Escolha + presente numa folha só (usada logo depois do formulário e quando a pessoa volta sem ter escolhido). */
 function fluxoEscolha(box, faixa, fecha, aoEscolher) {
-  const gravaEscolha = (id) => { try { localStorage.setItem(KEY, JSON.stringify({ faixa, escolha: id, em: Date.now() })); } catch { /* sem storage */ } };
+  const gravaEscolha = (id) => { const ja = lerAbriu() || {}; try { localStorage.setItem(KEY, JSON.stringify({ faixa, escolha: id, token: ja.token || null, em: Date.now() })); } catch { /* sem storage */ } anotaEscolha(ja.token, id); };
   box.replaceChildren(telaEscolha(faixa, (p) => { gravaEscolha(p.id); if (aoEscolher) aoEscolher(); box.replaceChildren(telaPresente(p, fecha)); }));
 }
 
@@ -84,7 +86,7 @@ export function abrirFormulario(aoAbrir, aoPreencher) {
       try {
         const r = await chamar({ p_nome: n, p_email: em || null, p_whatsapp: dz || null, p_instrumento: instr, p_outro: outro.value.trim() || null, p_faixa: faixa, p_aceita: aceita.checked, p_origem: 'inicio' });
         if (!r || r.ok !== true) { erro.textContent = r && r.motivo === 'contato' ? 'não consegui entender o contato. confira o e-mail ou o WhatsApp.' : 'não deu pra abrir agora. confira os campos e tente de novo.'; return; }
-        try { localStorage.setItem(KEY, JSON.stringify({ faixa, escolha: null, em: Date.now() })); } catch { /* sem storage */ }
+        try { localStorage.setItem(KEY, JSON.stringify({ faixa, escolha: null, token: r.token || null, em: Date.now() })); } catch { /* sem storage */ } // guarda só o token (não é dado pessoal), nunca e-mail nem WhatsApp
         if (aoPreencher) aoPreencher();
         fluxoEscolha(box, faixa, close, aoAbrir);
       } catch { erro.textContent = 'sem internet agora. tente de novo.'; } finally { botao.disabled = false; botao.textContent = 'abrir meu presente 🎁'; }

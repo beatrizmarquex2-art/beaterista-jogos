@@ -7,6 +7,7 @@ import { h } from './util.js';
 import * as CODE from './codigo.js';
 import { TXT_PIX, TXT_CARTAO, URL_CARTAO, pixAtivo } from './oferta.js';
 import { ligarCompra } from './escolha-pagamento.js';
+import { presentesDaFaixa } from './presente-paul.js';
 
 const WHATS = '5518991804150'; // canal que mantém o MESMO código do ex-aluno (o Pix automático gera um código novo de comprador)
 const tipoSalvo = () => { try { return localStorage.getItem('beaterista-aluno-tipo') || ''; } catch { return ''; } };
@@ -21,13 +22,19 @@ export function situacao() {
 }
 const anual = () => { const r = CODE.ultimoAcesso(); const e = r && r.expira_em ? new Date(r.expira_em).getTime() : 0; return e - Date.now() > 200 * 864e5; }; // só diz "anual" quando o vencimento é mesmo de ~1 ano
 
+/** Quem tem o passe (matriculado ou pago) recebe os 3 presentes do Paul: não precisa escolher. Só aparece quando há arquivos. */
+function presentesDoPasse() {
+  const lista = presentesDaFaixa(''); if (!lista.length) return null;
+  return h('div', { class: 'mp-presentes' }, h('b', {}, 'seus presentes do Paul 🎁'), h('small', {}, 'como você tem o passe, os 3 presentes são seus:'),
+    ...lista.map((p) => h('div', { class: 'mp-pres' }, h('span', { class: 'mp-pres-t' }, `${p.icone} ${p.titulo}`), ...p.arquivos.map((a) => h('a', { class: 'mp-pres-a', href: a.arquivo, target: '_blank', rel: 'noopener', download: '' }, a.nome)))));
+}
 export function cartaoMeuPasse() {
   const s = situacao(); if (!s) return null;
   const box = (cls, ...kids) => h('section', { class: `mp mp-${cls}`, 'aria-label': 'meu passe', role: 'status' }, ...kids);
   if (s === 'matriculado') return box('ok', h('span', { class: 'mp-rot' }, 'meu passe'), h('h3', {}, 'seu passe beaterista está ativo!'),
-    h('p', {}, 'você tem acesso gratuito aos jogos porque faz parte da Escola de Música Beaterista.'), h('p', {}, 'continue aprendendo, jogando e colecionando com o Robôterista Paul!'), h('p', { class: 'mp-nota' }, 'acesso gratuito enquanto sua matrícula estiver ativa.'));
+    h('p', {}, 'você tem acesso gratuito aos jogos porque faz parte da Escola de Música Beaterista.'), h('p', {}, 'continue aprendendo, jogando e colecionando com o Robôterista Paul!'), h('p', { class: 'mp-nota' }, 'acesso gratuito enquanto sua matrícula estiver ativa.'), presentesDoPasse());
   if (s === 'pago') return box('ok', h('span', { class: 'mp-rot' }, 'meu passe'), h('h3', {}, anual() ? 'seu passe anual está ativo!' : 'seu passe está ativo!'),
-    h('p', {}, 'continue aprendendo, jogando e colecionando com o Robôterista Paul!'));
+    h('p', {}, 'continue aprendendo, jogando e colecionando com o Robôterista Paul!'), presentesDoPasse());
   if (s === 'ex') {
     const c = CODE.saved();
     return box('ex', h('span', { class: 'mp-rot' }, 'meu passe'), h('h3', {}, 'hey! quer continuar jogando?'),
