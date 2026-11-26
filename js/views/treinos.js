@@ -91,7 +91,9 @@ function controls(c, draw, { bars = true, barList = [1, 2], speeds = false, inpu
 
 /** Leitura: passos do caminho (2 por nível). Um passo só abre depois de tirar PASS_SCORE no anterior. */
 const bestOf = (c) => c.pbest || {};
-/** Estrelas de um exercício do caminho na tela: 60% = 1, 80% = 2, 100% = 3 (igual à pauLta). */
+/** Faixas de velocidade que rendem figurinha: até 100 BPM, 120 BPM, 140 BPM ou mais. */
+const faixaVel = (bpm) => (bpm >= 140 ? 'turbo' : bpm >= 120 ? 'rapido' : 'lento');
+/** Estrelas de um exercício do caminho na tela: 85% = 1, 93% = 2, 100% = 3. */
 export const estrelasToca = (sc) => estrelasPct(sc);
 const unlocked = () => true; // tudo aberto: o aluno escolhe qualquer nível e exercício (as ★ continuam contando por exercício)
 const firstOpen = (c) => { const i = PATH.findIndex((_, k) => (bestOf(c)[k] || 0) < PASS_SCORE); return i < 0 ? PATH.length - 1 : i; };
@@ -102,7 +104,7 @@ const firstOpen = (c) => { const i = PATH.findIndex((_, k) => (bestOf(c)[k] || 0
 export function leitura(host, opts = {}) {
   let fixedStep = opts.mapa && !opts.livre ? opts.step : undefined; // dentro do mapa a fase vem de fora (nada de escolher aqui)
   let beats = null; let run = null; let lastResult = null; let micBlocked = false; let micErro = null; let passedNow = false;
-  const RODADAS_FASE = 1; let rodada = 0; let notasFase = []; // fase do mapa = 3 compassos seguidos (a nota da fase é a do ÚLTIMO compasso tocado, não a média); no modo livre segue 1 por vez
+  const RODADAS_FASE = 3; let rodada = 0; let notasFase = []; // fase do mapa = 3 compassos seguidos (a nota da fase é a do ÚLTIMO compasso tocado, não a média); no modo livre segue 1 por vez
   const body = h('div');
   const S = session(); // contagem, cliques, fim da rodada: se parou, trocou de compasso ou saiu, S.reset()/dispose() cancela tudo e cala o som
   let testeAtivo = null; // microfone do "testar" (precisa fechar ao sair da tela)
@@ -114,7 +116,7 @@ export function leitura(host, opts = {}) {
     const useMic = c.input === 'mic' && !micBlocked;
     const key = livre ? 'livre' : `p${step}`;
     if (!livre && beats && beats.key !== key) { fresh = true; rodada = 0; notasFase = []; }
-    if (fresh || !beats || beats.length !== nb * 4) { beats = livre ? genBar(c.lv) : (fase3 && rodada > 0 ? genBar(PATH[step].lv) : [...PATH[step].bar]); beats.key = key; lastResult = null; }
+    if (fresh || !beats || beats.length !== nb * 4) { beats = livre ? genBar(c.lv) : (fase3 && rodada > 0 ? (PATH[step].gen === 'facil' ? genBar(2, Math.random, 4, true) : genBar(PATH[step].gen || PATH[step].lv)) : [...PATH[step].bar]); beats.key = key; lastResult = null; }
     const expected = onsets(beats, c.bpm);
     const marks = lastResult ? lastResult.notes.map((n) => MARK[n.st]) : [];
     const pad = useMic ? h('div', { class: 'tr-pad mic', 'aria-label': 'O microfone escuta o seu pad ou a sua bateria' }, h('span', {}, '🎙 toque no seu pad ou bateria'), h('small', {}, 'o app escuta depois da contagem'))
@@ -132,10 +134,11 @@ export function leitura(host, opts = {}) {
       }
       passedNow = final && !livre && lastResult.score >= PASS_SCORE;
       if (passedNow && (step === PATH.length - 1 || (PATH[step + 1] && PATH[step + 1].tier !== PATH[step].tier))) import('../figurinhas/mundos-premio.js').then((X) => X.premiarMundo(`toca:${PATH[step].tier}`)).catch(() => {}); // acabou o último passo de um mundo (nível) = pacote de bandas e artistas
-      if (passedNow && step === PATH.length - 1) setTimeout(() => import('../conquista.js').then((C) => C.festaCaminho({ jogo: 'Toca Aqui', caminho: 'o caminho todo', chave: 'toca', pose: 'pad' })).catch(() => {}), 900); // terminou o caminho: festa + postar
+      if (passedNow && step < PATH.length - 1 && PATH[step + 1].tier !== PATH[step].tier) setTimeout(() => import('../conquista.js').then((C) => C.festaCaminho({ jogo: 'Toca Aqui', caminho: { ini: 'Geleira das Semínimas', int: 'Estúdio das Semicolcheias', ava: 'Pôr do Sol das Síncopes' }[PATH[step].tier], chave: `toca:${PATH[step].tier}`, pose: 'pad', premioChave: `toca:${PATH[step].tier}` })).catch(() => {}), 900); // festa ao acabar QUALQUER mundo (o último já tem a festa do caminho todo)
+      if (passedNow && step === PATH.length - 1) setTimeout(() => import('../conquista.js').then((C) => C.festaCaminho({ jogo: 'Toca Aqui', caminho: 'o caminho todo', chave: 'toca', pose: 'pad', premioChave: `toca:${PATH[step].tier}` })).catch(() => {}), 900); // terminou o caminho: festa + postar
       const est = livre || !final ? 0 : estrelasFase({ score: lastResult.score, mic: useMic, tier: PATH[step].tier, bpm: c.bpm }); lastResult.est = est; lastResult.mic = useMic; lastResult.parcial = !final;
       await store.upsert(KIND, null, { mode: 'leitura', lv: lvNow, bpm: c.bpm, bars: nb, score: lastResult.score, at: Date.now() });
-      if (!livre && final) { const antes = (c.pstars || {})[step] ?? ((bestOf(c)[step] || 0) >= PASS_SCORE ? 1 : 0); const ganho = ganhoEstrelas(est, antes); if (est > antes) await save({ pstars: { ...(c.pstars || {}), [step]: est } }); if (ganho > 0) import('../figurinhas/mesa.js').then((M) => M.vitoria('toca', ganho)).catch(() => {}); }
+      if (!livre && final) { const antes = (c.pstars || {})[step] ?? ((bestOf(c)[step] || 0) >= PASS_SCORE ? 1 : 0); const ganho = ganhoEstrelas(est, antes); if (est > antes) await save({ pstars: { ...(c.pstars || {}), [step]: est } }); if (passedNow) import('../figurinhas/mesa.js').then((M) => M.vitoria('toca', 1, `toca:${step}:${faixaVel(c.bpm)}`)).catch(() => {}); } // 1 figurinha por fase em cada faixa de velocidade (lento, rápido, turbo): tocar certo em todas = 3
       if (!livre && final && lastResult.score > (bestOf(c)[step] || 0)) await save({ pbest: { ...bestOf(c), [step]: lastResult.score }, pstep: step }); // fica neste exercício vendo o resultado; o próximo abre no menu
       if (!S.alive || g !== S.gen) return; // saiu da tela (ou recomeçou) enquanto gravava: não mexe na tela de agora
       tocarEfeito('toca', passedNow ? 'passou de fase' : lastResult.score >= 70 ? 'acertou o tempo' : lastResult.score >= 40 ? 'quase' : 'errou'); // batucada: pandeiro, tamborim e surdo
