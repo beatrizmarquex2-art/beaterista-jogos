@@ -104,9 +104,9 @@
   <p class="atual-txt" id="etapa-txt" role="status" aria-live="polite"></p>
 
   <div class="preco">
-    <div><small>Pix · pagamento único</small><b>R$ 49,90</b></div>
-    <div class="eco">Oferta de lançamento</div>
-    <div class="cartao">Prefere cartão? <a href="https://pay.hotmart.com/Y108629105P" target="_blank" rel="noopener">Hotmart · R$ 79,90</a></div>
+    <div><small>Pix · pagamento único</small><b data-p="pix">R$ 49,90</b></div>
+    <div class="eco" data-p="selo">Oferta de lançamento</div>
+    <div class="cartao">Prefere cartão? <a href="https://pay.hotmart.com/Y108629105P" target="_blank" rel="noopener" data-p="linkcartao">Hotmart · <span data-p="cartao">R$ 79,90</span></a></div>
   </div>
   <p class="confianca"><span>12 meses de acesso</span><span>até 2 aparelhos</span><span>código no seu e-mail</span></p>
 
@@ -120,7 +120,7 @@
       <label for="cpf">CPF do pagador</label>
       <input id="cpf" name="cpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14" required>
       <p class="ajuda">o CPF é usado para gerar o pagamento no Mercado Pago e não fica armazenado no nosso cadastro.</p>
-      <button id="gerar" type="submit" class="principal">gerar Pix de R$ 49,90</button>
+      <button id="gerar" type="submit" class="principal" data-p="gerar">gerar Pix de R$ 49,90</button>
     </form>
     <p id="erro" class="erro" role="alert" hidden></p>
   </section>
@@ -157,6 +157,14 @@
 
   <p class="rodape">pagamento processado pelo Mercado Pago · acesso enviado pela equipe Beaterista<br>dúvidas? WhatsApp da escola: <a href="https://wa.me/5518991804150">(18) 99180-4150</a></p>
 </main>
+<script type="module">
+  // mesmos preços do app (js/oferta-precos.js): a troca de valor por data vale aqui também
+  import { precos } from '../js/oferta-precos.js';
+  const P = precos(), q = (k) => document.querySelectorAll(`[data-p="${k}"]`);
+  q('pix').forEach((e) => { e.textContent = P.txtPix; }); q('cartao').forEach((e) => { e.textContent = P.txtCartao; }); q('selo').forEach((e) => { e.textContent = P.selo; });
+  q('linkcartao').forEach((e) => { e.href = P.linkCartao; });
+  q('gerar').forEach((e) => { e.dataset.txt = `gerar Pix de ${P.txtPix}`; e.textContent = e.dataset.txt; });
+</script>
 <script>
 (() => {
   "use strict";
@@ -315,7 +323,7 @@
       etapa(1);
     } finally {
       $("gerar").disabled = false;
-      $("gerar").textContent = "gerar Pix de R$ 49,90";
+      $("gerar").textContent = $("gerar").dataset.txt || "gerar Pix";
     }
   });
   $("conferir").addEventListener("click", () => conferir());
