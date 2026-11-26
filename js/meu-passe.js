@@ -8,6 +8,7 @@ import * as CODE from './codigo.js';
 import { TXT_PIX, TXT_CARTAO, URL_CARTAO, pixAtivo } from './oferta.js';
 import { ligarCompra } from './escolha-pagamento.js';
 import { presentesDaFaixa } from './presente-paul.js';
+import { icone } from './presente-icones.js';
 
 const WHATS = '5518991804150'; // canal que mantém o MESMO código do ex-aluno (o Pix automático gera um código novo de comprador)
 const tipoSalvo = () => { try { return localStorage.getItem('beaterista-aluno-tipo') || ''; } catch { return ''; } };
@@ -25,8 +26,8 @@ const anual = () => { const r = CODE.ultimoAcesso(); const e = r && r.expira_em 
 /** Quem tem o passe (matriculado ou pago) recebe os 3 presentes do Paul: não precisa escolher. Só aparece quando há arquivos. */
 function presentesDoPasse() {
   const lista = presentesDaFaixa(''); if (!lista.length) return null;
-  return h('div', { class: 'mp-presentes' }, h('b', {}, 'seus presentes do Paul 🎁'), h('small', {}, 'como você tem o passe, os 3 presentes são seus:'),
-    ...lista.map((p) => h('details', { class: 'mp-pres' }, h('summary', { class: 'mp-pres-t' }, `${p.icone} ${p.titulo}`, h('small', {}, p.arquivos.length === 1 ? '1 arquivo' : `${p.arquivos.length} arquivos`)), ...p.arquivos.map((a) => h('a', { class: 'mp-pres-a', href: a.arquivo, target: '_blank', rel: 'noopener', download: '' }, a.nome)))));
+  return h('div', { class: 'mp-presentes' }, h('b', {}, 'seus presentes do Paul ', icone('gift')), h('small', {}, 'como você tem o passe, os 3 presentes são seus:'),
+    ...lista.map((p) => h('details', { class: 'mp-pres' }, h('summary', { class: 'mp-pres-t' }, h('span', { class: 'mp-pres-n' }, icone(p.id), ` ${p.titulo}`), h('small', {}, p.arquivos.length === 1 ? '1 arquivo' : `${p.arquivos.length} arquivos`)), ...p.arquivos.map((a) => h('a', { class: 'mp-pres-a', href: a.arquivo, target: '_blank', rel: 'noopener', download: '' }, a.nome)))));
 }
 export function cartaoMeuPasse() {
   const s = situacao(); if (!s) return null;

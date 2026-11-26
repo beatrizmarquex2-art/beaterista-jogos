@@ -7,6 +7,7 @@ import { CONFIG } from './config.js';
 import * as CODE from './codigo.js';
 import * as AC from './acesso.js';
 import { FAIXAS, INSTRUMENTOS, ICONE_INSTRUMENTO, PRESENTES } from './presente-config.js';
+import { icone } from './presente-icones.js';
 
 const KEY = 'beaterista-presente-paul'; // guarda só { faixa, instr, escolha, itens, token, em }: o cartão some depois que a pessoa ESCOLHEU o presente (se fechou antes de escolher, o cartão volta direto na escolha)
 const previa = () => { try { return /[?&]presente-preview(?:[=&#]|$)/.test(location.search); } catch { return false; } };
@@ -43,7 +44,7 @@ function telaEscolha(faixa, escolheu, instr) {
     h('h2', { class: 'pr-ok-tit' }, 'escolha o seu presente!'),
     h('p', { class: 'pr-ok-sub' }, 'o Paul separou estes presentes. toque no que você mais gostar:'),
     h('div', { class: 'pr-opcoes' }, ...lista.map((p) => h('button', { type: 'button', class: 'pr-opcao', 'data-p': p.id, onclick: () => escolheu(p) },
-      h('span', { class: 'pr-opcao-i', 'aria-hidden': 'true' }, p.icone), h('span', { class: 'pr-opcao-t' }, h('b', {}, p.titulo), h('small', {}, p.desc)), h('i', { 'aria-hidden': 'true' }, '›')))));
+      h('span', { class: 'pr-opcao-i', 'aria-hidden': 'true' }, icone(p.id)), h('span', { class: 'pr-opcao-t' }, h('b', {}, p.titulo), h('small', {}, p.desc)), h('i', { 'aria-hidden': 'true' }, '›')))));
 }
 /** Passo 2b: GRADE. Wallpaper e colorir: a pessoa toca em 3 miniaturas e só então o presente é liberado. */
 function telaGrade(p, liberar, voltar) {
@@ -55,12 +56,12 @@ function telaGrade(p, liberar, voltar) {
     h('img', { src: a.mini || a.arquivo, alt: '', loading: 'lazy', draggable: 'false' }), h('span', { class: 'pr-tile-n', 'aria-hidden': 'true' }, ''));
     b.addEventListener('click', () => { const i = sel.indexOf(a); if (i >= 0) sel.splice(i, 1); else if (sel.length < max) sel.push(a); else { dica.textContent = `já são ${max}! toque em um escolhido pra trocar.`; return; } pinta(); }); return [a, b]; });
   const pinta = () => { const grade = tiles[0] && tiles[0][1].parentElement; if (grade) grade.classList.toggle('cheio', sel.length === max); tiles.forEach(([a, b]) => { const i = sel.indexOf(a); b.classList.toggle('on', i >= 0); b.setAttribute('aria-pressed', String(i >= 0)); b.querySelector('.pr-tile-n').textContent = i >= 0 ? String(i + 1) : ''; });
-    const falta = max - sel.length; cont.textContent = `${sel.length} de ${max}`; dica.textContent = falta > 0 ? `toque em mais ${falta} pra liberar.` : 'prontinho! agora é só liberar. 🎁';
-    bt.disabled = falta > 0; bt.textContent = falta > 0 ? `escolha mais ${falta}` : `liberar meus ${max} ${max === 1 ? nomeItem[0] : nomeItem[1]} 🎁`; };
+    const falta = max - sel.length; cont.textContent = `${sel.length} de ${max}`; dica.textContent = falta > 0 ? `toque em mais ${falta} pra liberar.` : 'prontinho! agora é só liberar.';
+    bt.disabled = falta > 0; bt.replaceChildren(...(falta > 0 ? [`escolha mais ${falta}`] : [`liberar meus ${max} ${max === 1 ? nomeItem[0] : nomeItem[1]} `, icone('gift')])); };
   bt.addEventListener('click', () => { if (sel.length === max) liberar(sel.slice()); });
   const el = h('div', { class: 'sheet-body pr-ok pr-grade' },
     h('button', { type: 'button', class: 'pr-voltar', onclick: voltar }, '‹ voltar'),
-    h('h2', { class: 'pr-ok-tit' }, `${p.icone} escolha ${max} ${max === 1 ? nomeItem[0] : nomeItem[1]}`),
+    h('h2', { class: 'pr-ok-tit pr-grade-tit' }, icone(p.id), ` escolha ${max} ${max === 1 ? nomeItem[0] : nomeItem[1]}`),
     h('p', { class: 'pr-ok-sub' }, 'toque nos que você mais gostar. toque de novo pra tirar.'),
     h('div', { class: `pr-grade-grid pr-grade-${p.id}` }, ...tiles.map((t) => t[1])),
     h('div', { class: 'pr-grade-rodape' }, h('div', { class: 'pr-grade-info' }, cont, dica), bt));
@@ -72,11 +73,11 @@ function telaPresente(p, itens, fecha) {
   return h('div', { class: 'sheet-body pr-ok pr-entrega' }, confeteEl(),
     h('div', { class: 'pr-ent-topo' },
       h('img', { class: 'pr-paul-fest', src: 'assets/paul/animacoes/web/paul-comemoracao.webp', alt: '', width: 110, height: 110, draggable: 'false' }),
-      h('div', { class: 'pr-ent-tt' }, h('span', { class: 'pr-ent-fita' }, `${p.icone} ${p.titulo}`), h('h2', { class: 'pr-ok-tit' }, 'seu presente chegou!'), h('p', { class: 'pr-ok-sub' }, `${n} ${n === 1 ? 'item' : 'itens'} pra você. é só baixar.`))),
+      h('div', { class: 'pr-ent-tt' }, h('span', { class: 'pr-ent-fita' }, icone(p.id), ` ${p.titulo}`), h('h2', { class: 'pr-ok-tit' }, 'seu presente chegou!'), h('p', { class: 'pr-ok-sub' }, `${n} ${n === 1 ? 'item' : 'itens'} pra você. é só baixar.`))),
     h('div', { class: 'pr-cartas' }, ...itens.map((a, i) => h('article', { class: `pr-carta pr-carta-${p.id}`, style: `--r:${i % 2 ? 1.4 : -1.4}deg;--d:${i * 110}ms` },
       h('a', { class: 'pr-carta-img', href: a.arquivo, target: '_blank', rel: 'noopener', 'aria-label': `abrir ${a.nome}` }, h('img', { src: a.mini || a.arquivo, alt: '', loading: 'lazy', draggable: 'false' }), h('i', { class: 'pr-carta-n', 'aria-hidden': 'true' }, String(i + 1))),
-      h('div', { class: 'pr-carta-t' }, h('small', {}, TIPO[p.id] || 'presente'), h('b', {}, a.nome), h('a', { class: 'pr-baixar', href: a.arquivo, download: '', target: '_blank', rel: 'noopener' }, h('span', { 'aria-hidden': 'true' }, '⬇'), ' baixar'))))),
-    p.id === 'wallpaper' ? h('p', { class: 'pr-ent-dica' }, '📱 no celular: abra a imagem, segure o dedo nela e toque em “salvar”.') : (p.id === 'planner' || p.id === 'colorir' ? h('p', { class: 'pr-ent-dica' }, '🖨️ abra o PDF e imprima em folha A4.') : null),
+      h('div', { class: 'pr-carta-t' }, h('small', {}, TIPO[p.id] || 'presente'), h('b', {}, a.nome), h('a', { class: 'pr-baixar', href: a.arquivo, download: '', target: '_blank', rel: 'noopener' }, icone('baixar'), ' baixar'))))),
+    p.id === 'wallpaper' ? h('p', { class: 'pr-ent-dica' }, 'no celular: abra a imagem, segure o dedo nela e toque em “salvar”.') : (p.id === 'planner' || p.id === 'colorir' ? h('p', { class: 'pr-ent-dica' }, 'abra o PDF e imprima em folha A4.') : null),
     h('button', { type: 'button', class: 'pr-fechar', onclick: fecha }, 'fechar'));
 }
 /** Escolha + grade + entrega numa folha só (usada logo depois do formulário e quando a pessoa volta sem ter escolhido). */
@@ -100,7 +101,8 @@ export function abrirFormulario(aoAbrir, aoPreencher) {
     const outro = h('input', { class: 'field', type: 'text', maxlength: 40, placeholder: 'qual?', 'aria-label': 'Qual instrumento', hidden: true });
     const aceita = h('input', { type: 'checkbox', id: 'pr-aceita' });
     const erro = h('p', { class: 'pr-erro', role: 'alert' });
-    const botao = h('button', { type: 'button', class: 'btn primary wide' }, 'abrir meu presente 🎁');
+    const rotBotao = () => botao.replaceChildren('abrir meu presente ', icone('gift'));
+    const botao = h('button', { type: 'button', class: 'btn primary wide' }); rotBotao();
     const fichas = (lista, atual, onPick, rotulo) => { const box = h('div', { class: `pr-chips${rotulo === 'Instrumento favorito' ? ' pr-inst' : ''}`, role: 'radiogroup', 'aria-label': rotulo }); const pinta = () => box.querySelectorAll('button').forEach((b) => { const on = b.dataset.v === atual(); b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); });
       lista.forEach(([v, t]) => box.append(h('button', { type: 'button', role: 'radio', 'aria-checked': 'false', 'data-v': v, class: 'pr-chip', onclick: () => { onPick(v); pinta(); } }, ICONE_INSTRUMENTO[v] && rotulo === 'Instrumento favorito' ? h('span', { class: 'pr-chip-i', 'aria-hidden': 'true' }, ICONE_INSTRUMENTO[v]) : null, rotulo === 'Instrumento favorito' ? h('small', {}, t) : t))); return { box, pinta }; };
     const idade = h('select', { class: 'field pr-select', 'aria-label': 'Sua idade' }, h('option', { value: '', disabled: true, selected: true }, 'toque pra escolher'), ...FAIXAS.map(([v, t]) => h('option', { value: v }, t))); idade.addEventListener('change', () => { faixa = idade.value; });
@@ -121,11 +123,11 @@ export function abrirFormulario(aoAbrir, aoPreencher) {
         try { localStorage.setItem(KEY, JSON.stringify({ faixa, instr, escolha: null, token: r.token || null, em: Date.now() })); } catch { /* sem storage */ } // guarda só o token (não é dado pessoal), nunca e-mail nem WhatsApp
         if (aoPreencher) aoPreencher();
         fluxoEscolha(box, faixa, close, aoAbrir, instr);
-      } catch { erro.textContent = 'sem internet agora. tente de novo.'; } finally { botao.disabled = false; botao.textContent = 'abrir meu presente 🎁'; }
+      } catch { erro.textContent = 'sem internet agora. tente de novo.'; } finally { botao.disabled = false; rotBotao(); }
     });
     const box = h('div', { class: 'sheet-body pr-form' },
       h('header', { class: 'pr-topo' }, h('img', { src: 'assets/paul/animacoes/web/paul-presente.webp', alt: '', width: 96, height: 88, draggable: 'false' }),
-        h('div', {}, h('small', {}, 'presente especial'), h('h2', {}, 'o Paul preparou um presente pra você! 🎁'), h('p', {}, 'conta um pouquinho de você:'))),
+        h('div', {}, h('small', {}, 'presente especial'), h('h2', {}, 'o Paul preparou um presente pra você!'), h('p', {}, 'conta um pouquinho de você:'))),
       h('section', { class: 'pr-sec' },
         campo('nome', nome), h('div', { class: 'field pr-campo' }, h('span', {}, 'idade'), fx.box), campo('e-mail', email), campo('WhatsApp', zap),
         h('div', { class: 'field pr-campo' }, h('span', {}, 'instrumento que você mais ama'), ins.box, outro)),
@@ -142,6 +144,6 @@ export function cartaoPresente() {
   const el = h('section', { class: 'pr-cartao', 'aria-label': 'presente especial do Paul' },
     h('span', { class: 'pr-fita' }, 'presente'),
     h('img', { class: 'pr-cartao-paul', src: 'assets/paul/animacoes/web/paul-presente.webp', alt: '', width: 96, height: 96, loading: 'lazy', draggable: 'false' }),
-    h('div', { class: 'pr-cartao-txt' }, h('b', {}, ja ? 'escolha o seu presente do Paul!' : 'quer um presente especial do Paul?'), h('small', {}, ja ? 'falta só escolher 🎁' : 'uma surpresa de graça pra você 🎁'), h('button', { type: 'button', class: 'pr-abrir', onclick: () => abrirFormulario(() => el.remove(), () => { const b = el.querySelector('b'), sm = el.querySelector('small'); if (b) b.textContent = 'escolha o seu presente do Paul!'; if (sm) sm.textContent = 'falta só escolher 🎁'; }) }, 'abrir meu presente 🎁')));
+    h('div', { class: 'pr-cartao-txt' }, h('b', {}, ja ? 'escolha o seu presente do Paul!' : 'quer um presente especial do Paul?'), h('small', {}, ja ? 'falta só escolher' : 'uma surpresa de graça pra você'), h('button', { type: 'button', class: 'pr-abrir', onclick: () => abrirFormulario(() => el.remove(), () => { const b = el.querySelector('b'), sm = el.querySelector('small'); if (b) b.textContent = 'escolha o seu presente do Paul!'; if (sm) sm.textContent = 'falta só escolher'; }) }, 'abrir meu presente ', icone('gift'))));
   return el;
 }
