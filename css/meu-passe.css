@@ -1,15 +1,16 @@
-/* "Meu passe" no Perfil: usa as cores e a tipografia do app (papel/creme, vermelho, grafite) */
-.mp{display:grid;gap:8px;padding:16px;border:2px solid var(--ink);border-radius:var(--radius,14px);background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
-.mp p{margin:0;font:600 14px/1.45 var(--body)}.mp .mp-nota{font-size:12.5px;color:var(--muted)}
-.mp h3{margin:0;font:var(--dstyle) var(--dw) 24px/1.1 var(--display);text-transform:lowercase}
-.mp .mp-rot{display:block;background:none;padding:0;font:800 10.5px/1.2 var(--body);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-.mp-ok{border-color:var(--ok)}.mp-ok h3{color:var(--ok)}
-.mp-ex{border-color:var(--accent)}.mp-ex h3{color:var(--accent);text-transform:uppercase;font-family:Anton,var(--display);font-style:normal;font-weight:400}
-.mp-preco b{font:400 34px/1 Anton,sans-serif;color:var(--accent)}.mp-preco{display:flex;align-items:baseline;gap:6px}.mp-preco2{font:800 15px/1.2 var(--body)!important;text-transform:uppercase;letter-spacing:.05em}
-.mp-btn{display:flex;align-items:center;justify-content:center;min-height:48px;margin-top:4px;padding:10px 16px;border:2px solid var(--ink);border-radius:10px;background:var(--accent);color:var(--accent-ink);font:900 15px/1 var(--body);text-decoration:none;text-transform:lowercase;box-shadow:3px 3px 0 var(--ink)}
-.mp-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
-
-.mp-presentes{display:grid;gap:6px;margin-top:6px;padding:10px;border:2px dashed var(--ink);border-radius:10px;background:var(--card-soft)}
-.mp-presentes>b{font:800 14px/1.2 var(--body)}.mp-presentes>small{font:600 12.5px/1.3 var(--body);color:var(--muted)}
+/* "Meu passe" no Perfil: modelo DOURADO (igual ao passe do aluno do Início: cartão de identidade dourado, presilha no topo, Paul ao lado do título) */
+.mp{position:relative;overflow:hidden;display:grid;gap:8px;padding:22px 16px 16px;border:3px solid #3a2810;border-radius:24px;background:linear-gradient(135deg,#f6c445 0%,#fde9a8 45%,#e4a62f 100%);color:#2a1d0a;box-shadow:0 10px 0 -2px rgb(58 40 16 / .35),0 18px 28px -14px rgb(0 0 0 / .5)}
+.mp::before{content:"";position:absolute;left:50%;top:7px;width:70px;height:12px;margin-left:-35px;border-radius:99px;background:#1c1408;opacity:.85}
+.mp::after{content:"";position:absolute;right:8px;top:10px;width:92px;height:92px;background:url(../assets/paul/animacoes/web/paul-presente.webp) center/contain no-repeat;filter:drop-shadow(0 4px 0 rgb(58 40 16 / .3));pointer-events:none}
+.mp-ex::after{background-image:url(../assets/paul/colorido/paul-microfone.webp)}
+.mp p{margin:0;font:600 14px/1.45 var(--body);color:#3a2810}.mp .mp-nota{font-size:12.5px;color:#6b4a12}
+.mp h3{margin:0;padding-right:92px;font:400 28px/1.02 Anton,sans-serif;font-style:normal;text-transform:uppercase;color:#2a1d0a}
+.mp .mp-rot{display:block;padding:0 92px 0 0;background:none;font:800 10.5px/1.2 var(--body);letter-spacing:.2em;text-transform:uppercase;color:#6b4a12}
+.mp-preco b{font:400 34px/1 Anton,sans-serif;color:#8a1220}.mp-preco{display:flex;align-items:baseline;gap:6px}.mp-preco2{font:800 15px/1.2 var(--body)!important;text-transform:uppercase;letter-spacing:.05em}
+.mp-btn{display:flex;align-items:center;justify-content:center;min-height:48px;margin-top:4px;padding:10px 16px;border:3px solid #1c1408;border-radius:12px;background:#1c1408;color:#ffe9a8;font:900 15px/1 var(--body);text-decoration:none;text-transform:lowercase;box-shadow:3px 3px 0 rgb(0 0 0 / .3)}
+.mp-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 rgb(0 0 0 / .3)}
+.mp-btn:focus-visible{outline:3px solid #8a1220;outline-offset:3px}
+.mp-presentes{display:grid;gap:6px;margin-top:6px;padding:10px;border:2px dashed #3a2810;border-radius:12px;background:rgb(255 255 255 / .5);color:#2a1d0a}
+.mp-presentes>b{font:800 14px/1.2 var(--body)}.mp-presentes>small{font:600 12.5px/1.3 var(--body);color:#6b4a12}
 .mp-pres{display:grid;gap:4px}.mp-pres-t{font:800 13.5px/1.2 var(--body)}
-.mp-pres-a{display:flex;align-items:center;min-height:44px;padding:8px 12px;border:2px solid var(--ink);border-radius:8px;background:var(--card);color:var(--ink);font:700 13.5px/1.2 var(--body);text-decoration:none}
+.mp-pres-a{display:flex;align-items:center;min-height:44px;padding:8px 12px;border:2px solid #3a2810;border-radius:8px;background:#fffaf0;color:#2a1d0a;font:700 13.5px/1.2 var(--body);text-decoration:none}
