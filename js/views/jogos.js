@@ -1,4 +1,5 @@
 // Jogos musicais: catálogo (3 por fileira) e cada jogo dentro da mesma moldura (voltar, som, nova partida).
+import { cabeNaTela } from '../jogos/cabe.js';
 import { h } from '../util.js';
 import { banner, toast, confirmSheet } from '../ui.js';
 import { paulDica } from '../paul-dicas.js';
@@ -276,14 +277,15 @@ function game(host, entry) {
   const desenhaFaixa = () => { const s = salaAtual(); const c = s && s.conn; if (!c) { faixa.hidden = true; return; } const ns = c.nomes(); const outros = ns.map((_, i) => i).filter((i) => i !== c.me); if (!outros.length) { faixa.hidden = true; return; }
     faixa.replaceChildren(...outros.map((i) => { const n = c.nomeDe(i, ns.length > 2 ? `jogador ${i + 1}` : 'o outro'); return h('button', { type: 'button', class: `ps-chip${c.perfilDe(i) ? ' tem' : ''}`, 'aria-label': `ver o perfil de ${n}`, onclick: () => abrirPerfil(n, c.perfilDe(i)) }, n, h('i', { 'aria-hidden': 'true' }, '›')); })); faixa.hidden = false; };
   document.addEventListener('bt-perfis-sala', desenhaFaixa); document.addEventListener('bt-pausa-sala', desenhaFaixa);
-  const btnPausa = h('button', { class: 'btn small ghost jg-pausa-btn', type: 'button', 'aria-label': 'pausar o jogo', onclick: pausar }, '⏸ pausa');
+  const btnPausa = h('button', { class: 'btn small ghost jg-pausa-btn', type: 'button', 'aria-label': 'pausar o jogo', onclick: pausar }, h('span', { 'aria-hidden': 'true' }, '⏸'), h('span', { class: 'jg-lbl' }, ' pausa'));
   const wrap = h('div', { class: `jg jg-wrap jg-game${darkOn(entry[0]) ? ' jg-dark' : ''}` },
     h('div', { class: 'jg-top' }, h('a', { class: 'jg-link', href: '#/jogos', onclick: async (e) => { if (ctl.inProgress && ctl.inProgress()) { e.preventDefault(); if (await confirmSheet('sair da partida?', 'a partida atual será perdida.', 'sair')) { deVez = true; location.hash = '#/jogos'; } } } }, '‹ jogos'), h('b', { class: 'hand jg-title' }, title),
-      btnPausa, h('button', { class: 'btn small ghost', type: 'button', onclick: () => ctl.restart() }, 'nova partida'), snd, musicButton('icon-btn jg-mus')),
+      btnPausa, h('button', { class: 'btn small ghost jg-nova-btn', type: 'button', 'aria-label': 'nova partida', onclick: () => ctl.restart() }, h('span', { 'aria-hidden': 'true' }, '↻'), h('span', { class: 'jg-lbl' }, ' nova partida')), snd, musicButton('icon-btn jg-mus')),
     faixa, body);
   host.replaceChildren(wrap); desenhaFaixa();
+  const offCabe = cabeNaTela(wrap, body); // o jogo cabe inteiro na tela (sem rolagem da página): reduz na proporção certa se precisar
   const offFesta = attachFesta(wrap);
-  return () => { document.removeEventListener('bt-perfis-sala', desenhaFaixa); document.removeEventListener('bt-pausa-sala', desenhaFaixa); document.removeEventListener('bt-pausa-sala', aoPausaSala); document.removeEventListener('bt-pausa-abrir', aoPedir); musicaVolta(); const andava = !!(ctl.inProgress && ctl.inProgress()); if (andava && !deVez) lembrarJogo(entry[0], entry[1]); else esquecerJogo(entry[0]); offFesta(); ctl.destroy(); };
+  return () => { offCabe(); document.removeEventListener('bt-perfis-sala', desenhaFaixa); document.removeEventListener('bt-pausa-sala', desenhaFaixa); document.removeEventListener('bt-pausa-sala', aoPausaSala); document.removeEventListener('bt-pausa-abrir', aoPedir); musicaVolta(); const andava = !!(ctl.inProgress && ctl.inProgress()); if (andava && !deVez) lembrarJogo(entry[0], entry[1]); else esquecerJogo(entry[0]); offFesta(); ctl.destroy(); };
 }
 
 /** Jogo com Modo Aventura: #/jogos/<id> escolhe o modo, /livre = como sempre, /aventura = mapa, /aventura/<n> = missão. Sem módulo de aventura (ou se falhar), cai direto no Modo Livre. */
