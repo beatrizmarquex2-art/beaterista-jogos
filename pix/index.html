@@ -174,7 +174,7 @@
   let precoAgora = PRECOS_PIX[0][1];
   for (const [d, v] of PRECOS_PIX) if (Date.parse(d) <= Date.now()) precoAgora = v;
   const TXT_PRECO = "R$ " + precoAgora.toFixed(2).replace(".", ",");
-  const PRECOS_CARTAO = [["1970-01-01T00:00:00-03:00", 79.9], ["2027-01-01T00:00:00-03:00", 119]]; // igual a js/oferta-precos.js (o preço real do cartão é o do painel da Hotmart)
+  const PRECOS_CARTAO = [["1970-01-01T00:00:00-03:00", 79.9], ["2027-01-01T00:00:00-03:00", 119.9]]; // igual a js/oferta-precos.js (o preço real do cartão é o do painel da Hotmart)
   let cartaoAgora = PRECOS_CARTAO[0][1];
   for (const [d, v] of PRECOS_CARTAO) if (Date.parse(d) <= Date.now()) cartaoAgora = v;
   document.getElementById("preco-cartao").textContent = "R$ " + cartaoAgora.toFixed(2).replace(".", ",");
