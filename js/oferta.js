@@ -8,12 +8,12 @@ export const SITE = 'https://jogos.beaterista.com.br';
 export const MARCA = 'Beaterista Play';
 export const PASSE_NOME = 'Passe Anual Robôterista';
 
-export const PRECO_PIX = 49.9;
+import { precoPixAgora, seloPix, brl } from './oferta-precos.js';
+export const PRECO_PIX = precoPixAgora(); // por data (promoção de Natal até 31/12; depois o preço normal): a tabela mora em js/oferta-precos.js
 export const PRECO_CARTAO = 79.9;
-const brl = (n) => `R$ ${n.toFixed(2).replace('.', ',')}`;
 export const TXT_PIX = brl(PRECO_PIX);
 export const TXT_CARTAO = brl(PRECO_CARTAO);
-export const TXT_SELO = 'Oferta de lançamento'; // selo do Pix (troque aqui pra mudar em todo o site)
+export const TXT_SELO = seloPix(); // selo do Pix (troque aqui pra mudar em todo o site)
 
 export const URL_PIX = `${SITE}/pix/`;
 export const URL_CARTAO = 'https://pay.hotmart.com/Y108629105P';

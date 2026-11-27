@@ -105,8 +105,8 @@
   <p class="atual-txt" id="etapa-txt" role="status" aria-live="polite"></p>
 
   <div class="preco">
-    <div><small>Pix · pagamento único</small><b>R$ 49,90</b></div>
-    <div class="eco">Oferta de lançamento</div>
+    <div><small>Pix · pagamento único</small><b id="preco-pix">R$ 49,90</b></div>
+    <div class="eco" id="selo-pix">Oferta de Natal · até 31/12</div>
     <div class="cartao">Prefere cartão? <a href="https://pay.hotmart.com/Y108629105P" target="_blank" rel="noopener">Hotmart · R$ 79,90</a></div>
   </div>
   <p class="confianca"><span>12 meses de acesso</span><span>até 2 aparelhos</span><span>código no seu e-mail</span></p>
@@ -121,7 +121,7 @@
       <label for="cpf">CPF do pagador</label>
       <input id="cpf" name="cpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" maxlength="14" required>
       <p class="ajuda">o CPF é usado para gerar o pagamento no Mercado Pago e não fica armazenado no nosso cadastro.</p>
-      <button id="gerar" type="submit" class="principal">gerar Pix de R$ 49,90</button>
+      <button id="gerar" type="submit" class="principal">gerar Pix</button>
     </form>
     <p id="erro" class="erro" role="alert" hidden></p>
   </section>
@@ -168,6 +168,15 @@
   const $ = (id) => document.getElementById(id);
   const doLink = new URLSearchParams(location.search).get("pedido") || ""; // link do e-mail "seu Pix está pronto"
   if (/^[0-9a-f-]{36}$/i.test(doLink)) sessionStorage.setItem("beaterista-pix-pedido", doLink.toLowerCase());
+  // preço por data: IGUAL à tabela da função mercadopago-passe e a js/oferta-precos.js (promoção de Natal até 31/12/2026, depois o preço normal)
+  const PRECOS_PIX = [["1970-01-01T00:00:00-03:00", 49.9], ["2027-01-01T00:00:00-03:00", 99.9]];
+  const FIM_NATAL = Date.parse("2027-01-01T00:00:00-03:00");
+  let precoAgora = PRECOS_PIX[0][1];
+  for (const [d, v] of PRECOS_PIX) if (Date.parse(d) <= Date.now()) precoAgora = v;
+  const TXT_PRECO = "R$ " + precoAgora.toFixed(2).replace(".", ",");
+  document.getElementById("preco-pix").textContent = TXT_PRECO;
+  document.getElementById("selo-pix").textContent = Date.now() < FIM_NATAL ? "Oferta de Natal · até 31/12" : "Pagamento único";
+  document.getElementById("gerar").textContent = "gerar Pix de " + TXT_PRECO;
   let pedido = sessionStorage.getItem("beaterista-pix-pedido") || "";
   const emailDoPedido = () => sessionStorage.getItem("beaterista-pix-email") || ""; // só neste aparelho: é ele que libera mostrar o código na tela
   let timer = null;
@@ -322,7 +331,7 @@
       etapa(1);
     } finally {
       $("gerar").disabled = false;
-      $("gerar").textContent = "gerar Pix de R$ 49,90";
+      $("gerar").textContent = "gerar Pix de " + TXT_PRECO;
     }
   });
   $("conferir").addEventListener("click", () => conferir());
