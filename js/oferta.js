@@ -8,9 +8,9 @@ export const SITE = 'https://jogos.beaterista.com.br';
 export const MARCA = 'Beaterista Play';
 export const PASSE_NOME = 'Passe Anual Robôterista';
 
-import { precoPixAgora, seloPix, brl } from './oferta-precos.js';
+import { precoPixAgora, precoCartaoAgora, seloPix, brl } from './oferta-precos.js';
 export const PRECO_PIX = precoPixAgora(); // por data (promoção de Natal até 31/12; depois o preço normal): a tabela mora em js/oferta-precos.js
-export const PRECO_CARTAO = 79.9;
+export const PRECO_CARTAO = precoCartaoAgora(); // por data (js/oferta-precos.js): o preço de verdade é o do painel da Hotmart
 export const TXT_PIX = brl(PRECO_PIX);
 export const TXT_CARTAO = brl(PRECO_CARTAO);
 export const TXT_SELO = seloPix(); // selo do Pix (troque aqui pra mudar em todo o site)

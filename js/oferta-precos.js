@@ -5,6 +5,12 @@ export const PRECOS_PIX = [
   { desde: '1970-01-01T00:00:00-03:00', valor: 49.9 },
   { desde: '2027-01-01T00:00:00-03:00', valor: 99.9 },
 ];
+// Cartão (Hotmart): o preço de lá quem muda é a Bea no painel da Hotmart; esta tabela só decide o que o SITE mostra. Natal R$ 79,90 até 31/12; de 01/01/2027 R$ 119,00 (12 x R$ 9,92).
+export const PRECOS_CARTAO = [
+  { desde: '1970-01-01T00:00:00-03:00', valor: 79.9 },
+  { desde: '2027-01-01T00:00:00-03:00', valor: 119 },
+];
+export function precoCartaoAgora(agora = Date.now()) { let v = PRECOS_CARTAO[0].valor; for (const p of PRECOS_CARTAO) if (Date.parse(p.desde) <= agora) v = p.valor; return v; }
 export const FIM_NATAL = '2027-01-01T00:00:00-03:00'; // a oferta vale até 31/12/2026 23:59 (Brasília)
 export const brl = (n) => `R$ ${n.toFixed(2).replace('.', ',')}`;
 export function precoPixAgora(agora = Date.now()) { let v = PRECOS_PIX[0].valor; for (const p of PRECOS_PIX) if (Date.parse(p.desde) <= agora) v = p.valor; return v; }

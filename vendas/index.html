@@ -624,17 +624,19 @@ details{border-width:1px;padding:10px 14px;margin-bottom:7px}
     <span style="font:600 13px/1.35 sans-serif">Pagamento único · o código chega no seu e-mail assim que o Pix é confirmado</span>
     <span style="display:flex;align-items:center;justify-content:center;min-height:48px;margin-top:6px;border:3px solid #1b1818;border-radius:999px;background:#fff;color:#1b1818;font:900 16px sans-serif">Comprar com Pix</span></a>
   <a href="https://pay.hotmart.com/Y108629105P?src=vendas" target="_blank" rel="noopener noreferrer" data-compra="cartao" data-origem="vendas" style="display:grid;gap:4px;padding:16px;border:3px solid #1b1818;border-radius:14px;background:#fff;color:#1b1818;text-decoration:none;box-shadow:4px 4px 0 #1b1818">
-    <b style="font:800 13px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase">Cartão de crédito</b><span style="font:900 1.75rem/1 Georgia,serif;color:#b5162b">R$ 79,90</span><span style="font:600 13px sans-serif">Pagamento pela Hotmart</span>
+    <b style="font:800 13px/1 sans-serif;letter-spacing:.14em;text-transform:uppercase">Cartão de crédito</b><span id="ep-cartao-preco" style="font:900 1.75rem/1 Georgia,serif;color:#b5162b">R$ 79,90</span><span style="font:600 13px sans-serif">Pagamento pela Hotmart</span>
     <span style="display:flex;align-items:center;justify-content:center;min-height:48px;margin-top:6px;border:3px solid #1b1818;border-radius:999px;background:#f6ecd9;font:900 16px sans-serif">Comprar com cartão</span></a>
   <p style="margin:12px 0 0;text-align:center;font:600 12px/1.4 sans-serif;color:#5f5752">12 meses de acesso · até 2 aparelhos · código enviado por e-mail após a confirmação do pagamento</p>
 </dialog>
 <script type="module">
   // mesma chave do app (js/oferta-flag.js): com o Pix ativo, o botão do passe abre a escolha de pagamento; sem ele, vai direto pro cartão
   import { pixAtivo } from '../js/oferta-flag.js';
-  import { precoPixAgora, emOferta, brl } from '../js/oferta-precos.js';
+  import { precoPixAgora, precoCartaoAgora, emOferta, brl } from '../js/oferta-precos.js';
+  document.getElementById('ep-cartao-preco').textContent = brl(precoCartaoAgora());
+  document.getElementById('passe-preco').innerHTML = '<strong>' + brl(precoCartaoAgora()) + '</strong> no cartão, pela Hotmart · 12 meses de acesso · até 2 aparelhos';
   if (pixAtivo()) {
     const dlg = document.getElementById('ep-v'), btn = document.getElementById('passe-comprar');
-    document.getElementById('passe-preco').innerHTML = '<strong>' + brl(precoPixAgora()) + '</strong> no Pix, pagamento único · ou R$ 79,90 no cartão · 12 meses · até 2 aparelhos';
+    document.getElementById('passe-preco').innerHTML = '<strong>' + brl(precoPixAgora()) + '</strong> no Pix, pagamento único · ou ' + brl(precoCartaoAgora()) + ' no cartão · 12 meses · até 2 aparelhos';
     document.getElementById('passe-nota-txt').textContent = (emOferta() ? 'Oferta de Natal no Pix até 31/12. ' : '') + 'Assim que o pagamento é confirmado, o código de acesso chega automaticamente no seu e-mail.';
     btn.addEventListener('click', (e) => { e.preventDefault(); dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', ''); });
     document.getElementById('ep-vx').addEventListener('click', () => dlg.close());
