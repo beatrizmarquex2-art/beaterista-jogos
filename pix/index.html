@@ -75,6 +75,7 @@
     .confianca span::before{content:"✓ ";color:var(--ouro)}
     @media(max-width:380px){.painel{padding:18px 14px 16px 22px}.hero{grid-template-columns:1fr 88px}.hero img.paul{width:88px}.preco{grid-template-columns:1fr}}
     @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+  .codigo-bloco{margin:14px 0;padding:14px;border:3px dashed var(--graf);border-radius:14px;background:#fff7dc}.codigo-bloco small{font:800 12px/1.2 Hanken,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}.codigo-bloco b{display:block;margin:6px 0 10px;font:400 32px/1.1 Anton,Impact,sans-serif;letter-spacing:4px;word-break:break-all;color:var(--graf)}
   </style>
 </head>
 <body>
@@ -140,7 +141,7 @@
       <button id="conferir" class="botao secundario" type="button">já paguei · conferir pagamento</button>
       <button id="novo" class="botao secundario" type="button" hidden>gerar um novo Pix</button>
     </div>
-    <p class="ajuda">a confirmação é automática: esta tela se atualiza sozinha. depois, o código anual chega ao seu e-mail. não é necessário enviar comprovante.</p>
+    <p class="ajuda">a confirmação é automática: esta tela se atualiza sozinha. depois, o código anual aparece aqui e chega ao seu e-mail. não é necessário enviar comprovante.</p>
     <p id="erro2" class="erro" role="alert" hidden></p>
   </section>
 
@@ -151,6 +152,7 @@
       <li>passe anual ativo: 12 meses, até 2 aparelhos</li>
       <li id="li-email">código enviado para o e-mail informado</li>
     </ul>
+    <div id="codigo-bloco" class="codigo-bloco" hidden><small>seu código de acesso</small><b id="codigo-txt"></b><button id="copiar-codigo" type="button" class="botao secundario">copiar código</button></div>
     <p id="sucesso-txt" class="ajuda" style="font-size:14px;color:var(--graf)">confira também a caixa de spam. na plataforma, escreva seu nome e digite o código em “já sou aluno”.</p>
     <a class="botao principal" href="https://jogos.beaterista.com.br/?entrar" style="display:flex;align-items:center;justify-content:center;text-decoration:none">entrar na plataforma</a>
   </section>
@@ -164,7 +166,10 @@
   // identificador do pedido guardado em sessionStorage para recuperar um Pix pendente. A confirmação do e-mail só vem do servidor (email_enviado).
   const API = "https://fnxgjxatremjdxaqmswu.supabase.co/functions/v1/mercadopago-passe";
   const $ = (id) => document.getElementById(id);
+  const doLink = new URLSearchParams(location.search).get("pedido") || ""; // link do e-mail "seu Pix está pronto"
+  if (/^[0-9a-f-]{36}$/i.test(doLink)) sessionStorage.setItem("beaterista-pix-pedido", doLink.toLowerCase());
   let pedido = sessionStorage.getItem("beaterista-pix-pedido") || "";
+  const emailDoPedido = () => sessionStorage.getItem("beaterista-pix-email") || ""; // só neste aparelho: é ele que libera mostrar o código na tela
   let timer = null;
   let consultando = false;
   const erro = (el, msg) => { el.hidden = !msg; el.textContent = msg || ""; };
@@ -240,9 +245,10 @@
     etapa(3);
     if (!timer) timer = setInterval(conferir, 7000);
   }
-  function finalizado(enviado) {
+  function finalizado(enviado, codigo) {
     clearInterval(timer); timer = null;
-    sessionStorage.removeItem("beaterista-pix-pedido"); pedido = "";
+    sessionStorage.removeItem("beaterista-pix-pedido"); sessionStorage.removeItem("beaterista-pix-email"); pedido = "";
+    if (codigo && /^[A-Za-z0-9]{6,20}$/.test(codigo)) { $("codigo-txt").textContent = codigo; $("codigo-bloco").hidden = false; }
     $("inicio").hidden = true;
     $("pagamento").hidden = true;
     $("sucesso").hidden = false;
@@ -257,8 +263,8 @@
     if (!pedido || consultando || document.hidden) return;
     consultando = true;
     try {
-      const data = await chamar("status", { pedido });
-      if (data.status === "aprovada" && data.email_enviado) finalizado(true);
+      const data = await chamar("status", { pedido, email: emailDoPedido() || undefined });
+      if (data.status === "aprovada" && (data.email_enviado || data.codigo)) finalizado(!!data.email_enviado, data.codigo);
       else if (data.status === "aprovada") {
         $("status").textContent = "Pagamento confirmado. Estamos enviando o código ao seu e-mail; não pague novamente.";
         $("status").className = "status ok";
@@ -308,6 +314,7 @@
       });
       pedido = data.pedido;
       sessionStorage.setItem("beaterista-pix-pedido", pedido);
+      sessionStorage.setItem("beaterista-pix-email", $("email").value.trim().toLowerCase());
       pagamento(data);
       await conferir();
     } catch (e) {
@@ -329,6 +336,11 @@
       $("chave").select();
       $("copiar").textContent = "selecione e copie o código acima";
     }
+  });
+  $("copiar-codigo").addEventListener("click", async () => {
+    const t = $("codigo-txt").textContent;
+    try { await navigator.clipboard.writeText(t); $("copiar-codigo").textContent = "código copiado!"; }
+    catch { const r = document.createRange(); r.selectNodeContents($("codigo-txt")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); $("copiar-codigo").textContent = "selecione e copie o código acima"; }
   });
   etapa(1);
   if (pedido) {
