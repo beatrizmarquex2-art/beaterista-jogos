@@ -15,5 +15,9 @@ export const FIM_NATAL = '2027-01-01T00:00:00-03:00'; // a oferta vale até 31/1
 export const brl = (n) => `R$ ${n.toFixed(2).replace('.', ',')}`;
 export function precoPixAgora(agora = Date.now()) { let v = PRECOS_PIX[0].valor; for (const p of PRECOS_PIX) if (Date.parse(p.desde) <= agora) v = p.valor; return v; }
 export const emOferta = (agora = Date.now()) => agora < Date.parse(FIM_NATAL);
-export const seloPix = (agora = Date.now()) => (emOferta(agora) ? 'Oferta de Natal · até 31/12' : 'Pagamento único');
+// A mesma oferta (R$ 49,90) tem 2 nomes: Black Friday até 15/12 (fim do dia) e, a partir do dia 16, Natal até 31/12. O preço não muda; só o selo (e a arte do Paul Noel, que entra no dia 16).
+export const FIM_BLACK_FRIDAY = '2026-12-16T00:00:00-03:00';
+export const nomeOferta = (agora = Date.now()) => (!emOferta(agora) ? '' : agora < Date.parse(FIM_BLACK_FRIDAY) ? 'Black Friday' : 'de Natal');
+export const ateOferta = (agora = Date.now()) => (agora < Date.parse(FIM_BLACK_FRIDAY) ? '15/12' : '31/12');
+export const seloPix = (agora = Date.now()) => (emOferta(agora) ? `Oferta ${nomeOferta(agora)} · até ${ateOferta(agora)}` : 'Pagamento único');
 export const PRECO_NORMAL_PIX = PRECOS_PIX[PRECOS_PIX.length - 1].valor;

@@ -179,7 +179,8 @@
   for (const [d, v] of PRECOS_CARTAO) if (Date.parse(d) <= Date.now()) cartaoAgora = v;
   document.getElementById("preco-cartao").textContent = "R$ " + cartaoAgora.toFixed(2).replace(".", ",");
   document.getElementById("preco-pix").textContent = TXT_PRECO;
-  document.getElementById("selo-pix").textContent = Date.now() < FIM_NATAL ? "Oferta de Natal · até 31/12" : "Pagamento único";
+  const FIM_BF = Date.parse("2026-12-16T00:00:00-03:00"); // Black Friday até 15/12; do dia 16 em diante, Natal até 31/12 (igual a js/oferta-precos.js)
+  document.getElementById("selo-pix").textContent = Date.now() >= FIM_NATAL ? "Pagamento único" : Date.now() < FIM_BF ? "Oferta Black Friday · até 15/12" : "Oferta de Natal · até 31/12";
   document.getElementById("gerar").textContent = "gerar Pix de " + TXT_PRECO;
   let pedido = sessionStorage.getItem("beaterista-pix-pedido") || "";
   const emailDoPedido = () => sessionStorage.getItem("beaterista-pix-email") || ""; // só neste aparelho: é ele que libera mostrar o código na tela

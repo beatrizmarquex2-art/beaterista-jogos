@@ -631,13 +631,13 @@ details{border-width:1px;padding:10px 14px;margin-bottom:7px}
 <script type="module">
   // mesma chave do app (js/oferta-flag.js): com o Pix ativo, o botão do passe abre a escolha de pagamento; sem ele, vai direto pro cartão
   import { pixAtivo } from '../js/oferta-flag.js';
-  import { precoPixAgora, precoCartaoAgora, emOferta, brl } from '../js/oferta-precos.js';
+  import { precoPixAgora, precoCartaoAgora, emOferta, nomeOferta, ateOferta, brl } from '../js/oferta-precos.js';
   document.getElementById('ep-cartao-preco').textContent = brl(precoCartaoAgora());
   document.getElementById('passe-preco').innerHTML = '<strong>' + brl(precoCartaoAgora()) + '</strong> no cartão, pela Hotmart · 12 meses de acesso · até 2 aparelhos';
   if (pixAtivo()) {
     const dlg = document.getElementById('ep-v'), btn = document.getElementById('passe-comprar');
     document.getElementById('passe-preco').innerHTML = '<strong>' + brl(precoPixAgora()) + '</strong> no Pix, pagamento único · ou ' + brl(precoCartaoAgora()) + ' no cartão · 12 meses · até 2 aparelhos';
-    document.getElementById('passe-nota-txt').textContent = (emOferta() ? 'Oferta de Natal no Pix até 31/12. ' : '') + 'Assim que o pagamento é confirmado, o código de acesso chega automaticamente no seu e-mail.';
+    document.getElementById('passe-nota-txt').textContent = (emOferta() ? 'Oferta ' + nomeOferta() + ' no Pix até ' + ateOferta() + '. ' : '') + 'Assim que o pagamento é confirmado, o código de acesso chega automaticamente no seu e-mail.';
     btn.addEventListener('click', (e) => { e.preventDefault(); dlg.showModal ? dlg.showModal() : dlg.setAttribute('open', ''); });
     document.getElementById('ep-vx').addEventListener('click', () => dlg.close());
     dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
