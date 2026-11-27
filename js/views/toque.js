@@ -23,6 +23,8 @@ import { tipBox } from '../tipbox.js';
 import { scheduler } from '../audio.js';
 import { flash, pieceAt } from '../kids/kit-theme.js';
 import { MARCAS } from '../marcas-links.js';
+import { aulasPainel } from './toque-aulas.js';
+import { SEM_AULA } from '../jogos/aulas-bateria.js';
 
 /** O logo da Beaterista e a marca do instrumento ficam na "tela", fora da bateria (PNG sem fundo). */
 const logoFora = (art, modelo) => {
@@ -45,7 +47,7 @@ const setConf = (p) => store.upsert('setting', KEY, p);
 const KEYS = { u: 'cr', i: 'rd', j: 'hh', h: 'ho', k: 'tt', o: 'mt', f: 'sn', l: 'ft', ' ': 'bd' };
 
 export function mount(host) {
-  let rec = null; let take = null; let loop = null; let last = null; let metro = null; let tempoRun = null; let loopOn = true; let listening = false; const timers = [];
+  let aulasCtl = null; let aulaTap = null; let rec = null; let take = null; let loop = null; let last = null; let metro = null; let tempoRun = null; let loopOn = true; let listening = false; const timers = [];
   const kit = h('div', { class: 'tk-kit tk-svgkit', role: 'group', 'aria-label': 'Bateria' });
   const panel = h('div');
   const status = h('p', { class: 'tr-status', 'aria-live': 'polite' });
@@ -59,7 +61,18 @@ export function mount(host) {
     const el = kit.querySelector(`[data-p="${id}"]`); flash(el); if (pt) spark(pt.x, pt.y, el);
     nomeEl.textContent = (modeloAtual === 'cajon' && { bd: 'grave', sn: 'agudo' }[id]) || NOME_PECA[id] || (id === 'ho' ? 'chimbal aberto' : ''); nomeEl.style.background = (el && el.style.getPropertyValue('--c')) || '#b5162b'; nomeEl.classList.remove('on'); void nomeEl.offsetWidth; nomeEl.classList.add('on');
     if (rec) rec.hits.push({ t: perfToCtx(perfMs) - rec.t0, id, v, dr });
+    if (aulaTap) { let tc = perfMs ? perfToCtx(perfMs) : c.currentTime; if (!(Math.abs(tc - c.currentTime) < 0.25)) tc = c.currentTime; aulaTap(id, tc); } // aula: guarda o toque do aluno
   };
+  /** O Paul tocando na aula: acende a peça e mostra o nome dela (sem som: o som já foi agendado). */
+  const luz = (id) => {
+    const el = kit.querySelector(`[data-p="${id}"]`); flash(el); if (el) { el.classList.add('au-luz'); setTimeout(() => el.classList.remove('au-luz'), 190); }
+    nomeEl.textContent = (modeloAtual === 'cajon' && { bd: 'grave', sn: 'agudo' }[id]) || NOME_PECA[id] || ''; nomeEl.style.background = (el && el.style.getPropertyValue('--c')) || '#b5162b'; nomeEl.classList.remove('on'); void nomeEl.offsetWidth; nomeEl.classList.add('on');
+  };
+  const abreAulas = () => {
+    if (aulasCtl) return;
+    if (SEM_AULA.includes(modeloAtual)) { toast('as aulas usam a bateria acústica ou a eletrônica'); setConf({ modelo: 'acustica' }).then(() => { drawKit(); abreAulas(); }); return; } // o cajón só tem agudo e grave
+    cancel(); stopAll(); aulasCtl = aulasPainel({ modelo: () => modeloAtual, luz, aoBater: (fn) => { aulaTap = fn; }, ver: () => { try { kit.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch { /* sem rolagem */ } }, jogando: (v) => kit.classList.toggle('au-jogando', !!v) }, { voltar: fechaAulas }); kit.classList.add('aulas'); drawKit(); drawPanel(); };
+  const fechaAulas = () => { if (!aulasCtl) return; aulasCtl.destroy(); aulasCtl = null; aulaTap = null; kit.classList.remove('aulas'); drawKit(); drawPanel(); };
   /** Onda que sai do ponto do toque, na cor da peça. */
   const spark = (x, y, el) => {
     const r = kit.getBoundingClientRect(); const d = h('i', { class: 'ti-rip' }); d.style.left = `${x - r.left}px`; d.style.top = `${y - r.top}px`; d.style.borderColor = (el && el.style.getPropertyValue('--c')) || '#b5162b'; kit.append(d);
@@ -77,14 +90,17 @@ export function mount(host) {
   const drawKit = () => {
     const c = conf(); modeloAtual = c.modelo; warmKit(c.modelo);
     kit.classList.toggle('left', !!c.left);
-    const art = svgEl(arte(c.modelo), `tk-art modelo-${c.modelo}`); logoFora(art, c.modelo);
+    const art = svgEl(arte(c.modelo), `tk-art modelo-${c.modelo}`);
+    { const svg = art.querySelector('svg'); if (svg) { const g = document.createElementNS('http://www.w3.org/2000/svg', 'g'); g.setAttribute('class', 'kit-espelho'); while (svg.firstChild) g.append(svg.firstChild); svg.append(g); } } // a bateria vai num grupo só: a canhota espelha esse grupo e os logos de fora não viram
+    logoFora(art, c.modelo);
     kit.dataset.kitTheme = 'colagem'; // um fundo só (a Bea não quer escolher tema na bateria de toque)
     art.addEventListener('pointerdown', (e) => { const g = pieceAt(art, e, 58); if (!g) return; e.preventDefault(); hit(g.dataset.p, e.timeStamp || performance.now(), drOf(g, e), { x: e.clientX, y: e.clientY }); });
     const modelos = h('div', { class: 'row kd-modes kd-modelos', role: 'radiogroup', 'aria-label': 'Modelo da bateria' }, h('small', {}, 'modelo'),
-      ...MODELOS_BATERIA.map(([v, l]) => { const trav = !pago() && !GRATIS.bateria.modelos.includes(v); return h('button', { type: 'button', class: `kd-chip${c.modelo === v ? ' on' : ''}${trav ? ' travado' : ''}`, role: 'radio', 'aria-checked': String(c.modelo === v), onclick: () => { if (trav) { pedir(`a bateria ${l}`); return; } setConf({ modelo: v }).then(() => { drawKit(); drawPanel(); }); } }, l, trav ? cadeado() : null); }));
+      ...MODELOS_BATERIA.map(([v, l]) => { const trav = !pago() && !GRATIS.bateria.modelos.includes(v); return h('button', { type: 'button', class: `kd-chip${c.modelo === v ? ' on' : ''}${trav ? ' travado' : ''}`, role: 'radio', 'aria-checked': String(c.modelo === v), onclick: () => { if (trav) { pedir(`a bateria ${l}`); return; } if (aulasCtl && SEM_AULA.includes(v)) { toast('o cajón não tem tom, surdo nem pratos: feche as aulas pra usar'); return; } setConf({ modelo: v }).then(() => { drawKit(); drawPanel(); }); } }, l, trav ? cadeado() : null); }));
     // canhota sobe pra cá: logo ao lado do modelo (inverte o lado da bateria)
     const canhota = h('button', { type: 'button', class: `kd-chip kd-canhota${c.left ? ' on' : ''}`, 'aria-pressed': String(!!c.left), onclick: () => setConf({ left: !c.left }).then(() => { drawKit(); drawPanel(); }) }, c.left ? 'canhota ✓' : 'canhota');
-    kit.replaceChildren(art, nomeEl, rolar(modelos), rolar(h('div', { class: 'row kd-modes kd-modelos' }, h('small', {}, 'jeito'), canhota)));
+    const aulasBtn = h('button', { type: 'button', class: `kd-chip kd-aulas${aulasCtl ? ' on' : ''}${!pago() ? ' travado' : ''}`, 'aria-pressed': String(!!aulasCtl), onclick: () => { if (!pago()) { pedir('as aulas da bateria'); return; } aulasCtl ? fechaAulas() : abreAulas(); } }, aulasCtl ? 'aulas ✓' : 'aulas', !pago() ? cadeado() : null);
+    kit.replaceChildren(h('div', { class: 'tk-palco' }, art, canhota), nomeEl, rolar(modelos), rolar(h('div', { class: 'row kd-modes kd-modelos' }, h('small', {}, 'treinar'), aulasBtn)));
   };
   const onKey = (e) => {
     if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || /input|textarea|select/i.test(e.target.tagName)) return;
@@ -158,6 +174,7 @@ export function mount(host) {
   };
 
   const drawPanel = () => {
+    if (aulasCtl) { panel.replaceChildren(aulasCtl.el); return; } // aulas abertas: o painel é o delas
     const c = conf();
     const setBpm = (v) => setConf({ bpm: clampBpm(v) }).then(drawPanel);
     const doc = take && { title: 'Toquei na bateria de toque', bpm: take.bpm, bars: take.bars };
@@ -196,5 +213,5 @@ export function mount(host) {
     h('p', { class: 'pad-x lib-note' }, 'dá pra tocar com vários dedos ao mesmo tempo. “gravar” conta 4 e grava até 30 segundos; ao parar, o que você tocou fica em loop (parar / recomeçar). no computador: U prato, I condução, J chimbal, H aberto, K tom 1, O tom 2, F caixa, L surdo, espaço bumbo. no iPhone o som pode atrasar um pouquinho: é do aparelho. o loop toca do jeitinho que você tocou; a partitura (quando cabe em 1, 2 ou 4 compassos) arredonda pra semicolcheia mais perto: confere antes de usar em aula.'));
   drawKit(); drawPanel(); tipBox(host, 'toque');
   const solta = aoLiberar(() => { drawKit(); drawPanel(); document.querySelectorAll('.tp-faixa').forEach((x) => x.remove()); });
-  return () => { solta(); cancel(); stopAll(); stopTempo(); document.removeEventListener('keydown', onKey); backing.leave(); };
+  return () => { solta(); if (aulasCtl) { aulasCtl.destroy(); aulasCtl = null; aulaTap = null; } cancel(); stopAll(); stopTempo(); document.removeEventListener('keydown', onKey); backing.leave(); };
 }
