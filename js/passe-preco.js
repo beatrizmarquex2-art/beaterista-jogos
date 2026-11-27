@@ -4,4 +4,4 @@ import { TXT_PIX, TXT_CARTAO } from './oferta.js';
 import { emOferta, brl, PRECO_NORMAL_PIX, nomeOferta, ateOferta } from './oferta-precos.js';
 export const PASSE_NORMAL = PRECO_NORMAL_PIX; export const PASSE_OFERTA = 49.9;
 /** { oferta, atual, de, ate, cartao, normal }. */
-export function precoPasse(agora = Date.now()) { return { oferta: emOferta(agora), atual: TXT_PIX, de: '', nome: nomeOferta(agora), ate: ateOferta(agora) === '15/12' ? '15 de dezembro' : '31 de dezembro', cartao: TXT_CARTAO, normal: brl(PRECO_NORMAL_PIX) }; }
+export function precoPasse(agora = Date.now()) { return { oferta: emOferta(agora), atual: TXT_PIX, de: '', bf: ateOferta(agora) === '15/12', nome: nomeOferta(agora), ate: ateOferta(agora) === '15/12' ? '15 de dezembro' : '31 de dezembro', cartao: TXT_CARTAO, normal: brl(PRECO_NORMAL_PIX) }; }
