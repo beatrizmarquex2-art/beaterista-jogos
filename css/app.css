@@ -1765,3 +1765,8 @@ html.kb-open .bottom-nav, html.kb-open .to-top, html.kb-open .scroll-track, html
 .cod-nome-bt { background: none; border: 0; padding: 0; margin: 0; font: inherit; font-weight: 700; color: inherit; text-align: left; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
 .cod-nome-bt i { font-style: normal; opacity: .55; }
 .cod-edit { display: grid; gap: 14px; }
+
+/* Tela de carregamento sazonal (js/sazonal-boot.js): a arte é tela cheia com o "carregando…" já desenhado; "contain" mantém a proporção em celular (preenche) e computador (centraliza sobre a cor do papel). Sem o atributo, vale o Paul de sempre. */
+html[data-sazonal] .boot { position: fixed; inset: 0; z-index: 50; padding: 0; margin: 0; font-size: 0; color: transparent; background: var(--saz-img) center / contain no-repeat, #f5ede3; }
+html[data-sazonal] .boot::before { display: none; }
+@media (min-aspect-ratio: 13/25) and (max-aspect-ratio: 1/1) { html[data-sazonal] .boot { background-size: cover; } } /* tela quase do formato da arte (9:16): preenche; celular mais alto, deitado e computador: a arte inteira, sem cortar nem esticar */

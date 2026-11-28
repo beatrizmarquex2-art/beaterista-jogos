@@ -1744,7 +1744,7 @@ button.dc-chip{cursor:pointer;min-height:36px}
 .pf-paul-op{width:52px;height:52px;padding:0;border:2px solid #162146;border-radius:50%!important;overflow:hidden;background:#fff;box-shadow:2px 3px 0 #162146;cursor:pointer}
 .pf-paul-op img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%!important}
 .pf-sala small{display:block;font-weight:600;margin-top:2px}
-.pf-top .pf-paules{grid-column:1/-1}.pf-paules-lista{justify-content:space-between;flex-wrap:nowrap}
+.pf-top .pf-paules{grid-column:1/-1}.pf-paules-lista{justify-content:flex-start;flex-wrap:wrap;gap:8px}
 .pf-paules .pf-paul-op{width:42px;height:42px;flex:none;aspect-ratio:1}
 /* Pauls: embaixo do código, na coluna da esquerda, 2 por linha (pedido da Bea) */
 .pf-left .pf-paules{width:100%}.pf-left .pf-paules p{text-align:center}
@@ -2386,3 +2386,8 @@ html.jg-fit .jg-game > .jg-top > .jg-link { grid-area: voltar; } html.jg-fit .jg
 .au-acoes { display: grid; gap: 8px; justify-items: stretch; } .au-acoes .btn { min-height: 52px; font-size: 16px; } .au-acoes .au-go { font-size: 19px; }
 .au-pauta svg { width: 100%; height: auto; }
 @media (prefers-reduced-motion: reduce) { .au-banner .au-quem.vez { animation: none; } }
+.jg-figurix .fx-op.fx-op-txt { min-height: 54px; padding: 8px 10px; } .jg-figurix .fx-op.fx-op-txt b { font: 700 14px/1.2 var(--body, inherit); text-align: center; text-transform: none; }
+
+/* troca de foto no passe do Início (sheet): mesmas bolinhas do Perfil, em linha que quebra */
+.in-foto-lista { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 8px 0 12px; }
+.in-foto-lista .pf-paul-op { width: 56px; height: 56px; flex: none; }
