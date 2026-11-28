@@ -1,5 +1,15 @@
 [
   {
+    "id": "show-filmes",
+    "tag": "evento",
+    "titulo": "Show Beaterista: Filmes",
+    "texto": "7 e 8 de dezembro, no Alice's Rock Pub, com o lançamento oficial do Beaterista Play",
+    "botao": "ver o cartaz",
+    "href": "assets/novidades/show-beaterista-filmes.jpg",
+    "externo": true,
+    "cor": "vinho"
+  },
+  {
     "id": "lojinha-nova",
     "tag": "novidade",
     "titulo": "tem novidade na lojinha!",
