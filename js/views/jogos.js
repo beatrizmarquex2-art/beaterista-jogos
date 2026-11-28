@@ -139,6 +139,20 @@ function atalhoCodigoAluno() {
   return box;
 }
 
+/** Só na área dos alunos e sem código: cartão que leva à vitrine dos jogos que ensinam (ver por dentro, sem jogar). */
+function atalhoVitrine() {
+  if (!ALUNO() || AC.liberado()) return null;
+  const c = h('a', { class: 'card pad pm-atalho', href: '#/premium' }, h('span', { class: 'pm-ic', 'aria-hidden': 'true' }, '🎓'), h('span', { class: 'pm-tx' }, h('b', {}, 'jogos que ensinam de verdade'), h('small', {}, 'Toca Aqui, Detetive, Figurix, Rudimentix, pauLta e Treino livre: veja por dentro')), h('span', { 'aria-hidden': 'true' }, '▶'));
+  document.addEventListener('aluno-acesso', () => c.remove(), { once: true });
+  return c;
+}
+/** Sem código de aluno não tem sala nem jogo com amigos: aparece só um aviso (some e vira o atalho de sala quando o código é liberado). */
+function atalhoSalaOuTrava() {
+  if (!ALUNO() || AC.liberado()) return atalhoSala();
+  const caixa = h('div', { class: 'jg-sala-trava' }); const aviso = () => h('section', { class: 'card pad am-lock jg-sala-aviso', role: 'note' }, h('span', { class: 'am-i', 'aria-hidden': 'true' }, '🔒'), h('p', {}, 'jogar com amigos, em sala ou em 2 celulares abre com o código de aluno. sem código você joga contra o robô (Paul).'), h('a', { class: 'btn small', href: '#/lojinha' }, 'gerar meu código'));
+  caixa.append(aviso()); document.addEventListener('aluno-acesso', () => { caixa.replaceChildren(atalhoSala()); }, { once: true });
+  return caixa;
+}
 function atalhoSala() {
   const msg = h('p', { class: 'jg-msg', role: 'status', 'aria-live': 'polite' });
   const inp = h('input', { type: 'text', class: 'jg-code-in jg-code-big', maxlength: 6, autocomplete: 'off', autocapitalize: 'characters', spellcheck: 'false', placeholder: 'código da sala', 'aria-label': 'código da sala',
@@ -220,7 +234,7 @@ function catalog(host) {
           h('button', { type: 'button', 'aria-label': `${off ? 'Mostrar' : 'Esconder'} ${x[1]}`, onclick: () => (off ? savePrefs({ ...p, hidden: p.hidden.filter((y) => y !== k) }) : change({ ...p, hidden: [...p.hidden, k] }, `${x[1]} escondido`)) }, off ? '↺' : '✕')) : null);
     }) : [h('p', { class: 'jg-p', style: { gridColumn: '1 / -1' } }, 'Nenhum favorito ainda. Toque em “☆ marcar” e depois na ☆ de um jogo.')]));
   };
-  host.replaceChildren(banner('Jogos', 'todos os jogos num lugar só'), paulDica({ compacto: true }), h('div', { class: 'pad-x', style: 'display:grid;gap:10px' }, atalhoCodigoAluno(), atalhoContinuar(), atalhoSala(), cartaoPasse({ onde: 'jogos', compacto: true })), catWrap = h('div', { class: `jg jg-wrap jg-cat${darkOn('') ? ' jg-dark' : ''}` }, bar, grid));
+  host.replaceChildren(banner('Jogos', 'todos os jogos num lugar só'), paulDica({ compacto: true }), h('div', { class: 'pad-x', style: 'display:grid;gap:10px' }, atalhoCodigoAluno(), atalhoVitrine(), atalhoContinuar(), atalhoSalaOuTrava(), cartaoPasse({ onde: 'jogos', compacto: true })), catWrap = h('div', { class: `jg jg-wrap jg-cat${darkOn('') ? ' jg-dark' : ''}` }, bar, grid));
   draw();
   // (o Paul já fala pelo cartão azul do topo, que muda a cada volta; o balão solto não aparece mais em cima dele)
   // arrastar o próprio jogo (no modo editar; no dedo, segurando um instante): a nova ordem dos que estão na tela entra no lugar deles na ordem completa
