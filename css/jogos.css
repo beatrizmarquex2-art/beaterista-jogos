@@ -2479,3 +2479,33 @@ html.jg-fit .jg-game > .jg-top > .jg-link { grid-area: voltar; } html.jg-fit .jg
 .fgm-carta.up { background: #fff6e0; color: #0f1b33; border-color: #ffd23f; } .fgm-carta.par { color: #0f1b33; } .fgm-sym, .fgm-carta.up .fgm-sym { color: #0f1b33; }
 .fgq-campo { background: radial-gradient(120% 90% at 50% 0, #1f5a96, #0a1a33 70%); }
 .fgq-nome { background: linear-gradient(165deg, #2f6bb5, #173a69); border-color: #8cc0ff; }
+
+
+
+/* ---------- Ranking dos alunos (js/views/ranking-tela.js, ícones em js/ranking-icones.js): visual PALCO (escolha da Bea, 28/nov) ---------- */
+.rk { --rk-bg: #14213a; --rk-fg: #fff7e6; --rk-ac: #f7b733; --rk-ac2: #e8384f; --rk-card: rgb(255 255 255 / .08); --rk-linha: rgb(255 255 255 / .18); --rk-t: var(--display, 'Anton', sans-serif); --rk-n: var(--body, system-ui); position: relative; background: var(--rk-bg); color: var(--rk-fg); border-radius: 18px; padding: 14px 12px 12px; display: grid; gap: 10px; overflow: hidden; font-family: var(--rk-n); }
+.rk-i { display: block; width: 40px; height: 40px; overflow: visible; }
+.rk-cab { position: relative; display: grid; grid-template-columns: 46px 1fr 46px; align-items: center; gap: 8px; }
+.rk-seta { width: 46px; height: 46px; border-radius: 50% !important; border: 3px solid var(--rk-fg); background: var(--rk-card); color: var(--rk-fg); padding: 0; display: grid; place-items: center; cursor: pointer; } .rk-seta:active { transform: scale(.93); }
+.rk-seta-i { width: 22px; height: 22px; } .rk-seta-i g { stroke: currentColor; }
+.rk-tit { text-align: center; display: grid; justify-items: center; gap: 2px; min-width: 0; } .rk-i-tit { width: 54px; height: 54px; filter: drop-shadow(0 3px 0 rgb(0 0 0 / .35)); }
+.rk-tit b { font: 400 24px/1.05 var(--rk-t); color: var(--rk-ac); } .rk-tit small { font-size: 12px; opacity: .8; }
+.rk-pts { display: flex; justify-content: center; gap: 8px; } .rk-pts button { width: 10px; height: 10px; padding: 0; border-radius: 50% !important; border: 0; background: var(--rk-linha); cursor: pointer; } .rk-pts button.on { width: 24px; border-radius: 6px !important; background: var(--rk-ac); }
+.rk-abas { display: flex; justify-content: center; gap: 6px; } .rk-abas button { min-height: 36px; padding: 0 16px; border-radius: 999px !important; border: 2px solid var(--rk-linha); background: var(--rk-card); color: var(--rk-fg); font: 800 13px/1 var(--rk-n); cursor: pointer; } .rk-abas button.on { background: var(--rk-ac); color: #142036; border-color: var(--rk-ac); }
+.rk-corpo { min-height: 240px; display: grid; gap: 10px; align-content: start; } .rk-vazio { text-align: center; opacity: .85; padding: 40px 10px; margin: 0; }
+.rk-podio { display: grid; grid-template-columns: 1fr 1.15fr 1fr; align-items: end; gap: 8px; padding-top: 8px; }
+.rk-lugar { display: grid; justify-items: center; gap: 2px; text-align: center; min-width: 0; } .rk-lugar.vazio { visibility: hidden; }
+.rk-i-med { width: 46px; height: 46px; filter: drop-shadow(0 3px 0 rgb(0 0 0 / .3)); } .rk-lugar.l1 .rk-i-med { width: 64px; height: 64px; }
+.rk-nome { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; font-weight: 800; } .rk-lugar.l1 .rk-nome { font-size: 17px; color: var(--rk-ac); } .rk-lugar small { font-size: 12px; opacity: .85; }
+.rk-base { width: 100%; font: 400 28px/1 var(--rk-t); font-style: normal; padding: 10px 0 6px; border-radius: 10px 10px 0 0; color: #142036; margin-top: 4px; }
+.rk-lugar.l1 .rk-base { background: linear-gradient(180deg, #ffe58a, #f7b733); padding-top: 28px; } .rk-lugar.l2 .rk-base { background: linear-gradient(180deg, #eef1f6, #b9c2d3); padding-top: 18px; } .rk-lugar.l3 .rk-base { background: linear-gradient(180deg, #f0b27a, #c07c3f); padding-top: 8px; }
+.rk-lugar.eu .rk-nome { background: rgb(247 183 51 / .3); border-radius: 8px; padding: 1px 8px; }
+.rk-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; } .rk-lista li { display: grid; grid-template-columns: 38px 1fr auto; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--rk-card); } .rk-lista li.eu { background: rgb(247 183 51 / .3); font-weight: 800; } .rk-pos { opacity: .8; font-weight: 800; } .rk-nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rk-fora { text-align: center; font-size: 13px; opacity: .9; margin: 0; }
+.rk-eu { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; font-size: 13px; padding-top: 6px; border-top: 1px solid var(--rk-linha); } .rk-toggle { display: inline-flex; align-items: center; gap: 6px; opacity: .85; font-size: 12px; } .rk-toggle input { width: 18px; height: 18px; }
+@media (max-width: 380px) { .rk-tit b { font-size: 20px; } .rk-nome { font-size: 13px; } }
+
+/* PALCO: preto com refletor vermelho, título em Anton (cartaz) e degraus metálicos */
+.rk { --rk-bg: #0d0e14; --rk-ac: #ffd23f; --rk-t: 'Anton', 'Impact', sans-serif; background-image: radial-gradient(80% 55% at 50% 0, rgb(232 56 79 / .55), transparent 70%), radial-gradient(60% 40% at 50% 100%, rgb(247 183 51 / .14), transparent 70%); border: 2px solid rgb(255 255 255 / .12); }
+.rk .rk-tit b { font-size: 28px; text-transform: uppercase; letter-spacing: .02em; } .rk .rk-seta { border-color: #ffd23f; background: rgb(0 0 0 / .45); color: #ffd23f; }
+.rk .rk-base { font-size: 32px; text-shadow: 0 1px 0 rgb(255 255 255 / .6); box-shadow: inset 0 3px 0 rgb(255 255 255 / .5), 0 6px 14px rgb(0 0 0 / .5); } .rk .rk-lugar.l1 .rk-nome { text-transform: uppercase; letter-spacing: .03em; font-size: 18px; } .rk .rk-lista li { border-left: 4px solid #e8384f; }

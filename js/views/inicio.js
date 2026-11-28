@@ -240,6 +240,7 @@ export function mount(host, { nome = '' } = {}) {
     h('a', { href: '#/jogos' }, h('b', {}, 'jogos'), 'Hero Drum, Piano Hero, Beat Hero e mais'),
     h('a', { href: '#/estudos' }, h('b', {}, 'estudos'), 'aulas do Paul e dicionário'),
     h('a', { href: '#/tocar' }, h('b', {}, 'palco'), 'bateria, violão, teclado e xilofone'),
+    h('a', { href: '#/ranking' }, h('b', {}, 'ranking'), 'quem terminou mundos, juntou figurinhas e estudou mais'),
     h('a', { href: '#/lojinha' }, h('b', {}, 'lojinha'), 'cards e apostilas pra imprimir'));
 
   // Ex-alunos com matrícula encerrada: oferta para manter o mesmo código e progresso.
