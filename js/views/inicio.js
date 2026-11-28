@@ -233,7 +233,7 @@ export function mount(host, { nome = '' } = {}) {
     const hoje = new Date(); const dia = Math.floor(Date.UTC(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()) / 86400000);
     l = l.map((n) => { if (!Array.isArray(n.rodizio)) return n; const ok = n.rodizio.filter((v) => (!v.desde || hoje.getTime() >= Date.parse(`${v.desde}T00:00:00-03:00`)) && (!v.ate || hoje.getTime() <= Date.parse(`${v.ate}T23:59:59-03:00`))); return ok.length ? { ...n, ...ok[dia % ok.length] } : n; });
     rail.replaceChildren(...l.map((n) => h('a', { class: `in-nv c-${n.cor || 'azul'}`, role: 'listitem', href: n.href, target: n.externo ? '_blank' : null, rel: n.externo ? 'noopener' : null },
-      h('small', {}, n.tag), h('b', {}, n.titulo), h('p', {}, n.texto), h('span', { class: 'in-nv-bt' }, n.botao || 'ver')))); novidades.hidden = false;
+      h('small', {}, n.tag), h('b', {}, n.titulo), n.data ? h('em', { class: 'in-nv-dt' }, n.data) : null, h('p', {}, n.texto), h('span', { class: 'in-nv-bt' }, n.botao || 'ver')))); novidades.hidden = false;
   }).catch(() => { /* sem internet: a seção fica escondida */ });
 
   const atalhos = h('div', { class: 'in-prox' },
